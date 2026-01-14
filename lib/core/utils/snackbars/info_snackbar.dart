@@ -17,10 +17,10 @@ class InfoSnackbar extends GetSnackBar {
   SnackPosition get snackPosition => SnackPosition.TOP;
 
   @override
-  Color get backgroundColor => Colors.blueGrey;
+  Color get backgroundColor => Colors.blue[600]!;
 
   @override
-  Duration? get duration => const Duration(seconds: 5);
+  Duration? get duration => const Duration(seconds: 3);
 
   @override
   Widget? get icon => const Icon(Icons.error_outlined, color: Colors.white);
