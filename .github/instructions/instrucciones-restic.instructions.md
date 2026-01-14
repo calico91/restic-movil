@@ -60,6 +60,7 @@ lib/
 3. **Manejo de Errores**: Implementa bloques `try-catch` en los `Repositories` y devuelve errores procesados o excepciones personalizadas.
 4. **Imports**: Prefiere imports absolutos `package:restic_movil/...` sobre relativos `../../`.
 5. **Assets**: Coloca imágenes en `assets/images` e iconos en `assets/icons`.
+6. **Decalaracion de Variables**: Usa `final` y `const` siempre que sea posible para inmutabilidad y declara el tipo de la variable.
 
 # Configuración Adicional
 - Crear archivo `.env` en la raíz para URLs y Keys.

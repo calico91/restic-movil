@@ -157,15 +157,15 @@ class BaseHttpClient {
 
       switch (statusCode) {
         case 400:
-          throw BadRequestException(errorMessage, url);
+          throw BadRequestException(errorMessage, url, jsonResponse);
         case 401:
         case 403:
-          throw UnauthorizedException(errorMessage, url);
+          throw UnauthorizedException(errorMessage, url, jsonResponse);
         case 404:
-          throw FetchDataException('Recurso no encontrado ($errorMessage)', url);
+          throw NotFoundException(errorMessage, url, jsonResponse);
         case 500:
         default:
-          throw FetchDataException(errorMessage, url);
+          throw FetchDataException(errorMessage, url, jsonResponse);
       }
     }
   }

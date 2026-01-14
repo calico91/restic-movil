@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/repositories/auth_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
@@ -48,12 +49,7 @@ class LoginController extends GetxController {
               // Get.offAllNamed(Routes.HOME);
             }
           } catch (e) {
-            String errorMessage = e.toString();
-
-            try {
-              errorMessage = (e as dynamic).message;
-            } catch (_) {}
-
+            final String errorMessage = ExceptionHandler.extractMessage(e);
             Get.showSnackbar(ErrorSnackbar(errorMessage));
           }
         },
