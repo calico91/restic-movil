@@ -109,6 +109,11 @@ class BaseHttpClient {
       headers['Authorization'] = 'Bearer $token'; 
     }
 
+    final branchId = await _storageService.getBranchId();
+    if (branchId != null && branchId.isNotEmpty) {
+      headers['X-Branch-Id'] = branchId;
+    }
+
     return headers;
   }
 
