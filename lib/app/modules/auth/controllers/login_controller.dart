@@ -53,6 +53,7 @@ class LoginController extends GetxController {
         /* 
         si el usuario tiene una sola sucursal, se guarda y se navega al home
         si tiene mas de una sucursal, se muestra el modal para seleccionar
+        si no tiene sucursales, se muestra un error
         */
         if (response!.branches != null && response.branches!.isNotEmpty) {
           if (response.branches!.length == 1) {
