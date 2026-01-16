@@ -22,7 +22,6 @@ class NavigationItem {
 class HomeController extends GetxController {
   final StorageService _storageService = Get.find<StorageService>();
   final currentIndex = 0.obs;
-  final isLoading = true.obs;
   final RxList<NavigationItem> navigationItems = <NavigationItem>[].obs;
 
   @override
@@ -34,7 +33,6 @@ class HomeController extends GetxController {
   /*metodo para validar roles y cargar items de navegación */
   Future<void> _loadNavigationItems() async {
     try {
-      isLoading.value = true;
       final user = await _storageService.getUser();
 
       if (user == null) {
@@ -81,8 +79,6 @@ class HomeController extends GetxController {
       }
     } catch (e) {
       debugPrint('Error loading navigation items: $e');
-    } finally {
-      isLoading.value = false;
     }
   }
 
