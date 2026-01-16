@@ -35,7 +35,7 @@ class StorageService extends GetxService {
 
   Future<void> saveUser(LoginResponse user) async {
     final userMap = user.toJson();
-    userMap.remove('token'); 
+    userMap.remove('token');
     await _storage.write(key: _userKey, value: jsonEncode(userMap));
   }
 

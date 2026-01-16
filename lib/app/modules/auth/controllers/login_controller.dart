@@ -47,7 +47,12 @@ class LoginController extends GetxController {
             return response;
           } catch (e) {
             final String errorMessage = ExceptionHandler.extractMessage(e);
-            Get.showSnackbar(ErrorSnackbar(errorMessage));
+            final String recomendations = ExceptionHandler.extractMessage(
+              e,
+              attribute: 'recommendation',
+            );
+            
+            Get.showSnackbar(ErrorSnackbar(errorMessage + recomendations));
           }
         },
       ).then((response) async {
@@ -56,19 +61,13 @@ class LoginController extends GetxController {
         si tiene mas de una sucursal, se muestra el modal para seleccionar
         si no tiene sucursales, se muestra un error
         */
-        if (response!.branches != null && response.branches!.isNotEmpty) {
-          if (response.branches!.length == 1) {
-            await storageService.saveBranchId(response.branches!.first.id!);
-            Get.offAllNamed(Routes.HOME);
-          } else {
-            BranchSelectionModal.show(response.branches!, storageService);
-          }
+        if (response == null) return;
+
+        if (response.branches!.length == 1) {
+          await storageService.saveBranchId(response.branches!.first.id!);
+          Get.offAllNamed(Routes.HOME);
         } else {
-          Get.showSnackbar(
-            ErrorSnackbar(
-              'No hay sucursales asociadas al usuario, contacte al administrador.',
-            ),
-          );
+          BranchSelectionModal.show(response.branches!, storageService);
         }
       });
     } else {

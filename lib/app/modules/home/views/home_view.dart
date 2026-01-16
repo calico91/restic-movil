@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:restic_movil/app/modules/cash_register/views/cash_register_view.dart';
-import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
-import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
 import 'package:restic_movil/core/utils/widgets/custom_app_bar.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -12,27 +9,28 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      String title;
-      switch (controller.currentIndex.value) {
-        case 0:
-          title = 'Pedidos';
-          break;
-        case 1:
-          title = 'Comandas';
-          break;
-        case 2:
-          title = 'Caja';
-          break;
-        default:
-          title = 'Pedidos';
+      // Como se garantiza que el usuario tiene roles (validado en login),
+      // si la lista está vacía significa que aún estamos cargando los datos del Storage.
+      // Se muestra el loading hasta que se obtengan los items permitidos.
+      if (controller.navigationItems.isEmpty) {
+        return const Scaffold(
+          backgroundColor: Color(0xFFF5F6FA),
+          body: Center(child: CircularProgressIndicator()),
+        );
       }
+
+      final currentIndex =
+          controller.currentIndex.value < controller.navigationItems.length
+              ? controller.currentIndex.value
+              : 0;
+      final currentItem = controller.navigationItems[currentIndex];
 
       return Scaffold(
         extendBodyBehindAppBar: true,
         extendBody: true,
         backgroundColor: const Color(0xFFF5F6FA),
         appBar: CustomAppBar(
-          title: title,
+          title: currentItem.title,
           icons: [IconButton(icon: const Icon(Icons.menu), onPressed: () {})],
         ),
         body: Stack(
@@ -53,12 +51,10 @@ class HomeView extends GetView<HomeController> {
                       ),
                       padding: const EdgeInsets.only(top: 20),
                       child: IndexedStack(
-                        index: controller.currentIndex.value,
-                        children: const [
-                          OrdersView(),
-                          CommandsView(),
-                          CashRegisterView(),
-                        ],
+                        index: currentIndex,
+                        children: controller.navigationItems
+                            .map((e) => e.view)
+                            .toList(),
                       ),
                     ),
                   ),
@@ -69,7 +65,7 @@ class HomeView extends GetView<HomeController> {
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
-          child: _buildBottomNavBar(),
+          child: _buildBottomNavBar(currentIndex),
         ),
       );
     });
@@ -88,7 +84,7 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildBottomNavBar() {
+  Widget _buildBottomNavBar(int currentIndex) {
     return Container(
       height: 60,
       decoration: BoxDecoration(
@@ -102,27 +98,16 @@ class HomeView extends GetView<HomeController> {
           ),
         ],
       ),
-      child: Obx(
-        () => Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _navItem(
-              Icons.receipt_long,
-              controller.currentIndex.value == 0,
-              onTap: () => controller.changePage(0),
-            ),
-            _navItem(
-              Icons.restaurant,
-              controller.currentIndex.value == 1,
-              onTap: () => controller.changePage(1),
-            ),
-            _navItem(
-              Icons.credit_card,
-              controller.currentIndex.value == 2,
-              onTap: () => controller.changePage(2),
-            ),
-          ],
-        ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: List.generate(controller.navigationItems.length, (index) {
+          final item = controller.navigationItems[index];
+          return _navItem(
+            item.icon,
+            currentIndex == index,
+            onTap: () => controller.changePage(index),
+          );
+        }),
       ),
     );
   }
