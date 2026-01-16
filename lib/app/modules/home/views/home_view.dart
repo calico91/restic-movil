@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register_view.dart';
+import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
 import 'package:restic_movil/core/utils/widgets/custom_app_bar.dart';
@@ -11,13 +12,27 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      final isOrdersTab = controller.currentIndex.value == 0;
+      String title;
+      switch (controller.currentIndex.value) {
+        case 0:
+          title = 'Pedidos';
+          break;
+        case 1:
+          title = 'Comandas';
+          break;
+        case 2:
+          title = 'Caja';
+          break;
+        default:
+          title = 'Pedidos';
+      }
+
       return Scaffold(
         extendBodyBehindAppBar: true,
         extendBody: true,
         backgroundColor: const Color(0xFFF5F6FA),
         appBar: CustomAppBar(
-          title: isOrdersTab ? 'Pedidos' : 'Caja',
+          title: title,
           icons: [IconButton(icon: const Icon(Icons.menu), onPressed: () {})],
         ),
         body: Stack(
@@ -39,7 +54,11 @@ class HomeView extends GetView<HomeController> {
                       padding: const EdgeInsets.only(top: 20),
                       child: IndexedStack(
                         index: controller.currentIndex.value,
-                        children: const [OrdersView(), CashRegisterView()],
+                        children: const [
+                          OrdersView(),
+                          CommandsView(),
+                          CashRegisterView(),
+                        ],
                       ),
                     ),
                   ),
@@ -93,9 +112,14 @@ class HomeView extends GetView<HomeController> {
               onTap: () => controller.changePage(0),
             ),
             _navItem(
-              Icons.credit_card,
+              Icons.restaurant,
               controller.currentIndex.value == 1,
               onTap: () => controller.changePage(1),
+            ),
+            _navItem(
+              Icons.credit_card,
+              controller.currentIndex.value == 2,
+              onTap: () => controller.changePage(2),
             ),
           ],
         ),
