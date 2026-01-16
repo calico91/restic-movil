@@ -96,7 +96,7 @@ class HomeView extends GetView<HomeController> {
         borderRadius: BorderRadius.circular(30),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withValues(alpha: 0.1),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -134,7 +134,7 @@ class HomeView extends GetView<HomeController> {
         padding: const EdgeInsets.all(10),
         decoration: isActive
             ? BoxDecoration(
-                color: Colors.red.withOpacity(0.2),
+                color: Colors.red.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               )
             : null,
