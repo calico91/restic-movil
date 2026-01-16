@@ -90,4 +90,26 @@ class HomeController extends GetxController {
   void changePage(int index) {
     currentIndex.value = index;
   }
+
+  Future<String> getUserName() async {
+    final user = await _storageService.getUser();
+    return user?.name ?? 'Usuario';
+  }
+
+  Future<String> getBranchName() async {
+    final branchId = await _storageService.getBranchId();
+    final user = await _storageService.getUser();
+    if (branchId != null && user?.branches != null) {
+      final branch = user!.branches!.firstWhereOrNull((b) => b.id == branchId);
+      return branch?.name ?? 'Restic Movil';
+    }
+    return 'Restic Movil';
+  }
+
+  Future<void> logout() async {
+    await _storageService.deleteToken();
+    await _storageService.deleteUser();
+    await _storageService.deleteBranchId();
+    Get.offAllNamed('/login');
+  }
 }

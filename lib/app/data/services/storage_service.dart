@@ -39,6 +39,10 @@ class StorageService extends GetxService {
     await _storage.write(key: _userKey, value: jsonEncode(userMap));
   }
 
+  Future<void> deleteUser() async {
+    await _storage.delete(key: _userKey);
+  }
+
   Future<LoginResponse?> getUser() async {
     final userStr = await _storage.read(key: _userKey);
     if (userStr != null) {

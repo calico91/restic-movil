@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
+import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
 import 'package:restic_movil/core/utils/widgets/custom_app_bar.dart';
 
 class HomeView extends GetView<HomeController> {
@@ -29,9 +30,9 @@ class HomeView extends GetView<HomeController> {
         extendBodyBehindAppBar: true,
         extendBody: true,
         backgroundColor: const Color(0xFFF5F6FA),
+        drawer: const CustomDrawer(),
         appBar: CustomAppBar(
           title: currentItem.title,
-          icons: [IconButton(icon: const Icon(Icons.menu), onPressed: () {})],
         ),
         body: Stack(
           children: [

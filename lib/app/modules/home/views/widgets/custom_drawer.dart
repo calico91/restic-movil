@@ -1,0 +1,121 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
+
+class CustomDrawer extends GetView<HomeController> {
+  const CustomDrawer({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: Column(
+        children: [
+          _buildHeader(),
+          Expanded(
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _buildDrawerItem(
+                  icon: Icons.person_outline,
+                  title: 'Mi Perfil',
+                  onTap: () {},
+                ),
+                _buildDrawerItem(
+                  icon: Icons.settings_outlined,
+                  title: 'Configuración',
+                  onTap: () {},
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          _buildDrawerItem(
+            icon: Icons.logout,
+            title: 'Cerrar Sesión',
+            onTap: controller.logout,
+            color: Colors.red,
+          ),
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.only(top: 50, bottom: 20),
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.red, Colors.blue],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(3),
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white,
+            ),
+            child: const CircleAvatar(
+              radius: 40,
+              backgroundImage: AssetImage('assets/images/logo.png'), 
+              // Fallback or placeholder if logo not present, using Icon for now until asset is confirmed
+              child: Icon(Icons.person, size: 40, color: Colors.grey),
+            ),
+          ),
+          const SizedBox(height: 10),
+          FutureBuilder(
+            future: controller.getUserName(),
+            builder: (context, snapshot) {
+              return Text(
+                snapshot.data ?? 'Usuario',
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
+              );
+            },
+          ),
+          const SizedBox(height: 5),
+          FutureBuilder(
+            future: controller.getBranchName(),
+            builder: (context, snapshot) {
+              return Text(
+                snapshot.data ?? 'Restic Movil',
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 14,
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDrawerItem({
+    required IconData icon,
+    required String title,
+    required VoidCallback onTap,
+    Color? color,
+  }) {
+    return ListTile(
+      leading: Icon(icon, color: color ?? Colors.black87),
+      title: Text(
+        title,
+        style: TextStyle(
+          color: color ?? Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+}
