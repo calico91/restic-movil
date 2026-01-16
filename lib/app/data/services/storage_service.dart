@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import '../models/login_response.dart';
 
 class StorageService extends GetxService {
   final _storage = const FlutterSecureStorage();
   static const _tokenKey = 'auth_token';
   static const _branchIdKey = 'branch_id';
+  static const _userKey = 'user_info';
 
   Future<void> saveToken(String token) async {
     await _storage.write(key: _tokenKey, value: token);
@@ -28,5 +31,19 @@ class StorageService extends GetxService {
 
   Future<void> deleteBranchId() async {
     await _storage.delete(key: _branchIdKey);
+  }
+
+  Future<void> saveUser(LoginResponse user) async {
+    final userMap = user.toJson();
+    userMap.remove('token'); 
+    await _storage.write(key: _userKey, value: jsonEncode(userMap));
+  }
+
+  Future<LoginResponse?> getUser() async {
+    final userStr = await _storage.read(key: _userKey);
+    if (userStr != null) {
+      return LoginResponse.fromJson(jsonDecode(userStr));
+    }
+    return null;
   }
 }

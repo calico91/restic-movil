@@ -43,6 +43,7 @@ class LoginController extends GetxController {
             );
 
             await storageService.saveToken(response.token!);
+            await storageService.saveUser(response);
             return response;
           } catch (e) {
             final String errorMessage = ExceptionHandler.extractMessage(e);

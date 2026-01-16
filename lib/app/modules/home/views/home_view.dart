@@ -5,7 +5,6 @@ import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
 import 'package:restic_movil/core/utils/widgets/custom_app_bar.dart';
 
-
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
 
