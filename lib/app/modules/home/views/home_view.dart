@@ -10,9 +10,9 @@ class HomeView extends GetView<HomeController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      // Como se garantiza que el usuario tiene roles (validado en login),
-      // si la lista está vacía significa que aún estamos cargando los datos del Storage.
-      // Se muestra el loading hasta que se obtengan los items permitidos.
+      /*Como se garantiza que el usuario tiene roles (validado en login),
+        si la lista está vacía significa que aún estamos cargando los datos del Storage.
+        Se muestra el loading hasta que se obtengan los items permitidos. */
       if (controller.navigationItems.isEmpty) {
         return const Scaffold(
           backgroundColor: Color(0xFFF5F6FA),
@@ -22,8 +22,9 @@ class HomeView extends GetView<HomeController> {
 
       final currentIndex =
           controller.currentIndex.value < controller.navigationItems.length
-              ? controller.currentIndex.value
-              : 0;
+          ? controller.currentIndex.value
+          : 0;
+          
       final currentItem = controller.navigationItems[currentIndex];
 
       return CustomScaffold(
@@ -31,9 +32,7 @@ class HomeView extends GetView<HomeController> {
         drawer: const CustomDrawer(),
         body: IndexedStack(
           index: currentIndex,
-          children: controller.navigationItems
-              .map((e) => e.view)
-              .toList(),
+          children: controller.navigationItems.map((e) => e.view).toList(),
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
