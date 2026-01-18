@@ -1,7 +1,9 @@
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/origin_type.dart';
+import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
+import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
@@ -9,10 +11,12 @@ import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 
 class TakeOrderController extends GetxController {
   final OrdersRepository ordersRepository;
+  final TablesRepository tablesRepository;
   final StorageService storageService;
 
   TakeOrderController({
     required this.ordersRepository,
+    required this.tablesRepository,
     required this.storageService,
   });
 
@@ -21,6 +25,23 @@ class TakeOrderController extends GetxController {
   });
 
   final RxList<OriginType> originTypes = <OriginType>[].obs;
+  final RxList<TableModel> tables = <TableModel>[].obs;
+  final RxList<String> selectedTableIds = <String>[].obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    
+    // Escuchar cambios en el origen
+    form.control('origin').valueChanges.listen((value) {
+      if (value == 'SALON') {
+        _loadTables();
+      } else {
+        tables.clear();
+        selectedTableIds.clear();
+      }
+    });
+  }
 
   @override
   void onReady() {
@@ -52,6 +73,29 @@ class TakeOrderController extends GetxController {
         }
       },
     );
+  }
+
+  Future<void> _loadTables() async {
+    Get.showOverlay(
+      loadingWidget: LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final result = await tablesRepository.getAvailableTables();
+          tables.assignAll(result);
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
+  void toggleTableSelection(String tableId) {
+    if (selectedTableIds.contains(tableId)) {
+      selectedTableIds.remove(tableId);
+    } else {
+      selectedTableIds.add(tableId);
+    }
   }
 
   void goBack() {

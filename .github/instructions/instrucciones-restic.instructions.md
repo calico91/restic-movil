@@ -80,6 +80,7 @@ Evitar variables booleanas de loading (ej. isLoading). Usar el siguiente patrón
 4. **Imports**: Prefiere imports absolutos `package:restic_movil/...` sobre relativos `../../`.
 5. **Assets**: Coloca imágenes en `assets/images` e iconos en `assets/icons`.
 6. **Decalaracion de Variables**: Usa `final` y `const` siempre que sea posible para inmutabilidad y declara el tipo de la variable.
+7. **EndPoints**: Mantener centralizados los path de los servicios en `lib/app/data/http/url_paths.dart`.
 
 # Configuración Adicional
 - Crear archivo `.env` en la raíz para URLs y Keys.
