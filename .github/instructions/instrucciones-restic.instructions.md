@@ -54,6 +54,25 @@ lib/
 │   └── values/              # Assets paths, Strings constantes
 └── main.dart
 
+# Consumo de servicios en controller (GetX Pattern)
+Evitar variables booleanas de loading (ej. isLoading). Usar el siguiente patrón para llamadas asíncronas con feedback visual:
+
+  Get.showOverlay(
+        loadingWidget: LoadingCharging(),
+        asyncFunction: () async {
+          // Lógica asíncrona aquí
+        },
+      );
+
+
+
+# UI/UX Rules
+1. **AppBar**: Todas las pantallas deben usar `CustomAppBar`. Esta barra soporta un gradiente de fondo (provisto por la vista) y texto blanco.
+   - Para pantallas principales con Drawer, se usa por defecto.
+   - Para pantallas secundarias con navegación atrás, usar `showBackButton: true`.
+   - Se debe importar desde `package:restic_movil/core/utils/widgets/custom_app_bar.dart`.
+2. **Background**: Las vistas que usen `CustomAppBar` deben implementar un fondo con gradiente en la parte superior para asegurar la legibilidad del AppBar transparente.
+
 # Reglas de Desarrollo
 1. **Nombramiento**: Usa `snake_case` para archivos y carpetas, `CamelCase` para clases.
 2. **Inyección de Dependencias**: Usa `Get.lazyPut` en los `Bindings` para optimizar memoria.

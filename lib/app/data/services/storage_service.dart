@@ -33,6 +33,22 @@ class StorageService extends GetxService {
     await _storage.delete(key: _branchIdKey);
   }
 
+  Future<void> saveOrderOrigins(List<dynamic> origins) async {
+    await _storage.write(key: 'order_origins', value: jsonEncode(origins));
+  }
+
+  Future<List<dynamic>?> getOrderOrigins() async {
+    final originsStr = await _storage.read(key: 'order_origins');
+    if (originsStr != null) {
+      return jsonDecode(originsStr);
+    }
+    return null;
+  }
+
+  Future<void> deleteOrderOrigins() async {
+    await _storage.delete(key: 'order_origins');
+  }
+
   Future<void> saveUser(LoginResponse user) async {
     final userMap = user.toJson();
     userMap.remove('token');

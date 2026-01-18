@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
-
+import 'package:restic_movil/app/routes/app_routes.dart';
 
 class OrdersView extends GetView<OrdersController> {
   const OrdersView({super.key});
@@ -54,7 +54,9 @@ class OrdersView extends GetView<OrdersController> {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            Get.toNamed(Routes.TAKE_ORDER);
+          },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.green[600],
             shape: RoundedRectangleBorder(
@@ -77,18 +79,20 @@ class OrdersView extends GetView<OrdersController> {
 
   Widget _buildOrdersList() {
     return Expanded(
-      child: Obx(() => ListView.builder(
-            padding: const EdgeInsets.only(
-              left: 16,
-              right: 16,
-              bottom: 80, // Space for the floating bottom nav
-            ),
-            itemCount: controller.orders.length,
-            itemBuilder: (context, index) {
-              final order = controller.orders[index];
-              return _buildOrderCard(order);
-            },
-          )),
+      child: Obx(
+        () => ListView.builder(
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            bottom: 80, // Space for the floating bottom nav
+          ),
+          itemCount: controller.orders.length,
+          itemBuilder: (context, index) {
+            final order = controller.orders[index];
+            return _buildOrderCard(order);
+          },
+        ),
+      ),
     );
   }
 
@@ -108,8 +112,11 @@ class OrdersView extends GetView<OrdersController> {
         statusColor = Colors.grey;
     }
 
-    final currencyFormat =
-        NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+    );
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -148,8 +155,11 @@ class OrdersView extends GetView<OrdersController> {
             ],
           ),
           const SizedBox(height: 10),
-          _buildInfoRow('Monto a pagar:', currencyFormat.format(order.amount),
-              isBold: true),
+          _buildInfoRow(
+            'Monto a pagar:',
+            currencyFormat.format(order.amount),
+            isBold: true,
+          ),
           _buildInfoRow('Estado:', order.status, valueColor: statusColor),
           _buildInfoRow('Fecha y hora:', order.date),
         ],
@@ -157,17 +167,18 @@ class OrdersView extends GetView<OrdersController> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value,
-      {bool isBold = false, Color? valueColor}) {
+  Widget _buildInfoRow(
+    String label,
+    String value, {
+    bool isBold = false,
+    Color? valueColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            label,
-            style: const TextStyle(color: Colors.black87),
-          ),
+          Text(label, style: const TextStyle(color: Colors.black87)),
           Text(
             value,
             style: TextStyle(
