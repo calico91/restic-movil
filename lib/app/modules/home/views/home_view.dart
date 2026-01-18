@@ -27,42 +27,31 @@ class HomeView extends GetView<HomeController> {
       final currentItem = controller.navigationItems[currentIndex];
 
       return Scaffold(
-        extendBodyBehindAppBar: true,
         extendBody: true,
         backgroundColor: const Color(0xFFF5F6FA),
         drawer: const CustomDrawer(),
         appBar: CustomAppBar(
           title: currentItem.title,
         ),
-        body: Stack(
-          children: [
-            _buildBackgroundGradient(),
-            SafeArea(
-              child: Column(
-                children: [
-                  const SizedBox(height: 10),
-                  Expanded(
-                    child: Container(
-                      width: double.infinity,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFFF5F6FA),
-                        borderRadius: BorderRadius.vertical(
-                          top: Radius.circular(30),
-                        ),
-                      ),
-                      padding: const EdgeInsets.only(top: 20),
-                      child: IndexedStack(
-                        index: currentIndex,
-                        children: controller.navigationItems
-                            .map((e) => e.view)
-                            .toList(),
-                      ),
-                    ),
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF5F6FA),
                   ),
-                ],
+                  child: IndexedStack(
+                    index: currentIndex,
+                    children: controller.navigationItems
+                        .map((e) => e.view)
+                        .toList(),
+                  ),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
@@ -70,19 +59,6 @@ class HomeView extends GetView<HomeController> {
         ),
       );
     });
-  }
-
-  Widget _buildBackgroundGradient() {
-    return Container(
-      height: 180,
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.red, Colors.blue],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-      ),
-    );
   }
 
   Widget _buildBottomNavBar(int currentIndex) {
