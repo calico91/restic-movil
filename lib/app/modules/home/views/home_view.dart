@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
-import 'package:restic_movil/core/utils/widgets/custom_app_bar.dart';
+import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -26,32 +26,14 @@ class HomeView extends GetView<HomeController> {
               : 0;
       final currentItem = controller.navigationItems[currentIndex];
 
-      return Scaffold(
-        extendBody: true,
-        backgroundColor: const Color(0xFFF5F6FA),
+      return CustomScaffold(
+        title: currentItem.title,
         drawer: const CustomDrawer(),
-        appBar: CustomAppBar(
-          title: currentItem.title,
-        ),
-        body: SafeArea(
-          child: Column(
-            children: [
-              Expanded(
-                child: Container(
-                  width: double.infinity,
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF5F6FA),
-                  ),
-                  child: IndexedStack(
-                    index: currentIndex,
-                    children: controller.navigationItems
-                        .map((e) => e.view)
-                        .toList(),
-                  ),
-                ),
-              ),
-            ],
-          ),
+        body: IndexedStack(
+          index: currentIndex,
+          children: controller.navigationItems
+              .map((e) => e.view)
+              .toList(),
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),

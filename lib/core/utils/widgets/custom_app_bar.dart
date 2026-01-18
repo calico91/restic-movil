@@ -29,15 +29,6 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
       centerTitle: true,
       backgroundColor: Colors.transparent,
       elevation: 0,
-      flexibleSpace: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.red, Colors.blue],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
-        ),
-      ),
       actions: icons,
       leading: showBackButton ? BackArrowIcon(onPressed: onBack) : null,
       iconTheme: const IconThemeData(color: Colors.white),
