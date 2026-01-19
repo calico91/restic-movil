@@ -4,6 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
+import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 
 class TakeOrderView extends GetView<TakeOrderController> {
   const TakeOrderView({super.key});
@@ -15,7 +16,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
       showBackButton: true,
       onBack: controller.goBack,
       body: Obx(() {
-        return Padding(
+        return SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -25,24 +26,21 @@ class TakeOrderView extends GetView<TakeOrderController> {
                 child: _buildOriginDropdown(),
               ),
               const SizedBox(height: 20),
-              if (controller.tables.isNotEmpty) ...[
-                const Text(
-                  'Mesas Disponibles',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                Expanded(
-                  child: GridView.builder(
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 10,
-                      mainAxisSpacing: 10,
-                      childAspectRatio: 1.5,
-                    ),
+              if (controller.tables.isNotEmpty)
+                ExpandableSection(
+                  title: 'Mesas Disponibles',
+                  initiallyExpanded: true,
+                  content: GridView.builder(
+                    padding: EdgeInsets.zero,
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.0,
+                        ),
                     itemCount: controller.tables.length,
                     itemBuilder: (context, index) {
                       final table = controller.tables[index];
@@ -50,7 +48,6 @@ class TakeOrderView extends GetView<TakeOrderController> {
                     },
                   ),
                 ),
-              ],
             ],
           ),
         );
@@ -69,9 +66,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
       }).toList(),
       decoration: InputDecoration(
         labelText: 'Origen de pedido',
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(15),
-        ),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
         filled: true,
         fillColor: Colors.grey[100],
       ),

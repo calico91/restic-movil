@@ -72,6 +72,8 @@ Evitar variables booleanas de loading (ej. isLoading). Usar el siguiente patrón
    - Soporte para Drawer, BottomNavigationBar y botón de "Atrás".
    - Se debe importar desde `package:restic_movil/core/utils/widgets/custom_scaffold.dart`.
 2. **Estructura de la Vista**: Mantener el método `build` limpio, pasando el contenido principal al parámetro `body` del `CustomScaffold`.
+3. **Secciones Expandibles**: Para mostrar información detallada que puede ocupar mucho espacio (ej. listas, grids), usar el widget `ExpandableSection`. 
+   - Se debe importar desde `package:restic_movil/core/utils/widgets/expandable_section.dart`.
 
 # Reglas de Desarrollo
 1. **Nombramiento**: Usa `snake_case` para archivos y carpetas, `CamelCase` para clases.
