@@ -20,8 +20,11 @@ class TakeOrderView extends GetView<TakeOrderController> {
         if (controller.currentOrder.isEmpty) return const SizedBox.shrink();
         return FloatingActionButton.extended(
           onPressed: () => _showOrderSummary(context),
-          label: Text('Ver Pedido (${controller.currentOrder.length})'),
-          icon: const Icon(Icons.shopping_cart),
+          label: Text(
+            'Ver Pedido (${controller.currentOrder.length})',
+            style: TextStyle(color: Colors.white),
+          ),
+          icon: const Icon(Icons.shopping_cart, color: Colors.white),
           backgroundColor: Colors.blue[900],
         );
       }),
@@ -179,29 +182,119 @@ class TakeOrderView extends GetView<TakeOrderController> {
                     childrenPadding: const EdgeInsets.only(left: 16),
                     children:
                         subcategory.products?.map((product) {
-                          return ListTile(
-                            title: Text(product.name ?? ''),
-                            subtitle: Text(product.description ?? ''),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  '\$${product.price?.amount?.toStringAsFixed(0) ?? '0'}',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green,
-                                  ),
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 8),
+                            decoration: BoxDecoration(
+                              border: Border(
+                                bottom: BorderSide(
+                                  color: Colors.grey[200]!,
+                                  width: 1,
                                 ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.add_circle,
-                                    color: Colors.blue,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          product.name ?? '',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        if (product.description != null)
+                                          Text(
+                                            product.description!,
+                                            style: TextStyle(
+                                              fontSize: 12,
+                                              color: Colors.grey[600],
+                                            ),
+                                          ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '\$${product.price?.amount?.toStringAsFixed(0) ?? '0'}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.green,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   ),
-                                  onPressed: () =>
-                                      _showAddProductDialog(context, product),
-                                ),
-                              ],
+                                  Row(
+                                    children: [
+                                      IconButton(
+                                        onPressed: () => _showAddProductDialog(
+                                          context,
+                                          product,
+                                        ),
+                                        icon: const Icon(
+                                          Icons.edit_note,
+                                          color: Colors.orange,
+                                        ),
+                                        tooltip: 'Agregar con notas',
+                                      ),
+                                      Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.grey[100],
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.remove,
+                                                color: Colors.red,
+                                                size: 20,
+                                              ),
+                                              onPressed: () => controller
+                                                  .decrementProduct(product),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 36,
+                                                minHeight: 36,
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                            Obx(
+                                              () => Text(
+                                                '${controller.getProductQuantity(product)}',
+                                                style: const TextStyle(
+                                                  fontSize: 16,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                            IconButton(
+                                              icon: const Icon(
+                                                Icons.add,
+                                                color: Colors.green,
+                                                size: 20,
+                                              ),
+                                              onPressed: () => controller
+                                                  .incrementProduct(product),
+                                              constraints: const BoxConstraints(
+                                                minWidth: 36,
+                                                minHeight: 36,
+                                              ),
+                                              padding: EdgeInsets.zero,
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           );
                         }).toList() ??

@@ -123,10 +123,56 @@ class TakeOrderController extends GetxController {
 
   /*agregar producto al pedido */
   void addToOrder(ProductModel product, int quantity, String? comment) {
-    currentOrder.add(
-      OrderItemModel(product: product, quantity: quantity, comment: comment),
+    // Verificar si ya existe el producto con el mismo comentario
+    final index = currentOrder.indexWhere(
+      (item) => item.product.id == product.id && item.comment == comment,
     );
-    Get.back(); // Close dialog
+
+    if (index != -1) {
+      currentOrder[index].quantity += quantity;
+      currentOrder.refresh(); // Refresh list to update UI
+    } else {
+      currentOrder.add(
+        OrderItemModel(product: product, quantity: quantity, comment: comment),
+      );
+    }
+
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+  }
+
+  /*incrementar cantidad de producto (sin comentarios)*/
+  void incrementProduct(ProductModel product) {
+    addToOrder(product, 1, null);
+  }
+
+  /*decrementar cantidad de producto (sin comentarios)*/
+  void decrementProduct(ProductModel product) {
+    final index = currentOrder.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          (item.comment == null || item.comment!.isEmpty),
+    );
+
+    if (index != -1) {
+      if (currentOrder[index].quantity > 1) {
+        currentOrder[index].quantity--;
+        currentOrder.refresh();
+      } else {
+        currentOrder.removeAt(index);
+      }
+    }
+  }
+
+  /*obtener cantidad de producto en el pedido (solo sin comentarios para el contador simple)*/
+  int getProductQuantity(ProductModel product) {
+    final item = currentOrder.firstWhereOrNull(
+      (item) =>
+          item.product.id == product.id &&
+          (item.comment == null || item.comment!.isEmpty),
+    );
+    return item?.quantity ?? 0;
   }
 
   void removeFromOrder(OrderItemModel item) {
