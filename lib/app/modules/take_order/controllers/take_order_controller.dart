@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/origin_type.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
@@ -32,11 +33,15 @@ class TakeOrderController extends GetxController {
   final RxList<TableModel> tables = <TableModel>[].obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<String> selectedTableIds = <String>[].obs;
+  final RxList<OrderItemModel> currentOrder = <OrderItemModel>[].obs;
+
+  double get totalOrderAmount =>
+      currentOrder.fold(0, (sum, item) => sum + item.total);
 
   @override
   void onInit() {
     super.onInit();
-    
+
     // Escuchar cambios en el origen
     form.control('origin').valueChanges.listen((value) {
       if (value == 'SALON') {
@@ -59,10 +64,7 @@ class TakeOrderController extends GetxController {
       loadingWidget: LoadingCharging(),
       asyncFunction: () async {
         try {
-          await Future.wait([
-            _fetchOriginTypes(),
-            _fetchCategories(),
-          ]);
+          await Future.wait([_fetchOriginTypes(), _fetchCategories()]);
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
@@ -71,6 +73,7 @@ class TakeOrderController extends GetxController {
     );
   }
 
+  /*consultar origen del pedido */
   Future<void> _fetchOriginTypes() async {
     final savedOrigins = await storageService.getOrderOrigins();
 
@@ -87,11 +90,13 @@ class TakeOrderController extends GetxController {
     }
   }
 
+  /*consultar las categorias, subcategorias y productos */
   Future<void> _fetchCategories() async {
     final result = await categoriesRepository.getCategories();
     categories.assignAll(result);
   }
 
+  /*consultar las mesas disponibles */
   Future<void> _loadTables() async {
     Get.showOverlay(
       loadingWidget: LoadingCharging(),
@@ -107,12 +112,25 @@ class TakeOrderController extends GetxController {
     );
   }
 
+  /*seleccionar o deseleccionar mesa */
   void toggleTableSelection(String tableId) {
     if (selectedTableIds.contains(tableId)) {
       selectedTableIds.remove(tableId);
     } else {
       selectedTableIds.add(tableId);
     }
+  }
+
+  /*agregar producto al pedido */
+  void addToOrder(ProductModel product, int quantity, String? comment) {
+    currentOrder.add(
+      OrderItemModel(product: product, quantity: quantity, comment: comment),
+    );
+    Get.back(); // Close dialog
+  }
+
+  void removeFromOrder(OrderItemModel item) {
+    currentOrder.remove(item);
   }
 
   void goBack() {

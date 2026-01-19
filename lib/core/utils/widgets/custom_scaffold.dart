@@ -9,6 +9,7 @@ class CustomScaffold extends StatelessWidget {
   final List<Widget>? actions;
   final Widget? bottomNavigationBar;
   final Widget? drawer;
+  final Widget? floatingActionButton;
   final Color backgroundColor;
 
   const CustomScaffold({
@@ -20,6 +21,7 @@ class CustomScaffold extends StatelessWidget {
     this.actions,
     this.bottomNavigationBar,
     this.drawer,
+    this.floatingActionButton,
     this.backgroundColor = const Color(0xFFF5F6FA),
   });
 
@@ -29,6 +31,7 @@ class CustomScaffold extends StatelessWidget {
       extendBodyBehindAppBar: true,
       extendBody: true,
       backgroundColor: backgroundColor,
+      resizeToAvoidBottomInset: false, // Prevents resizing when keyboard opens
       appBar: CustomAppBar(
         title: title,
         showBackButton: showBackButton,
@@ -36,6 +39,7 @@ class CustomScaffold extends StatelessWidget {
         icons: actions,
       ),
       drawer: drawer,
+      floatingActionButton: floatingActionButton,
       body: Stack(
         children: [
           _buildBackgroundGradient(),
