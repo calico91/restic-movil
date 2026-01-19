@@ -86,4 +86,5 @@ Evitar variables booleanas de loading (ej. isLoading). Usar el siguiente patrón
 
 # Configuración Adicional
 - Crear archivo `.env` en la raíz para URLs y Keys.
-- Configurar `analysis_options.yaml` para ser estricto con los lints.
+- Configurar `analysis_options.yaml` para ser estricto con los lints. 
+- Generar siempre las respuestas en español.

@@ -29,6 +29,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
               if (controller.tables.isNotEmpty)
                 ExpandableSection(
                   title: 'Mesas Disponibles',
+                  icon: Icons.table_restaurant,
                   initiallyExpanded: true,
                   content: GridView.builder(
                     padding: EdgeInsets.zero,
@@ -49,7 +50,12 @@ class TakeOrderView extends GetView<TakeOrderController> {
                   ),
                 ),
               const SizedBox(height: 20),
-              _buildProductsSection(),
+              StreamBuilder(
+                stream: controller.form.control('origin').valueChanges,
+                builder: (context, snapshot) {
+                  return _buildProductsSection();
+                },
+              ),
             ],
           ),
         );
@@ -131,7 +137,9 @@ class TakeOrderView extends GetView<TakeOrderController> {
 
   /*muestra la seccion de productos */
   Widget _buildProductsSection() {
-    if (controller.categories.isEmpty) return const SizedBox.shrink();
+    if (controller.categories.isEmpty || controller.form.control('origin').value == null) {
+      return const SizedBox.shrink();
+    }
 
     return ExpandableSection(
       title: 'Productos',
