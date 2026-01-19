@@ -48,6 +48,8 @@ class TakeOrderView extends GetView<TakeOrderController> {
                     },
                   ),
                 ),
+              const SizedBox(height: 20),
+              _buildProductsSection(),
             ],
           ),
         );
@@ -55,6 +57,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
     );
   }
 
+  /*muestra inforamcion sobre el origen del pedido  */
   Widget _buildOriginDropdown() {
     return ReactiveDropdownField<String>(
       formControlName: 'origin',
@@ -73,6 +76,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
     );
   }
 
+  /*muestra la tarjeta de la mesa */
   Widget _buildTableCard(TableModel table) {
     return Obx(() {
       final isSelected = controller.selectedTableIds.contains(table.id);
@@ -123,5 +127,58 @@ class TakeOrderView extends GetView<TakeOrderController> {
         ),
       );
     });
+  }
+
+  /*muestra la seccion de productos */
+  Widget _buildProductsSection() {
+    if (controller.categories.isEmpty) return const SizedBox.shrink();
+
+    return ExpandableSection(
+      title: 'Productos',
+      icon: Icons.fastfood,
+      content: ListView.builder(
+        padding: EdgeInsets.zero,
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: controller.categories.length,
+        itemBuilder: (context, index) {
+          final category = controller.categories[index];
+          return ExpansionTile(
+            title: Text(
+              category.name ?? '',
+              style: const TextStyle(fontWeight: FontWeight.bold),
+            ),
+            childrenPadding: const EdgeInsets.only(left: 16),
+            children:
+                category.subcategories?.map((subcategory) {
+                  return ExpansionTile(
+                    title: Text(
+                      subcategory.name ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    subtitle: Text(subcategory.description ?? ''),
+                    childrenPadding: const EdgeInsets.only(left: 16),
+                    children:
+                        subcategory.products?.map((product) {
+                          return ListTile(
+                            title: Text(product.name ?? ''),
+                            subtitle: Text(product.description ?? ''),
+                            trailing: Text(
+                              '\$${product.price?.amount?.toStringAsFixed(0) ?? '0'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                              ),
+                            ),
+                          );
+                        }).toList() ??
+                        [],
+                  );
+                }).toList() ??
+                [],
+          );
+        },
+      ),
+    );
   }
 }

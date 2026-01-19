@@ -9,4 +9,7 @@ class UrlPaths {
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
+
+  // Categories
+  static const String getCategories = 'categories/all';
 }
