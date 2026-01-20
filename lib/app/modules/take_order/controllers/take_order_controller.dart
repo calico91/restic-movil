@@ -125,9 +125,15 @@ class TakeOrderController extends GetxController {
 
   /*agregar producto al pedido */
   void addToOrder(ProductModel product, int quantity, String? comment) {
+    // Normalizar comentario: tratar vacíos o solo espacios como null
+    final normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
+
     // Verificar si ya existe el producto con el mismo comentario
     final index = currentOrder.indexWhere(
-      (item) => item.product.id == product.id && item.comment == comment,
+      (item) =>
+          item.product.id == product.id && item.comment == normalizedComment,
     );
 
     if (index != -1) {
@@ -135,7 +141,11 @@ class TakeOrderController extends GetxController {
       currentOrder.refresh(); // Refresh list to update UI
     } else {
       currentOrder.add(
-        OrderItemModel(product: product, quantity: quantity, comment: comment),
+        OrderItemModel(
+          product: product,
+          quantity: quantity,
+          comment: normalizedComment,
+        ),
       );
     }
 
@@ -151,6 +161,7 @@ class TakeOrderController extends GetxController {
 
   /*decrementar cantidad de producto (sin comentarios)*/
   void decrementProduct(ProductModel product) {
+    // Busca items sin comentarios (productos estándar)
     final index = currentOrder.indexWhere(
       (item) =>
           item.product.id == product.id &&
@@ -164,17 +175,18 @@ class TakeOrderController extends GetxController {
       } else {
         currentOrder.removeAt(index);
       }
+    } else {
+      // Opcional: Si se desea decrementar productos con notas, habria que decidir cuál quitar.
+      // Por seguridad, aqui solo quitamos los que no tienen notas (agregados con +).
+      // Si el usuario quiere quitar uno con notas, debe hacerlo desde el resumen.
     }
   }
 
-  /*obtener cantidad de producto en el pedido (solo sin comentarios para el contador simple)*/
+  /*obtener cantidad de producto en el pedido (total, sin importar notas)*/
   int getProductQuantity(ProductModel product) {
-    final item = currentOrder.firstWhereOrNull(
-      (item) =>
-          item.product.id == product.id &&
-          (item.comment == null || item.comment!.isEmpty),
-    );
-    return item?.quantity ?? 0;
+    return currentOrder
+        .where((item) => item.product.id == product.id)
+        .fold(0, (sum, item) => sum + item.quantity);
   }
 
   void removeFromOrder(OrderItemModel item) {
