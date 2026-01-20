@@ -11,4 +11,8 @@ class OrdersRepository {
     final response = await _client.get(UrlPaths.getOriginTypes);
     return (response as List).map((e) => OriginType.fromJson(e)).toList();
   }
+
+  Future<void> createOrder(Map<String, dynamic> data) async {
+    await _client.post(UrlPaths.createOrder, body: data);
+  }
 }

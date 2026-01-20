@@ -76,7 +76,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
     );
   }
 
-  /*muestra inforamcion sobre el origen del pedido  */
+  /*muestra informacion sobre el origen del pedido  */
   Widget _buildOriginDropdown() {
     return ReactiveDropdownField<String>(
       formControlName: 'origin',
@@ -390,6 +390,21 @@ class TakeOrderView extends GetView<TakeOrderController> {
               ],
             ),
             const Divider(),
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10),
+              child: ReactiveForm(
+                formGroup: controller.form,
+                child: ReactiveTextField(
+                  formControlName: 'observations',
+                  decoration: const InputDecoration(
+                    labelText: 'Observaciones generales del pedido',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.comment),
+                  ),
+                  maxLines: 2,
+                ),
+              ),
+            ),
             Flexible(
               child: Obx(() {
                 return ListView.builder(
@@ -438,13 +453,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
                   ),
                 ),
                 onPressed: () {
-                  // TODO: Implement Logic to Confirm Order
-                  Get.back();
-                  Get.snackbar(
-                    'Pedido',
-                    'Logica de confirmación pendiente',
-                    snackPosition: SnackPosition.BOTTOM,
-                  );
+                  controller.createOrder();
                 },
                 child: const Text(
                   'Confirmar Pedido',

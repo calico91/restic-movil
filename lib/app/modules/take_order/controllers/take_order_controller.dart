@@ -10,6 +10,7 @@ import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 
 class TakeOrderController extends GetxController {
@@ -27,6 +28,7 @@ class TakeOrderController extends GetxController {
 
   final form = FormGroup({
     'origin': FormControl<String>(validators: [Validators.required]),
+    'observations': FormControl<String>(value: ''),
   });
 
   final RxList<OriginType> originTypes = <OriginType>[].obs;
@@ -181,5 +183,52 @@ class TakeOrderController extends GetxController {
 
   void goBack() {
     Get.back();
+  }
+
+  Future<void> createOrder() async {
+    // Validar si es SALON y no tiene mesas seleccionadas
+    if (form.control('origin').value == 'SALON' && selectedTableIds.isEmpty) {
+      Get.showSnackbar(
+        const ErrorSnackbar('Debe seleccionar al menos una mesa'),
+      );
+      return;
+    }
+
+    final orderData = {
+      "details": currentOrder
+          .map(
+            (item) => {
+              "productId": item.product.id,
+              "quantity": item.quantity,
+              "observations": item.comment ?? "",
+            },
+          )
+          .toList(),
+      "originType": form.control('origin').value,
+      "tableIds": selectedTableIds.toList(),
+      "observations": form.control('observations').value ?? "",
+    };
+
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await ordersRepository.createOrder(orderData);
+          _clearForm();
+          if (Get.isBottomSheetOpen ?? false) Get.back(); // Cerrar el resumen
+          Get.showSnackbar(const InfoSnackbar('Pedido creado correctamente'));
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
+  void _clearForm() {
+    selectedTableIds.clear();
+    currentOrder.clear();
+    // Resetear el formulario completamnte, incluyendo el origen, dejandolo en null (estado inicial)
+    form.reset();
   }
 }
