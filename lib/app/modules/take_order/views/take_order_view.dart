@@ -36,7 +36,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
             children: [
               ReactiveForm(
                 formGroup: controller.form,
-                child: _buildOriginDropdown(),
+                child: _buildOriginSection(),
               ),
               const SizedBox(height: 20),
               if (controller.tables.isNotEmpty)
@@ -77,21 +77,33 @@ class TakeOrderView extends GetView<TakeOrderController> {
   }
 
   /*muestra informacion sobre el origen del pedido  */
-  Widget _buildOriginDropdown() {
-    return ReactiveDropdownField<String>(
-      formControlName: 'origin',
-      items: controller.originTypes.map((type) {
-        return DropdownMenuItem(
-          value: type.code,
-          child: Text(type.description ?? ''),
+  Widget _buildOriginSection() {
+    return ExpandableSection(
+      title: 'Origen de pedido',
+      icon: Icons.storefront,
+      initiallyExpanded: true,
+      content: Obx(() {
+        return Wrap(
+          spacing: 16,
+          children: controller.originTypes.map((type) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ReactiveRadio<String>(
+                  formControlName: 'origin',
+                  value: type.code ?? '',
+                  activeColor: Colors.blue[900],
+                  visualDensity: VisualDensity.compact,
+                ),
+                GestureDetector(
+                  onTap: () => controller.form.control('origin').value = type.code,
+                  child: Text(type.description ?? ''),
+                ),
+              ],
+            );
+          }).toList(),
         );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: 'Origen de pedido',
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-        filled: true,
-        fillColor: Colors.grey[100],
-      ),
+      }),
     );
   }
 
