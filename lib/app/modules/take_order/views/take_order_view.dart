@@ -96,7 +96,8 @@ class TakeOrderView extends GetView<TakeOrderController> {
                   visualDensity: VisualDensity.compact,
                 ),
                 GestureDetector(
-                  onTap: () => controller.form.control('origin').value = type.code,
+                  onTap: () =>
+                      controller.form.control('origin').value = type.code,
                   child: Text(type.description ?? ''),
                 ),
               ],
@@ -345,7 +346,6 @@ class TakeOrderView extends GetView<TakeOrderController> {
               decoration: const InputDecoration(
                 labelText: 'Comentarios',
                 border: OutlineInputBorder(),
-                hintText: 'Ej: Sin cebolla',
               ),
               maxLines: 3,
             ),

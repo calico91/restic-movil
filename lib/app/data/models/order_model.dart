@@ -1,15 +1,56 @@
+import 'package:restic_movil/app/data/models/order_detail_model.dart';
+import 'package:restic_movil/app/data/models/table_model.dart';
+
 class OrderModel {
-  final int id;
-  final String title;
-  final double amount;
-  final String status;
-  final String date;
+  final String? id;
+  final String? openingDate;
+  final String? status;
+  final String? originType;
+  final List<TableModel>? tables;
+  final String? observations;
+  final double? total;
+  final List<OrderDetailModel>? details;
 
   OrderModel({
-    required this.id,
-    required this.title,
-    required this.amount,
-    required this.status,
-    required this.date,
+    this.id,
+    this.openingDate,
+    this.status,
+    this.originType,
+    this.tables,
+    this.observations,
+    this.total,
+    this.details,
   });
+
+  factory OrderModel.fromJson(Map<String, dynamic> json) {
+    return OrderModel(
+      id: json['id'],
+      openingDate: json['openingDate'],
+      status: json['status'],
+      originType: json['originType'],
+      tables: json['tables'] != null
+          ? (json['tables'] as List).map((i) => TableModel.fromJson(i)).toList()
+          : null,
+      observations: json['observations'],
+      total: (json['total'] as num?)?.toDouble(),
+      details: json['details'] != null
+          ? (json['details'] as List)
+              .map((i) => OrderDetailModel.fromJson(i))
+              .toList()
+          : null,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'openingDate': openingDate,
+      'status': status,
+      'originType': originType,
+      'tables': tables?.map((i) => i.toJson()).toList(),
+      'observations': observations,
+      'total': total,
+      'details': details?.map((i) => i.toJson()).toList(),
+    };
+  }
 }

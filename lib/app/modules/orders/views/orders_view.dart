@@ -21,6 +21,7 @@ class OrdersView extends GetView<OrdersController> {
     );
   }
 
+  /*build barra de busqueda*/
   Widget _buildSearchBar() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -36,9 +37,10 @@ class OrdersView extends GetView<OrdersController> {
             ),
           ],
         ),
-        child: const TextField(
-          decoration: InputDecoration(
-            hintText: 'Buscar',
+        child: TextField(
+          controller: controller.searchController,
+          decoration: const InputDecoration(
+            hintText: 'Buscar por mesa',
             prefixIcon: Icon(Icons.search, color: Colors.blue),
             border: InputBorder.none,
             contentPadding: EdgeInsets.symmetric(vertical: 15),
@@ -48,6 +50,7 @@ class OrdersView extends GetView<OrdersController> {
     );
   }
 
+  /*build boton crear pedido*/
   Widget _buildCreateOrderButton() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -77,6 +80,7 @@ class OrdersView extends GetView<OrdersController> {
     );
   }
 
+  /*build lista de pedidos*/
   Widget _buildOrdersList() {
     return Expanded(
       child: Obx(
@@ -96,17 +100,26 @@ class OrdersView extends GetView<OrdersController> {
     );
   }
 
+  /*build tarjeta de pedido*/
   Widget _buildOrderCard(OrderModel order) {
     Color statusColor;
-    switch (order.status) {
-      case 'Pendiente':
+    String statusText = order.status ?? '';
+
+    switch (statusText.toUpperCase()) {
+      case 'PENDING':
+      case 'OPEN':
+        statusColor = Colors.orange;
+        statusText = 'Abierto';
+        break;
+      case 'PREPARING':
         statusColor = Colors.blue;
+        statusText = 'Preparando';
         break;
-      case 'Preparando':
-        statusColor = Colors.amber.shade700;
-        break;
-      case 'Entregado':
+      case 'READY':
+      case 'SERVED':
+      case 'DELIVERED':
         statusColor = Colors.green;
+        statusText = 'Entregado';
         break;
       default:
         statusColor = Colors.grey;
@@ -117,6 +130,23 @@ class OrdersView extends GetView<OrdersController> {
       symbol: '\$',
       decimalDigits: 0,
     );
+
+    // Formatear fecha
+    String dateText = '';
+    if (order.openingDate != null) {
+      try {
+        final date = DateTime.parse(order.openingDate!);
+        dateText = DateFormat('dd/MM, HH:mm').format(date);
+      } catch (_) {}
+    }
+
+    // Obtener titulo (Mesas)
+    String title = order.tables?.map((t) => t.name).join(', ') ?? 'Sin Mesa';
+    if (title.isEmpty && order.originType != null) {
+      title = order.originType!;
+    }
+
+    final idDisplay = order.id != null ? order.id!.substring(0, 8) : 'N/A';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -139,7 +169,7 @@ class OrdersView extends GetView<OrdersController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '#${order.id} - ${order.title}',
+                '#$idDisplay - $title',
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -157,16 +187,17 @@ class OrdersView extends GetView<OrdersController> {
           const SizedBox(height: 10),
           _buildInfoRow(
             'Monto a pagar:',
-            currencyFormat.format(order.amount),
+            currencyFormat.format(order.total ?? 0),
             isBold: true,
           ),
-          _buildInfoRow('Estado:', order.status, valueColor: statusColor),
-          _buildInfoRow('Fecha y hora:', order.date),
+          _buildInfoRow('Estado:', statusText, valueColor: statusColor),
+          _buildInfoRow('Fecha y hora:', dateText),
         ],
       ),
     );
   }
 
+  /*build fila de informacion en la tarjeta de pedido*/
   Widget _buildInfoRow(
     String label,
     String value, {

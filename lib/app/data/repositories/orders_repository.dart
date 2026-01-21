@@ -1,5 +1,6 @@
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
+import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/origin_type.dart';
 
 class OrdersRepository {
@@ -14,5 +15,10 @@ class OrdersRepository {
 
   Future<void> createOrder(Map<String, dynamic> data) async {
     await _client.post(UrlPaths.createOrder, body: data);
+  }
+
+  Future<List<OrderModel>> getOrdersByStatus(String status) async {
+    final response = await _client.get('${UrlPaths.getOrdersByStatus}/$status');
+    return (response as List).map((e) => OrderModel.fromJson(e)).toList();
   }
 }

@@ -8,6 +8,7 @@ import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
@@ -197,6 +198,7 @@ class TakeOrderController extends GetxController {
     Get.back();
   }
 
+  /*crear nuevo pedido*/
   Future<void> createOrder() async {
     // Validar si es SALON y no tiene mesas seleccionadas
     if (form.control('origin').value == 'SALON' && selectedTableIds.isEmpty) {
@@ -229,6 +231,11 @@ class TakeOrderController extends GetxController {
           _clearForm();
           if (Get.isBottomSheetOpen ?? false) Get.back(); // Cerrar el resumen
           Get.showSnackbar(const InfoSnackbar('Pedido creado correctamente'));
+
+          // Actualizar lista de pedidos si el controlador existe
+          if (Get.isRegistered<OrdersController>()) {
+            Get.find<OrdersController>().loadOrders(withOverlay: false);
+          }
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
