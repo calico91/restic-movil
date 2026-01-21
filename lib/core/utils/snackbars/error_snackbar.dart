@@ -19,7 +19,7 @@ class ErrorSnackbar extends GetSnackBar {
   SnackPosition get snackPosition => SnackPosition.TOP;
 
   @override
-  Color get backgroundColor => Colors.redAccent;
+  Color get backgroundColor => const Color(0xFFB71C1C).withValues(alpha: 0.8);
 
   @override
   Duration? get duration => const Duration(seconds: 3);
