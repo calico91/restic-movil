@@ -163,8 +163,13 @@ class TakeOrderView extends GetView<TakeOrderController> {
 
   /*muestra la seccion de productos */
   Widget _buildProductsSection() {
-    if (controller.categories.isEmpty ||
-        controller.form.control('origin').value == null) {
+    final origin = controller.form.control('origin').value;
+
+    if (controller.categories.isEmpty || origin == null) {
+      return const SizedBox.shrink();
+    }
+
+    if (origin == 'SALON' && controller.tables.isEmpty) {
       return const SizedBox.shrink();
     }
 

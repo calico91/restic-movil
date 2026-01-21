@@ -96,6 +96,11 @@ class TakeOrderController extends GetxController {
   /*consultar las categorias, subcategorias y productos */
   Future<void> _fetchCategories() async {
     final result = await categoriesRepository.getCategories();
+    if (result.isEmpty) {
+      Get.showSnackbar(
+        ErrorSnackbar("No hay productos asociados al establecimiento."),
+      );
+    }
     categories.assignAll(result);
   }
 
@@ -107,6 +112,14 @@ class TakeOrderController extends GetxController {
         try {
           final result = await tablesRepository.getAvailableTables();
           tables.assignAll(result);
+
+          if (result.isEmpty) {
+            Get.showSnackbar(
+              ErrorSnackbar(
+                "No hay mesas disponibles para realizar un pedido.",
+              ),
+            );
+          }
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
