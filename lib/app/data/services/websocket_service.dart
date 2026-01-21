@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -8,7 +9,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 class WebSocketService extends GetxService {
   StompClient? _client;
   final StorageService _storageService = Get.find<StorageService>();
-  
+
   // Stream controller to broadcast new orders
   final _ordersController = StreamController<OrderModel>.broadcast();
   Stream<OrderModel> get ordersStream => _ordersController.stream;
@@ -18,9 +19,9 @@ class WebSocketService extends GetxService {
 
   Future<void> connect() async {
     final branchId = await _storageService.getBranchId();
-    
+
     if (branchId == null) {
-      print("No branch ID found, cannot connect to WebSocket");
+      debugPrint("No branch ID found, cannot connect to WebSocket");
       return;
     }
 
@@ -29,11 +30,12 @@ class WebSocketService extends GetxService {
         url: _socketUrl,
         onConnect: (frame) => _onConnect(frame, branchId),
         beforeConnect: () async {
-          print('Connecting to WebSocket...');
+          debugPrint('Connecting to WebSocket...');
         },
-        onWebSocketError: (dynamic error) => print('WebSocket error: $error'),
-        onStompError: (frame) => print('Stomp error: ${frame.body}'),
-        onDisconnect: (frame) => print('Disconnected from WebSocket'),
+        onWebSocketError: (dynamic error) =>
+            debugPrint('WebSocket error: $error'),
+        onStompError: (frame) => debugPrint('Stomp error: ${frame.body}'),
+        onDisconnect: (frame) => debugPrint('Disconnected from WebSocket'),
       ),
     );
 
@@ -41,21 +43,21 @@ class WebSocketService extends GetxService {
   }
 
   void _onConnect(StompFrame frame, String branchId) {
-    print('Connected to WebSocket');
+    debugPrint('Connected to WebSocket');
     final destination = '/topic/branch/$branchId/orders/created';
-    print('Subscribing to $destination');
-    
+    debugPrint('Subscribing to $destination');
+
     _client?.subscribe(
       destination: destination,
       callback: (frame) {
         if (frame.body != null) {
           try {
-            print('Received order: ${frame.body}');
+            debugPrint('Received order: ${frame.body}');
             final Map<String, dynamic> json = jsonDecode(frame.body!);
             final order = OrderModel.fromJson(json);
             _ordersController.add(order);
           } catch (e) {
-            print('Error parsing order: $e');
+            debugPrint('Error parsing order: $e');
           }
         }
       },

@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
-import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import '../controllers/commands_controller.dart';
 
 class CommandsView extends GetView<CommandsController> {
@@ -12,27 +11,24 @@ class CommandsView extends GetView<CommandsController> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
-      title: 'Comandos',
-      body: Obx(() {
-        if (controller.orders.isEmpty) {
-          return const Center(
-            child: Text(
-              'No hay pedidos nuevos',
-              style: TextStyle(fontSize: 18, color: Colors.grey),
-            ),
-          );
-        }
-        return ListView.builder(
-          padding: const EdgeInsets.all(16),
-          itemCount: controller.orders.length,
-          itemBuilder: (context, index) {
-            final order = controller.orders[index];
-            return _buildOrderCard(context, order);
-          },
+    return Obx(() {
+      if (controller.orders.isEmpty) {
+        return const Center(
+          child: Text(
+            'No hay pedidos nuevos',
+            style: TextStyle(fontSize: 18, color: Colors.grey),
+          ),
         );
-      }),
-    );
+      }
+      return ListView.builder(
+        padding: const EdgeInsets.all(16),
+        itemCount: controller.orders.length,
+        itemBuilder: (context, index) {
+          final order = controller.orders[index];
+          return _buildOrderCard(context, order);
+        },
+      );
+    });
   }
 
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
@@ -169,7 +165,7 @@ class CommandsView extends GetView<CommandsController> {
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: order.details?.length ?? 0,
-                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final item = order.details![index];
                     return _buildDetailItem(item);
