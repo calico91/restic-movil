@@ -83,18 +83,22 @@ class OrdersView extends GetView<OrdersController> {
   /*build lista de pedidos*/
   Widget _buildOrdersList() {
     return Expanded(
-      child: Obx(
-        () => ListView.builder(
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: 80, // Space for the floating bottom nav
+      child: RefreshIndicator(
+        onRefresh: () async => await controller.loadOrders(withOverlay: false),
+        child: Obx(
+          () => ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(
+              left: 16,
+              right: 16,
+              bottom: 80, // Space for the floating bottom nav
+            ),
+            itemCount: controller.orders.length,
+            itemBuilder: (context, index) {
+              final order = controller.orders[index];
+              return _buildOrderCard(order);
+            },
           ),
-          itemCount: controller.orders.length,
-          itemBuilder: (context, index) {
-            final order = controller.orders[index];
-            return _buildOrderCard(order);
-          },
         ),
       ),
     );
