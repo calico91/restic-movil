@@ -21,4 +21,14 @@ class OrdersRepository {
     final response = await _client.get('${UrlPaths.getOrdersByStatus}/$status');
     return (response as List).map((e) => OrderModel.fromJson(e)).toList();
   }
+
+  Future<List<Map<String, dynamic>>> getOrderStatuses() async {
+    final response = await _client.get(UrlPaths.getOrderStatuses);
+    return List<Map<String, dynamic>>.from(response);
+  }
+
+  Future<List<Map<String, dynamic>>> getOrderDetailStatuses() async {
+    final response = await _client.get(UrlPaths.getOrderDetailStatuses);
+    return List<Map<String, dynamic>>.from(response);
+  }
 }

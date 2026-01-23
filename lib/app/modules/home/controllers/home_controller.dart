@@ -107,6 +107,8 @@ class HomeController extends GetxController {
     await _storageService.deleteUser();
     await _storageService.deleteBranchId();
     await _storageService.deleteOrderOrigins();
+    await _storageService.deleteOrderStatuses();
+    await _storageService.deleteOrderDetailStatuses();
     Get.offAllNamed('/login');
   }
 }

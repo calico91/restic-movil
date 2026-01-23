@@ -8,6 +8,8 @@ class UrlPaths {
   static const String getOriginTypes = 'orders/origin-types';
   static const String createOrder = 'orders/create';
   static const String getOrdersByStatus = 'orders/by-status';
+  static const String getOrderStatuses = 'orders/statuses';
+  static const String getOrderDetailStatuses = 'orders/detail-statuses';
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';

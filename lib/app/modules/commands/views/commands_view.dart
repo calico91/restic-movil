@@ -12,25 +12,34 @@ class CommandsView extends GetView<CommandsController> {
   @override
   Widget build(BuildContext context) {
     return Obx(() {
-      if (controller.orders.isEmpty) {
-        return const Center(
-          child: Text(
-            'No hay pedidos nuevos',
-            style: TextStyle(fontSize: 18, color: Colors.grey),
-          ),
-        );
-      }
-      return ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: controller.orders.length,
-        itemBuilder: (context, index) {
-          final order = controller.orders[index];
-          return _buildOrderCard(context, order);
-        },
+      return RefreshIndicator(
+        onRefresh: () async => await controller.loadOrders(),
+        child: controller.orders.isEmpty
+            ? ListView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                children: const [
+                  SizedBox(height: 50),
+                  Center(
+                    child: Text(
+                      'No hay pedidos nuevos',
+                      style: TextStyle(fontSize: 18, color: Colors.grey),
+                    ),
+                  ),
+                ],
+              )
+            : ListView.builder(
+                padding: const EdgeInsets.all(16),
+                physics: const AlwaysScrollableScrollPhysics(),
+                itemCount: controller.orders.length,
+                itemBuilder: (context, index) {
+                  final order = controller.orders[index];
+                  return _buildOrderCard(context, order);
+                },
+              ),
       );
     });
   }
-
+/*build tarjeta de pedido*/
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
     String formattedDate = order.openingDate ?? '';
     try {
@@ -112,18 +121,44 @@ class CommandsView extends GetView<CommandsController> {
     );
   }
 
+/*formatear mesas */
   String _formatTables(List<TableModel>? tables) {
     if (tables == null || tables.isEmpty) return 'N/A';
     return tables.map((t) => t.name).join(', ');
   }
 
+/*construir chip de estado */
   Widget _buildStatusChip(String? status) {
     Color color = Colors.grey;
-    if (status == 'OPEN') color = Colors.green;
+    String label = status ?? 'UNKNOWN';
+
+    // Obtener descripción si está disponible
+    if (status != null) {
+      label = controller.getStatusDescription(status);
+    }
+    switch (status) {
+      case 'Abierta':
+        color = Colors.orange;
+        break;
+      case 'IN_PREPARATION':
+      case 'PREPARING':
+        color = Colors.blue;
+        break;
+      case 'SERVED':
+      case 'READY':
+      case 'DELIVERED':
+        color = Colors.green;
+        break;
+      case 'CANCELLED':
+        color = Colors.red;
+        break;
+      default:
+        color = Colors.grey;
+    }
 
     return Chip(
       label: Text(
-        status ?? 'UNKNOWN',
+        label,
         style: const TextStyle(color: Colors.white, fontSize: 12),
       ),
       backgroundColor: color,
@@ -131,7 +166,7 @@ class CommandsView extends GetView<CommandsController> {
       visualDensity: VisualDensity.compact,
     );
   }
-
+/*mostrar detalles del pedido */
   void _showOrderDetails(BuildContext context, OrderModel order) {
     Get.dialog(
       Dialog(
@@ -194,6 +229,7 @@ class CommandsView extends GetView<CommandsController> {
     );
   }
 
+/*construir item de detalle */
   Widget _buildDetailItem(OrderDetailModel item) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
