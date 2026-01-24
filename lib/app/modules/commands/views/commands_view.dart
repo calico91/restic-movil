@@ -144,7 +144,7 @@ class CommandsView extends GetView<CommandsController> {
       case 'Finalizada':
         color = Colors.green;
         break;
-      case 'Cancelada':
+      case 'Anulada':
         color = Colors.red;
         break;
       default:
