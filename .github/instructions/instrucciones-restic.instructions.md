@@ -88,3 +88,5 @@ Evitar variables booleanas de loading (ej. isLoading). Usar el siguiente patrón
 - Crear archivo `.env` en la raíz para URLs y Keys.
 - Configurar `analysis_options.yaml` para ser estricto con los lints. 
 - Generar siempre las respuestas en español.
+- **Manejo de Errores Standard**: Usar siempre `ExceptionHandler.extractMessage(e)` para obtener el mensaje de error y mostrarlo con `Get.showSnackbar(ErrorSnackbar(errorMessage))`.
+- **Separación de UI y Lógica**: No construir widgets complejos dentro de los controladores (`GetxController`). Extraer widgets reutilizables a archivos separados (ej. `core/utils/modals/`) y usar `Get.dialog(Widget())`.

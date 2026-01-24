@@ -1,9 +1,14 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
+import 'package:restic_movil/core/utils/animations/loading_charging.dart';
+import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class CommandsController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -25,15 +30,12 @@ class CommandsController extends GetxController {
     _connectWebSocket();
   }
 
-/*cargar datos iniciales */
+  /*cargar datos iniciales */
   Future<void> _loadInitialData() async {
-    await Future.wait([
-      loadOrders(withOverlay: true),
-      _loadStatuses(),
-    ]);
+    await Future.wait([loadOrders(withOverlay: true), _loadStatuses()]);
   }
 
-/*cargar pedidos activos */
+  /*cargar pedidos activos */
   Future<void> loadOrders({bool withOverlay = false}) async {
     try {
       final result = await ordersRepository.getOrdersByStatus('OPEN');
@@ -49,7 +51,7 @@ class CommandsController extends GetxController {
     }
   }
 
-/*cargar estados de pedidos y detalles */
+  /*cargar estados de pedidos y detalles */
   Future<void> _loadStatuses() async {
     try {
       // Order Statuses
@@ -63,23 +65,28 @@ class CommandsController extends GetxController {
       }
 
       // Detail Statuses
-      final savedDetailStatuses =
-          await _storageService.getOrderDetailStatuses();
+      List<Map<String, dynamic>> details;
+      final savedDetailStatuses = await _storageService
+          .getOrderDetailStatuses();
+
       if (savedDetailStatuses != null && savedDetailStatuses.isNotEmpty) {
-        orderDetailStatuses.assignAll(
-          List<Map<String, dynamic>>.from(savedDetailStatuses),
-        );
+        details = List<Map<String, dynamic>>.from(savedDetailStatuses);
       } else {
-        final fetched = await ordersRepository.getOrderDetailStatuses();
-        orderDetailStatuses.assignAll(fetched);
-        await _storageService.saveOrderDetailStatuses(fetched);
+        details = await ordersRepository.getOrderDetailStatuses();
+        await _storageService.saveOrderDetailStatuses(details);
       }
+
+      // Filtrar SERVED en este controlador (Cocina)
+      orderDetailStatuses.assignAll(
+        details.where((s) => s['name'] != 'SERVED',).toList(),
+      );
     } catch (e) {
-      debugPrint('Error loading statuses: $e');
+      final String errorMessage = ExceptionHandler.extractMessage(e);
+      Get.showSnackbar(ErrorSnackbar(errorMessage));
     }
   }
 
-/*obtener descripcion del estado */
+  /*obtener descripcion del estado */
   String getStatusDescription(String statusName) {
     final status = orderStatuses.firstWhereOrNull(
       (s) => s['name'] == statusName,
@@ -87,7 +94,47 @@ class CommandsController extends GetxController {
     return status != null ? status['description'] : statusName;
   }
 
-/*conectar al websocket */
+  /*obtener descripcion del estado de detalle */
+  String getDetailStatusDescription(String statusName) {
+    final status = orderDetailStatuses.firstWhereOrNull(
+      (s) => s['name'] == statusName,
+    );
+    return status != null ? status['description'] : statusName;
+  }
+
+  /*actualizar estado de detalles */
+  Future<void> updateDetailsStatus(
+    List<String> detailIds,
+    String status,
+    String tableNames,
+  ) async {
+    Get.showOverlay(
+      loadingWidget: LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await ordersRepository.updateOrderDetailsStatus(detailIds, status);
+          await loadOrders(); // Recargar ordenes
+          Get.back(); // Cerrar modal de estado (si está abierto)
+          Get.back(); // Cerrar modal de detalles
+
+          // Mostrar modal éxito
+          Get.dialog(
+            ModalInfo(
+              title: '¡Operación Exitosa!',
+              message:
+                  'pedido asignado a $tableNames se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+              onClose: () => Get.back(),
+            ),
+          );
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
+  /*conectar al websocket */
   void _connectWebSocket() {
     _webSocketService.connect();
     _webSocketService.ordersStream.listen((order) {

@@ -39,7 +39,8 @@ class CommandsView extends GetView<CommandsController> {
       );
     });
   }
-/*build tarjeta de pedido*/
+
+  /*build tarjeta de pedido*/
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
     String formattedDate = order.openingDate ?? '';
     try {
@@ -99,11 +100,7 @@ class CommandsView extends GetView<CommandsController> {
                   child: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Icon(
-                        Icons.comment,
-                        size: 16,
-                        color: Colors.grey,
-                      ),
+                      const Icon(Icons.comment, size: 16, color: Colors.grey),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -121,13 +118,13 @@ class CommandsView extends GetView<CommandsController> {
     );
   }
 
-/*formatear mesas */
+  /*formatear mesas */
   String _formatTables(List<TableModel>? tables) {
     if (tables == null || tables.isEmpty) return 'N/A';
     return tables.map((t) => t.name).join(', ');
   }
 
-/*construir chip de estado */
+  /*construir chip de estado */
   Widget _buildStatusChip(String? status) {
     Color color = Colors.grey;
     String label = status ?? 'UNKNOWN';
@@ -140,16 +137,14 @@ class CommandsView extends GetView<CommandsController> {
       case 'Abierta':
         color = Colors.orange;
         break;
-      case 'IN_PREPARATION':
-      case 'PREPARING':
+      case 'Pagada':
         color = Colors.blue;
         break;
-      case 'SERVED':
-      case 'READY':
-      case 'DELIVERED':
+
+      case 'Finalizada':
         color = Colors.green;
         break;
-      case 'CANCELLED':
+      case 'Cancelada':
         color = Colors.red;
         break;
       default:
@@ -166,13 +161,14 @@ class CommandsView extends GetView<CommandsController> {
       visualDensity: VisualDensity.compact,
     );
   }
-/*mostrar detalles del pedido */
+
+  /*mostrar detalles del pedido */
   void _showOrderDetails(BuildContext context, OrderModel order) {
+    final RxSet<String> selectedIds = <String>{}.obs;
+
     Get.dialog(
       Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
@@ -194,32 +190,70 @@ class CommandsView extends GetView<CommandsController> {
                 ],
               ),
               const Divider(),
+              // Select All Row
+              Row(
+                children: [
+                  Obx(() {
+                    final isAllSelected =
+                        order.details != null &&
+                        order.details!.isNotEmpty &&
+                        selectedIds.length == order.details!.length;
+                    return Checkbox(
+                      value: isAllSelected,
+                      onChanged: (val) {
+                        if (val == true) {
+                          selectedIds.addAll(
+                            order.details?.map((e) => e.id!).toList() ?? [],
+                          );
+                        } else {
+                          selectedIds.clear();
+                        }
+                      },
+                    );
+                  }),
+                  const Text('Seleccionar Todos'),
+                ],
+              ),
               const SizedBox(height: 8),
               ConstrainedBox(
-                constraints: BoxConstraints(maxHeight: Get.height * 0.6),
+                constraints: BoxConstraints(maxHeight: Get.height * 0.5),
                 child: ListView.separated(
                   shrinkWrap: true,
                   itemCount: order.details?.length ?? 0,
                   separatorBuilder: (_, _) => const Divider(height: 1),
                   itemBuilder: (context, index) {
                     final item = order.details![index];
-                    return _buildDetailItem(item);
+                    return _buildDetailItem(item, selectedIds);
                   },
                 ),
               ),
               const SizedBox(height: 16),
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () => Get.back(),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blue[900],
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
+                child: Obx(
+                  () => ElevatedButton.icon(
+                    onPressed: selectedIds.isEmpty
+                        ? null
+                        : () => _showStatusSelection(
+                            context,
+                            selectedIds.toList(),
+                            order,
+                          ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[900],
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: Colors.grey[300],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    icon: const Icon(Icons.edit_note),
+                    label: const Text(
+                      'Cambiar Estado',
+                      style: TextStyle(fontSize: 16),
                     ),
                   ),
-                  child: const Text('Cerrar'),
                 ),
               ),
             ],
@@ -229,60 +263,125 @@ class CommandsView extends GetView<CommandsController> {
     );
   }
 
-/*construir item de detalle */
-  Widget _buildDetailItem(OrderDetailModel item) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          CircleAvatar(
-            backgroundColor: Colors.blue[100],
-            radius: 20,
-            child: Text(
-              '${item.quantity ?? 0}',
-              style: TextStyle(
-                color: Colors.blue[900],
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
+  /*mostrar selección de estado */
+  void _showStatusSelection(
+    BuildContext context,
+    List<String> detailIds,
+    OrderModel order,
+  ) {
+    Get.bottomSheet(
+      Container(
+        padding: const EdgeInsets.all(20),
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Seleccionar Nuevo Estado',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.productName ?? 'Producto desconocido',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-                Text(
-                  'Estado: ${item.status ?? "N/A"}',
-                  style: TextStyle(
-                    color: Colors.grey[600],
-                    fontSize: 12,
-                  ),
-                ),
-                if (item.observations != null && item.observations!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4.0),
+            const SizedBox(height: 20),
+            ...controller.orderDetailStatuses.map((status) {
+              return ListTile(
+                title: Text(status['description'] ?? status['name']),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  final tableNames =
+                      order.tables?.map((t) => t.name).join(', ') ?? '';
+                  controller.updateDetailsStatus(
+                    detailIds,
+                    status['name'],
+                    tableNames,
+                  );
+                },
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /*construir item de detalle con checkbox */
+  Widget _buildDetailItem(OrderDetailModel item, RxSet<String> selectedIds) {
+    if (item.id == null) return const SizedBox.shrink();
+
+    return Obx(
+      () => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Checkbox(
+              value: selectedIds.contains(item.id),
+              onChanged: (val) {
+                if (val == true) {
+                  selectedIds.add(item.id!);
+                } else {
+                  selectedIds.remove(item.id);
+                }
+              },
+            ),
+            Expanded(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  CircleAvatar(
+                    backgroundColor: Colors.blue[100],
+                    radius: 18,
                     child: Text(
-                      'Nota: ${item.observations}',
-                      style: const TextStyle(
-                        color: Colors.red,
-                        fontStyle: FontStyle.italic,
-                        fontSize: 12,
+                      '${item.quantity ?? 0}',
+                      style: TextStyle(
+                        color: Colors.blue[900],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
                       ),
                     ),
                   ),
-              ],
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          item.productName ?? 'Producto desconocido',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                        Text(
+                          'Estado: ${controller.getDetailStatusDescription(item.status ?? "N/A")}',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 12,
+                          ),
+                        ),
+                        if (item.observations != null &&
+                            item.observations!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2.0),
+                            child: Text(
+                              'Nota: ${item.observations}',
+                              style: const TextStyle(
+                                color: Colors.deepOrange,
+                                fontStyle: FontStyle.italic,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

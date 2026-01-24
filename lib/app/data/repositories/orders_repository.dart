@@ -31,4 +31,15 @@ class OrdersRepository {
     final response = await _client.get(UrlPaths.getOrderDetailStatuses);
     return List<Map<String, dynamic>>.from(response);
   }
+
+  Future<void> updateOrderDetailsStatus(
+    List<String> detailIds,
+    String status,
+  ) async {
+    final data = {
+      'detailIds': detailIds,
+      'status': status,
+    };
+    await _client.put(UrlPaths.updateOrderDetailStatus, body: data);
+  }
 }
