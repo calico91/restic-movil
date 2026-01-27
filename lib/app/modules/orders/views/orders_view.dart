@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
+import 'package:restic_movil/core/utils/modals/order_details_modal.dart';
 
 class OrdersView extends GetView<OrdersController> {
   const OrdersView({super.key});
@@ -96,7 +97,7 @@ class OrdersView extends GetView<OrdersController> {
             itemCount: controller.orders.length,
             itemBuilder: (context, index) {
               final order = controller.orders[index];
-              return _buildOrderCard(order);
+              return _buildOrderCard(context, order);
             },
           ),
         ),
@@ -105,7 +106,7 @@ class OrdersView extends GetView<OrdersController> {
   }
 
   /*build tarjeta de pedido*/
-  Widget _buildOrderCard(OrderModel order) {
+  Widget _buildOrderCard(BuildContext context, OrderModel order) {
     Color statusColor;
     String statusText = order.status ?? '';
 
@@ -154,7 +155,6 @@ class OrdersView extends GetView<OrdersController> {
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
@@ -166,38 +166,61 @@ class OrdersView extends GetView<OrdersController> {
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '#$idDisplay - $title',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: () => _showOrderDetails(context, order),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '#$idDisplay - $title',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Row(
+                      children: [
+                        Icon(Icons.print_outlined,
+                            color: Colors.blue[300], size: 20),
+                        const SizedBox(width: 8),
+                        Icon(Icons.money, color: Colors.red[300], size: 20),
+                      ],
+                    ),
+                  ],
                 ),
-              ),
-              Row(
-                children: [
-                  Icon(Icons.print_outlined, color: Colors.blue[300], size: 20),
-                  const SizedBox(width: 8),
-                  Icon(Icons.money, color: Colors.red[300], size: 20),
-                ],
-              ),
-            ],
+                const SizedBox(height: 10),
+                _buildInfoRow(
+                  'Monto a pagar:',
+                  currencyFormat.format(order.total ?? 0),
+                  isBold: true,
+                ),
+                _buildInfoRow('Estado:', statusText, valueColor: statusColor),
+                _buildInfoRow('Fecha y hora:', dateText),
+              ],
+            ),
           ),
-          const SizedBox(height: 10),
-          _buildInfoRow(
-            'Monto a pagar:',
-            currencyFormat.format(order.total ?? 0),
-            isBold: true,
-          ),
-          _buildInfoRow('Estado:', statusText, valueColor: statusColor),
-          _buildInfoRow('Fecha y hora:', dateText),
-        ],
+        ),
       ),
+    );
+  }
+
+/*mostrar modal de detalles de pedido*/
+  void _showOrderDetails(BuildContext context, OrderModel order) {
+    OrderDetailsModal.show(
+      context: context,
+      order: order,
+      availableStatuses: controller.orderDetailStatuses,
+      onUpdateStatus: controller.updateDetailsStatus,
+      getStatusDescription: controller.getDetailStatusDescription,
     );
   }
 

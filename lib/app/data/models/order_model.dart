@@ -4,6 +4,7 @@ import 'package:restic_movil/app/data/models/table_model.dart';
 class OrderModel {
   final String? id;
   final String? openingDate;
+  final int? orderNumber;
   final String? status;
   final String? originType;
   final List<TableModel>? tables;
@@ -13,6 +14,7 @@ class OrderModel {
 
   OrderModel({
     this.id,
+    this.orderNumber,
     this.openingDate,
     this.status,
     this.originType,
@@ -27,6 +29,7 @@ class OrderModel {
       id: json['id'],
       openingDate: json['openingDate'],
       status: json['status'],
+      orderNumber: json['orderNumber'],
       originType: json['originType'],
       tables: json['tables'] != null
           ? (json['tables'] as List).map((i) => TableModel.fromJson(i)).toList()
@@ -44,6 +47,7 @@ class OrderModel {
   Map<String, dynamic> toJson() {
     return {
       'id': id,
+      'orderNumber': orderNumber,
       'openingDate': openingDate,
       'status': status,
       'originType': originType,

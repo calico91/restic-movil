@@ -2,23 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
+import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class OrdersController extends GetxController {
   final OrdersRepository ordersRepository;
+  final StorageService _storageService = Get.find<StorageService>();
 
   OrdersController({required this.ordersRepository});
 
   final RxList<OrderModel> _allOrders = <OrderModel>[].obs;
   final RxList<OrderModel> orders = <OrderModel>[].obs;
+  final RxList<Map<String, dynamic>> orderStatuses =
+      <Map<String, dynamic>>[].obs;
+  final RxList<Map<String, dynamic>> orderDetailStatuses =
+      <Map<String, dynamic>>[].obs;
   final searchController = TextEditingController();
 
   @override
   void onInit() {
     super.onInit();
     searchController.addListener(_filterOrders);
+    _loadStatuses();
   }
 
   @override
@@ -54,6 +62,90 @@ class OrdersController extends GetxController {
     } else {
       await loadAction();
     }
+  }
+
+  /*cargar estados de pedidos y detalles */
+  Future<void> _loadStatuses() async {
+    try {
+      // Order Statuses
+      final savedStatuses = await _storageService.getOrderStatuses();
+      if (savedStatuses != null && savedStatuses.isNotEmpty) {
+        orderStatuses.assignAll(List<Map<String, dynamic>>.from(savedStatuses));
+      } else {
+        final fetched = await ordersRepository.getOrderStatuses();
+        orderStatuses.assignAll(fetched);
+        await _storageService.saveOrderStatuses(fetched);
+      }
+
+      // Detail Statuses
+      List<Map<String, dynamic>> details;
+      final savedDetailStatuses = await _storageService.getOrderDetailStatuses();
+
+      if (savedDetailStatuses != null && savedDetailStatuses.isNotEmpty) {
+        details = List<Map<String, dynamic>>.from(savedDetailStatuses);
+      } else {
+        details = await ordersRepository.getOrderDetailStatuses();
+        await _storageService.saveOrderDetailStatuses(details);
+      }
+
+      // Filtrar SERVED y ANULADO (CANCELED)
+      orderDetailStatuses.assignAll(
+        details
+            .where((s) => s['name'] == 'SERVED' || s['name'] == 'CANCELED')
+            .toList(),
+      );
+    } catch (e) {
+      final String errorMessage = ExceptionHandler.extractMessage(e);
+      Get.showSnackbar(ErrorSnackbar(errorMessage));
+    }
+  }
+
+  /*obtener descripcion del estado */
+  String getStatusDescription(String statusName) {
+    final status = orderStatuses.firstWhereOrNull(
+      (s) => s['name'] == statusName,
+    );
+    return status != null ? status['description'] : statusName;
+  }
+
+  /*obtener descripcion del estado de detalle */
+  String getDetailStatusDescription(String statusName) {
+    final status = orderDetailStatuses.firstWhereOrNull(
+      (s) => s['name'] == statusName,
+    );
+    return status != null ? status['description'] : statusName;
+  }
+
+  /*actualizar estado de detalle de pedido */
+  Future<void> updateDetailsStatus(
+    List<String> detailIds,
+    String status,
+    String tableNames,
+  ) async {
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await ordersRepository.updateOrderDetailsStatus(detailIds, status);
+          await loadOrders(withOverlay: false); 
+          Get.back(); // Cerrar bottom sheet
+          Get.back(); // Cerrar modal detalle
+
+          // Mostrar modal éxito
+          Get.dialog(
+            ModalInfo(
+              title: '¡Operación Exitosa!',
+              message:
+                  'Pedido asignado a $tableNames se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+              onClose: () => Get.back(),
+            ),
+          );
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
   }
 
   /*filtrar pedidos por mesa*/
