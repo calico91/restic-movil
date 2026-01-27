@@ -142,9 +142,11 @@ class OrderDetailsModal {
                 title: Text(status['description'] ?? status['name']),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  final tableNames =
-                      order.tables?.map((t) => t.name).join(', ') ?? '';
-                  onUpdateStatus(detailIds, status['name'], tableNames);
+                  final String orderIdentifier = order.orderNumber != null
+                      ? '${order.orderNumber}'
+                      : (order.id != null ? order.id!.substring(0, 8) : 'N/A');
+
+                  onUpdateStatus(detailIds, status['name'], orderIdentifier);
                 },
               );
             }),

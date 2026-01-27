@@ -120,7 +120,7 @@ class OrdersController extends GetxController {
   Future<void> updateDetailsStatus(
     List<String> detailIds,
     String status,
-    String tableNames,
+    String orderIdentifier,
   ) async {
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
@@ -136,7 +136,7 @@ class OrdersController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'Pedido asignado a $tableNames se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+                  'Pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );

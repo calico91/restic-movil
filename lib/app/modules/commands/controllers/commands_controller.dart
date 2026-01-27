@@ -111,7 +111,7 @@ class CommandsController extends GetxController {
   Future<void> updateDetailsStatus(
     List<String> detailIds,
     String status,
-    String tableNames,
+    String orderIdentifier,
   ) async {
     Get.showOverlay(
       loadingWidget: LoadingCharging(),
@@ -127,7 +127,7 @@ class CommandsController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'Pedido asignado a $tableNames se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+                  'Pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );
@@ -143,7 +143,7 @@ class CommandsController extends GetxController {
   Future<void> updateOrderStatus(
     String orderId,
     String status,
-    String tableNames,
+    String orderIdentifier,
   ) async {
     Get.showOverlay(
       loadingWidget: LoadingCharging(),
@@ -158,7 +158,7 @@ class CommandsController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'Orden asignada a $tableNames se cambio a estado ${getStatusDescription(status)} correctamente.',
+                  'Pedido #$orderIdentifier se cambio a estado ${getStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );

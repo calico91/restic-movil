@@ -151,7 +151,7 @@ class OrdersView extends GetView<OrdersController> {
       title = order.originType!;
     }
 
-    final idDisplay = order.id != null ? order.id!.substring(0, 8) : 'N/A';
+    final idDisplay = order.orderNumber!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -180,13 +180,19 @@ class OrdersView extends GetView<OrdersController> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      '#$idDisplay - $title',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          '#$idDisplay - $title',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
+                    const SizedBox(width: 8),
                     Row(
                       children: [
                         Icon(Icons.print_outlined,

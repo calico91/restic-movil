@@ -66,15 +66,18 @@ class CommandsView extends GetView<CommandsController> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Expanded(
-                    child: Text(
-                      'Mesa: ${_formatTables(order.tables)}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 18,
+                    child: SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Text(
+                        '#${order.orderNumber ?? "N/A"} - Mesa: ${_formatTables(order.tables)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
+                  const SizedBox(width: 8),
                   _buildStatusChip(order.status),
                 ],
               ),
@@ -155,12 +158,14 @@ class CommandsView extends GetView<CommandsController> {
                 title: Text(status['description'] ?? status['name']),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () {
-                  final tableNames =
-                      order.tables?.map((t) => t.name).join(', ') ?? '';
+                  final String orderIdentifier = order.orderNumber != null
+                      ? '${order.orderNumber}'
+                      : (order.id != null ? order.id!.substring(0, 8) : 'N/A');
+
                   controller.updateOrderStatus(
                     order.id!,
                     status['name'],
-                    tableNames,
+                    orderIdentifier,
                   );
                 },
               );
