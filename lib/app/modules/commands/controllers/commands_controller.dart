@@ -64,6 +64,11 @@ class CommandsController extends GetxController {
         await _storageService.saveOrderStatuses(fetched);
       }
 
+      // Filtrar SERVED en este controlador (Cocina)
+      orderStatuses.assignAll(
+        orderStatuses.where((s) => s['name'] != 'PAID',).toList(),
+      );
+
       // Detail Statuses
       List<Map<String, dynamic>> details;
       final savedDetailStatuses = await _storageService
@@ -102,7 +107,7 @@ class CommandsController extends GetxController {
     return status != null ? status['description'] : statusName;
   }
 
-  /*actualizar estado de detalles */
+  /*actualizar estado de detalle de pedido */
   Future<void> updateDetailsStatus(
     List<String> detailIds,
     String status,
@@ -122,7 +127,38 @@ class CommandsController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'pedido asignado a $tableNames se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+                  'Pedido asignado a $tableNames se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+              onClose: () => Get.back(),
+            ),
+          );
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
+  /*actualizar estado de la orden */
+  Future<void> updateOrderStatus(
+    String orderId,
+    String status,
+    String tableNames,
+  ) async {
+    Get.showOverlay(
+      loadingWidget: LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await ordersRepository.updateOrderStatus(orderId, status);
+          await loadOrders(); // Recargar ordenes
+          Get.back(); // Cerrar modal de estado
+
+          // Mostrar modal éxito
+          Get.dialog(
+            ModalInfo(
+              title: '¡Operación Exitosa!',
+              message:
+                  'Orden asignada a $tableNames se cambio a estado ${getStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );

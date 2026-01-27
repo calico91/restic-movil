@@ -42,4 +42,11 @@ class OrdersRepository {
     };
     await _client.put(UrlPaths.updateOrderDetailStatus, body: data);
   }
+
+  Future<void> updateOrderStatus(String orderId, String status) async {
+    await _client.put(
+      '${UrlPaths.updateOrderStatus}/$orderId',
+      parameters: {'status': status},
+    );
+  }
 }
