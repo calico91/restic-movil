@@ -8,7 +8,7 @@ class OrderDetailsModal {
     required BuildContext context,
     required OrderModel order,
     required List<Map<String, dynamic>> availableStatuses,
-    required Function(List<String> detailIds, String status, String tableNames)
+    required Function(List<String> detailIds, String status, String orderIdentifier)
         onUpdateStatus,
     required String Function(String) getStatusDescription,
   }) {
