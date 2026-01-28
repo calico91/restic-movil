@@ -49,4 +49,8 @@ class OrdersRepository {
       parameters: {'status': status},
     );
   }
+
+  Future<void> updateOrder(String orderId, Map<String, dynamic> data) async {
+    await _client.put('${UrlPaths.updateOrder}/$orderId', body: data);
+  }
 }

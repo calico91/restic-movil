@@ -12,6 +12,7 @@ class UrlPaths {
   static const String getOrderDetailStatuses = 'order-details/statuses';
   static const String updateOrderDetailStatus = 'order-details/update-status';
   static const String updateOrderStatus = 'orders/update-status';
+  static const String updateOrder = 'orders/update';
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
