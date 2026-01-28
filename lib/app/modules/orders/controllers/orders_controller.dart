@@ -199,7 +199,7 @@ class OrdersController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'Pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+                  'Orden de pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );
@@ -340,8 +340,8 @@ class OrdersController extends GetxController {
         try {
           await ordersRepository.addOrderItems(order.id!, itemsToAdd);
 
-          Get.back(); // Cerrar overlay
-          Get.back(); // Cerrar bottomsheet
+          Get.back(); 
+          Get.back(); 
 
           Get.showSnackbar(
             const InfoSnackbar('Productos agregados correctamente'),

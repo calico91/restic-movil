@@ -163,7 +163,7 @@ class CommandsController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'Pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
+                  'Orden de pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );
@@ -194,7 +194,7 @@ class CommandsController extends GetxController {
             ModalInfo(
               title: '¡Operación Exitosa!',
               message:
-                  'Pedido #$orderIdentifier se cambio a estado ${getStatusDescription(status)} correctamente.',
+                  'pedido #$orderIdentifier se cambio a estado ${getStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );
