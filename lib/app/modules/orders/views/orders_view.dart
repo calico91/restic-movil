@@ -28,6 +28,7 @@ class OrdersView extends GetView<OrdersController> {
     );
   }
 
+  /*build pestañas de filtros*/
   Widget _buildTabs() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -180,26 +181,18 @@ class OrdersView extends GetView<OrdersController> {
     Color statusColor;
     String statusText = order.status ?? '';
 
-    switch (statusText.toUpperCase()) {
-      case 'PENDING':
-      case 'OPEN':
+    switch (statusText) {
+      case 'Abierta':
         statusColor = Colors.orange;
-        statusText = 'Abierto';
         break;
-      case 'PREPARING':
+      case 'Anulada':
         statusColor = Colors.blue;
-        statusText = 'Preparando';
         break;
-      case 'FINALIZADA':
-      case 'FINALIZED':
+      case 'Pagada':
         statusColor = Colors.black87;
-        statusText = 'Finalizado';
         break;
-      case 'READY':
-      case 'SERVED':
-      case 'DELIVERED':
+      case 'Finalizada':
         statusColor = Colors.green;
-        statusText = 'Entregado';
         break;
       default:
         statusColor = Colors.grey;
@@ -249,57 +242,84 @@ class OrdersView extends GetView<OrdersController> {
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => _showOrderDetails(context, order),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Expanded(
-                      child: SingleChildScrollView(
-                        scrollDirection: Axis.horizontal,
-                        child: Text(
-                          '#$idDisplay - $title',
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    child: Text(
+                      '#$idDisplay - $title',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    const SizedBox(width: 8),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.print_outlined,
-                          color: Colors.blue[300],
-                          size: 20,
-                        ),
-                        const SizedBox(width: 8),
-                        Icon(Icons.money, color: Colors.red[300], size: 20),
-                      ],
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Row(
+                  children: [
+                    Icon(
+                      Icons.print_outlined,
+                      color: Colors.blue[300],
+                      size: 20,
                     ),
+                    const SizedBox(width: 8),
+                    Icon(Icons.money, color: Colors.red[300], size: 20),
                   ],
                 ),
-                const SizedBox(height: 10),
-                _buildInfoRow(
-                  'Monto a pagar:',
-                  currencyFormat.format(order.total ?? 0),
-                  isBold: true,
-                ),
-                _buildInfoRow('Estado:', statusText, valueColor: statusColor),
-                _buildInfoRow('Fecha y hora:', dateText),
               ],
             ),
-          ),
+            const SizedBox(height: 10),
+            _buildInfoRow(
+              'Monto a pagar:',
+              currencyFormat.format(order.total ?? 0),
+              isBold: true,
+            ),
+            _buildInfoRow('Estado:', statusText, valueColor: statusColor),
+            _buildInfoRow('Fecha y hora:', dateText),
+            const SizedBox(height: 15),
+            Row(
+              children: [
+                if (controller.currentTab.value == 0)
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _showOrderDetails(context, order),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[900],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    child: const Text('Ver Detalles'),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () {},
+                    style: OutlinedButton.styleFrom(
+                      side: BorderSide(color: Colors.blue[900]!),
+                      foregroundColor: Colors.blue[900],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
+                    child: const Text('Agregar Productos'),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
