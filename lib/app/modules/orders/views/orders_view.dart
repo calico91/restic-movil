@@ -305,7 +305,7 @@ class OrdersView extends GetView<OrdersController> {
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: () {},
+                    onPressed: () => controller.startAddProducts(order),
                     style: OutlinedButton.styleFrom(
                       side: BorderSide(color: Colors.blue[900]!),
                       foregroundColor: Colors.blue[900],
@@ -314,7 +314,7 @@ class OrdersView extends GetView<OrdersController> {
                       ),
                       padding: const EdgeInsets.symmetric(vertical: 10),
                     ),
-                    child: const Text('Agregar Productos'),
+                    child: const Text('Agregar'),
                   ),
                 ),
               ],

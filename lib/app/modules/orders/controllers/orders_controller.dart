@@ -1,18 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/category_model.dart';
+import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
+import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 
 class OrdersController extends GetxController {
   final OrdersRepository ordersRepository;
+  final CategoriesRepository categoriesRepository;
   final StorageService _storageService = Get.find<StorageService>();
 
-  OrdersController({required this.ordersRepository});
+  OrdersController({
+    required this.ordersRepository,
+    required this.categoriesRepository,
+  });
 
   final RxList<OrderModel> _allOrders = <OrderModel>[].obs;
   final RxList<OrderModel> orders = <OrderModel>[].obs;
@@ -27,6 +37,11 @@ class OrdersController extends GetxController {
   final RxList<Map<String, dynamic>> orderDetailStatuses =
       <Map<String, dynamic>>[].obs;
   final searchController = TextEditingController();
+
+  // Add Products Logic
+  final RxList<CategoryModel> categories = <CategoryModel>[].obs;
+  final RxList<OrderItemModel> tempAdditionalOrderItems = <OrderItemModel>[].obs;
+  double get totalAdditionalAmount => tempAdditionalOrderItems.fold(0, (sum, item) => sum + item.total);
 
   @override
   void onInit() {
@@ -217,5 +232,258 @@ class OrdersController extends GetxController {
         }).toList(),
       );
     }
+  }
+
+  /* Cargar categorias */
+  Future<void> _loadCategories() async {
+    try {
+      final result = await categoriesRepository.getCategories();
+      categories.assignAll(result);
+    } catch (e) {
+      Get.showSnackbar(const ErrorSnackbar('Error al cargar productos'));
+    }
+  }
+
+  /* Iniciar proceso de agregar productos */
+  void startAddProducts(OrderModel order) {
+    tempAdditionalOrderItems.clear();
+    if (categories.isEmpty) {
+      Get.showOverlay(
+        loadingWidget: const LoadingCharging(),
+        asyncFunction: () async => await _loadCategories(),
+      );
+    }
+    _showAddProductsSheet(order);
+  }
+
+  void _showAddProductsSheet(OrderModel order) {
+    Get.bottomSheet(
+      Container(
+        height: Get.height * 0.9,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Agregar a pedido #${order.orderNumber}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Get.back(),
+                  ),
+                ],
+              ),
+            ),
+            const Divider(),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Obx(
+                  () {
+                    // Forzar reactividad
+                    final _ = tempAdditionalOrderItems.length;
+
+                    return ProductSelectionWidget(
+                      categories: categories.toList(),
+                      getQuantity: getTempProductQuantity,
+                      onIncrement: incrementTempProduct,
+                      onDecrement: decrementTempProduct,
+                      onEdit: (product) => _showAddProductDialog(product),
+                    );
+                  },
+                ),
+              ),
+            ),
+            Obx(() {
+               if (tempAdditionalOrderItems.isEmpty) return const SizedBox.shrink();
+               return Container(
+                 padding: const EdgeInsets.all(16),
+                 decoration: BoxDecoration(
+                   color: Colors.white,
+                   boxShadow: [
+                     BoxShadow(
+                       color: Colors.black.withValues(alpha: 0.1),
+                       blurRadius: 10,
+                       offset: const Offset(0, -5),
+                     ),
+                   ],
+                 ),
+                 child: Row(
+                   children: [
+                     Expanded(
+                       child: Column(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                         mainAxisSize: MainAxisSize.min,
+                         children: [
+                           Text(
+                             '${tempAdditionalOrderItems.length} items',
+                             style: TextStyle(color: Colors.grey[600]),
+                           ),
+                           Text(
+                             '\$${totalAdditionalAmount.toStringAsFixed(0)}',
+                             style: const TextStyle(
+                               fontSize: 20,
+                               fontWeight: FontWeight.bold,
+                               color: Colors.blue,
+                             ),
+                           ),
+                         ],
+                       ),
+                     ),
+                     ElevatedButton(
+                       onPressed: () => _confirmAddProducts(order),
+                       style: ElevatedButton.styleFrom(
+                         backgroundColor: Colors.blue[900],
+                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(10),
+                         ),
+                       ),
+                       child: const Text(
+                         'Agregar',
+                         style: TextStyle(color: Colors.white, fontSize: 16),
+                       ),
+                     ),
+                   ],
+                 ),
+               );
+            }),
+          ],
+        ),
+      ),
+      isScrollControlled: true,
+    );
+  }
+
+  void _showAddProductDialog(ProductModel product) {
+    final quantityControl = FormControl<int>(value: 1);
+    final commentControl = FormControl<String>(value: '');
+
+    Get.dialog(
+      AlertDialog(
+        title: Text('Producto: ${product.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ReactiveTextField(
+              formControl: quantityControl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Cantidad',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ReactiveTextField(
+              formControl: commentControl,
+              decoration: const InputDecoration(
+                labelText: 'Comentarios',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              addToTempOrder(
+                product,
+                quantityControl.value ?? 1,
+                commentControl.value,
+              );
+              Get.back(); // Cerrar dialogo
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /* Manipulación de items temporales */
+  void addToTempOrder(ProductModel product, int quantity, String? comment) {
+    final normalizedComment = (comment == null || comment.trim().isEmpty) ? null : comment.trim();
+    final index = tempAdditionalOrderItems.indexWhere(
+      (item) => item.product.id == product.id && item.comment == normalizedComment,
+    );
+
+    if (index != -1) {
+      tempAdditionalOrderItems[index].quantity += quantity;
+      tempAdditionalOrderItems.refresh();
+    } else {
+      tempAdditionalOrderItems.add(
+        OrderItemModel(
+          product: product,
+          quantity: quantity,
+          comment: normalizedComment,
+        ),
+      );
+    }
+  }
+
+  void incrementTempProduct(ProductModel product) {
+    addToTempOrder(product, 1, null);
+  }
+
+  void decrementTempProduct(ProductModel product) {
+    final index = tempAdditionalOrderItems.indexWhere(
+      (item) => item.product.id == product.id && (item.comment == null || item.comment!.isEmpty),
+    );
+
+    if (index != -1) {
+      if (tempAdditionalOrderItems[index].quantity > 1) {
+        tempAdditionalOrderItems[index].quantity--;
+        tempAdditionalOrderItems.refresh();
+      } else {
+        tempAdditionalOrderItems.removeAt(index);
+      }
+    }
+  }
+
+  int getTempProductQuantity(ProductModel product) {
+    return tempAdditionalOrderItems
+        .where((item) => item.product.id == product.id)
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  Future<void> _confirmAddProducts(OrderModel order) async {
+    if (tempAdditionalOrderItems.isEmpty) return;
+
+    final itemsToAdd = tempAdditionalOrderItems.map((item) => {
+      'productId': item.product.id,
+      'quantity': item.quantity,
+      'observations': item.comment ?? '',
+    }).toList();
+
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          // Asumimos que existe un método addOrderItems en el repo
+         // await ordersRepository.updateOrder(order.id!, itemsToAdd);
+          
+          Get.back(); // Cerrar overlay
+          Get.back(); // Cerrar bottomsheet
+          
+          Get.showSnackbar(const InfoSnackbar('Productos agregados correctamente'));
+          loadOrders(withOverlay: false);
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
   }
 }
