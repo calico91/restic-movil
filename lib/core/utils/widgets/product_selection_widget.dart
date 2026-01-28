@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
+import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 
 class ProductSelectionWidget extends StatelessWidget {
@@ -141,18 +143,14 @@ class ProductSelectionWidget extends StatelessWidget {
                         ),
                         padding: EdgeInsets.zero,
                       ),
-                      // Usamos Obx indirectamente si el padre redibuja, 
-                      // pero para ser seguros si getQuantity no es reactivo per se en este scope,
-                      // dependemos del padre y sus Obx.
-                      // Sin embargo, si getQuantity accede a un .value de un Rx, GetX lo trackea si estamos dentro de un Obx.
-                      // Aquí NO estamos dentro de un Obx explícito, así que esperamos que el padre envuelva ProductSelectionWidget con Obx.
-                      Text(
+                      // Usamos Obx para asegurar que la cantidad se actualice reactivamente
+                      Obx(() => Text(
                         '${getQuantity(product)}',
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
-                      ),
+                      )),
                       IconButton(
                         icon: const Icon(
                           Icons.add,
