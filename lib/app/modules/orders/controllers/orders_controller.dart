@@ -1,18 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/modules/orders/views/widgets/add_products_sheet.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
-import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 
 class OrdersController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -26,7 +25,7 @@ class OrdersController extends GetxController {
 
   final RxList<OrderModel> _allOrders = <OrderModel>[].obs;
   final RxList<OrderModel> orders = <OrderModel>[].obs;
-  
+
   // Tab Handling
   final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
   final RxList<OrderModel> _allFinalizedOrders = <OrderModel>[].obs;
@@ -40,8 +39,10 @@ class OrdersController extends GetxController {
 
   // Add Products Logic
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
-  final RxList<OrderItemModel> tempAdditionalOrderItems = <OrderItemModel>[].obs;
-  double get totalAdditionalAmount => tempAdditionalOrderItems.fold(0, (sum, item) => sum + item.total);
+  final RxList<OrderItemModel> tempAdditionalOrderItems =
+      <OrderItemModel>[].obs;
+  double get totalAdditionalAmount =>
+      tempAdditionalOrderItems.fold(0, (sum, item) => sum + item.total);
 
   @override
   void onInit() {
@@ -140,7 +141,8 @@ class OrdersController extends GetxController {
 
       // Detail Statuses
       List<Map<String, dynamic>> details;
-      final savedDetailStatuses = await _storageService.getOrderDetailStatuses();
+      final savedDetailStatuses = await _storageService
+          .getOrderDetailStatuses();
 
       if (savedDetailStatuses != null && savedDetailStatuses.isNotEmpty) {
         details = List<Map<String, dynamic>>.from(savedDetailStatuses);
@@ -188,7 +190,7 @@ class OrdersController extends GetxController {
       asyncFunction: () async {
         try {
           await ordersRepository.updateOrderDetailsStatus(detailIds, status);
-          await loadOrders(withOverlay: false); 
+          await loadOrders(withOverlay: false);
           Get.back(); // Cerrar bottom sheet
           Get.back(); // Cerrar modal detalle
 
@@ -212,7 +214,7 @@ class OrdersController extends GetxController {
   /*filtrar pedidos por mesa*/
   void _filterOrders() {
     final query = searchController.text.toLowerCase();
-    
+
     // Determinar qué lista filtrar basada en el tab actual
     final sourceList = currentTab.value == 0 ? _allOrders : _allFinalizedOrders;
     final targetList = currentTab.value == 0 ? orders : finalizedOrders;
@@ -228,7 +230,8 @@ class OrdersController extends GetxController {
           // Busca si alguna mesa contiene el texto buscado
           // Tambien buscar por numero de orden
           final orderNumber = order.orderNumber?.toString() ?? '';
-          return tableNames.any((name) => name.contains(query)) || orderNumber.contains(query);
+          return tableNames.any((name) => name.contains(query)) ||
+              orderNumber.contains(query);
         }).toList(),
       );
     }
@@ -258,165 +261,19 @@ class OrdersController extends GetxController {
 
   void _showAddProductsSheet(OrderModel order) {
     Get.bottomSheet(
-      Container(
-        height: Get.height * 0.9,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Agregar a pedido #${order.orderNumber}',
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Get.back(),
-                  ),
-                ],
-              ),
-            ),
-            const Divider(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Obx(
-                  () {
-                    // Forzar reactividad
-                    final _ = tempAdditionalOrderItems.length;
-
-                    return ProductSelectionWidget(
-                      categories: categories.toList(),
-                      getQuantity: getTempProductQuantity,
-                      onIncrement: incrementTempProduct,
-                      onDecrement: decrementTempProduct,
-                      onEdit: (product) => _showAddProductDialog(product),
-                    );
-                  },
-                ),
-              ),
-            ),
-            Obx(() {
-               if (tempAdditionalOrderItems.isEmpty) return const SizedBox.shrink();
-               return Container(
-                 padding: const EdgeInsets.all(16),
-                 decoration: BoxDecoration(
-                   color: Colors.white,
-                   boxShadow: [
-                     BoxShadow(
-                       color: Colors.black.withValues(alpha: 0.1),
-                       blurRadius: 10,
-                       offset: const Offset(0, -5),
-                     ),
-                   ],
-                 ),
-                 child: Row(
-                   children: [
-                     Expanded(
-                       child: Column(
-                         crossAxisAlignment: CrossAxisAlignment.start,
-                         mainAxisSize: MainAxisSize.min,
-                         children: [
-                           Text(
-                             '${tempAdditionalOrderItems.length} items',
-                             style: TextStyle(color: Colors.grey[600]),
-                           ),
-                           Text(
-                             '\$${totalAdditionalAmount.toStringAsFixed(0)}',
-                             style: const TextStyle(
-                               fontSize: 20,
-                               fontWeight: FontWeight.bold,
-                               color: Colors.blue,
-                             ),
-                           ),
-                         ],
-                       ),
-                     ),
-                     ElevatedButton(
-                       onPressed: () => _confirmAddProducts(order),
-                       style: ElevatedButton.styleFrom(
-                         backgroundColor: Colors.blue[900],
-                         padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                         shape: RoundedRectangleBorder(
-                           borderRadius: BorderRadius.circular(10),
-                         ),
-                       ),
-                       child: const Text(
-                         'Agregar',
-                         style: TextStyle(color: Colors.white, fontSize: 16),
-                       ),
-                     ),
-                   ],
-                 ),
-               );
-            }),
-          ],
-        ),
-      ),
+      AddProductsSheet(order: order),
       isScrollControlled: true,
-    );
-  }
-
-  void _showAddProductDialog(ProductModel product) {
-    final quantityControl = FormControl<int>(value: 1);
-    final commentControl = FormControl<String>(value: '');
-
-    Get.dialog(
-      AlertDialog(
-        title: Text('Producto: ${product.name}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ReactiveTextField(
-              formControl: quantityControl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Cantidad',
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            ReactiveTextField(
-              formControl: commentControl,
-              decoration: const InputDecoration(
-                labelText: 'Comentarios',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              addToTempOrder(
-                product,
-                quantityControl.value ?? 1,
-                commentControl.value,
-              );
-              Get.back(); // Cerrar dialogo
-            },
-            child: const Text('Agregar'),
-          ),
-        ],
-      ),
     );
   }
 
   /* Manipulación de items temporales */
   void addToTempOrder(ProductModel product, int quantity, String? comment) {
-    final normalizedComment = (comment == null || comment.trim().isEmpty) ? null : comment.trim();
+    final normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
     final index = tempAdditionalOrderItems.indexWhere(
-      (item) => item.product.id == product.id && item.comment == normalizedComment,
+      (item) =>
+          item.product.id == product.id && item.comment == normalizedComment,
     );
 
     if (index != -1) {
@@ -433,13 +290,17 @@ class OrdersController extends GetxController {
     }
   }
 
+  /* Incrementar cantidad temporal de un producto */
   void incrementTempProduct(ProductModel product) {
     addToTempOrder(product, 1, null);
   }
 
+  /* Decrementar cantidad temporal de un producto */
   void decrementTempProduct(ProductModel product) {
     final index = tempAdditionalOrderItems.indexWhere(
-      (item) => item.product.id == product.id && (item.comment == null || item.comment!.isEmpty),
+      (item) =>
+          item.product.id == product.id &&
+          (item.comment == null || item.comment!.isEmpty),
     );
 
     if (index != -1) {
@@ -452,31 +313,39 @@ class OrdersController extends GetxController {
     }
   }
 
+  /* Obtener cantidad temporal de un producto */
   int getTempProductQuantity(ProductModel product) {
     return tempAdditionalOrderItems
         .where((item) => item.product.id == product.id)
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
-  Future<void> _confirmAddProducts(OrderModel order) async {
+  /* Confirmar adición de productos al pedido */
+  Future<void> confirmAddProducts(OrderModel order) async {
     if (tempAdditionalOrderItems.isEmpty) return;
 
-    final itemsToAdd = tempAdditionalOrderItems.map((item) => {
-      'productId': item.product.id,
-      'quantity': item.quantity,
-      'observations': item.comment ?? '',
-    }).toList();
+    final itemsToAdd = tempAdditionalOrderItems
+        .map(
+          (item) => {
+            'productId': item.product.id,
+            'quantity': item.quantity,
+            'observations': item.comment ?? '',
+          },
+        )
+        .toList();
 
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           await ordersRepository.addOrderItems(order.id!, itemsToAdd);
-          
+
           Get.back(); // Cerrar overlay
           Get.back(); // Cerrar bottomsheet
-          
-          Get.showSnackbar(const InfoSnackbar('Productos agregados correctamente'));
+
+          Get.showSnackbar(
+            const InfoSnackbar('Productos agregados correctamente'),
+          );
           loadOrders(withOverlay: false);
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);

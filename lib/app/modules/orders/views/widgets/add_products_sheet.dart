@@ -1,0 +1,173 @@
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/order_model.dart';
+import 'package:restic_movil/app/data/models/product_model.dart';
+import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
+import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
+
+class AddProductsSheet extends GetView<OrdersController> {
+  final OrderModel order;
+
+  const AddProductsSheet({super.key, required this.order});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: Get.height * 0.9,
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Agregar a pedido #${order.orderNumber}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Get.back(),
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
+          Expanded(
+            child: SingleChildScrollView(
+              child: Obx(
+                () {
+                  // Forzar reactividad
+                  // ignore: unused_local_variable
+                  final _ = controller.tempAdditionalOrderItems.length;
+
+                  return ProductSelectionWidget(
+                    categories: controller.categories.toList(),
+                    getQuantity: controller.getTempProductQuantity,
+                    onIncrement: controller.incrementTempProduct,
+                    onDecrement: controller.decrementTempProduct,
+                    onEdit: (product) => _showAddProductDialog(product),
+                  );
+                },
+              ),
+            ),
+          ),
+          Obx(() {
+            if (controller.tempAdditionalOrderItems.isEmpty) {
+              return const SizedBox.shrink();
+            }
+            return Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 10,
+                    offset: const Offset(0, -5),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '${controller.tempAdditionalOrderItems.length} items',
+                          style: TextStyle(color: Colors.grey[600]),
+                        ),
+                        Text(
+                          '\$${controller.totalAdditionalAmount.toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 20,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () => controller.confirmAddProducts(order),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[900],
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 30,
+                        vertical: 15,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: const Text(
+                      'Agregar',
+                      style: TextStyle(color: Colors.white, fontSize: 16),
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  void _showAddProductDialog(ProductModel product) {
+    final quantityControl = FormControl<int>(value: 1);
+    final commentControl = FormControl<String>(value: '');
+
+    Get.dialog(
+      AlertDialog(
+        title: Text('Producto: ${product.name}'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ReactiveTextField(
+              formControl: quantityControl,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(
+                labelText: 'Cantidad',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ReactiveTextField(
+              formControl: commentControl,
+              decoration: const InputDecoration(
+                labelText: 'Comentarios',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 3,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              controller.addToTempOrder(
+                product,
+                quantityControl.value ?? 1,
+                commentControl.value,
+              );
+              Get.back(); // Cerrar dialogo
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
+  }
+}
