@@ -17,6 +17,13 @@ class OrdersRepository {
     await _client.post(UrlPaths.createOrder, body: data);
   }
 
+  Future<void> addOrderItems(String orderId, List<Map<String, dynamic>> products) async {
+    await _client.put(
+      '${UrlPaths.addProductsToOrder}/$orderId/add-products', 
+      body: {'products': products},
+    );
+  }
+
   Future<List<OrderModel>> getOrdersByStatus(String status) async {
     final response = await _client.get('${UrlPaths.getOrdersByStatus}/$status');
     return (response as List).map((e) => OrderModel.fromJson(e)).toList();
@@ -50,7 +57,4 @@ class OrdersRepository {
     );
   }
 
-  Future<void> updateOrder(String orderId, Map<String, dynamic> data) async {
-    await _client.put('${UrlPaths.updateOrder}/$orderId', body: data);
-  }
 }

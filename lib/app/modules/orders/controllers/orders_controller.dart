@@ -471,8 +471,7 @@ class OrdersController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          // Asumimos que existe un método addOrderItems en el repo
-         // await ordersRepository.updateOrder(order.id!, itemsToAdd);
+          await ordersRepository.addOrderItems(order.id!, itemsToAdd);
           
           Get.back(); // Cerrar overlay
           Get.back(); // Cerrar bottomsheet
