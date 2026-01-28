@@ -11,33 +11,116 @@ class CommandsView extends GetView<CommandsController> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() {
-      return RefreshIndicator(
-        onRefresh: () async => await controller.loadOrders(),
-        child: controller.orders.isEmpty
-            ? ListView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                children: const [
-                  SizedBox(height: 50),
-                  Center(
-                    child: Text(
-                      'No hay pedidos nuevos',
-                      style: TextStyle(fontSize: 18, color: Colors.grey),
+    return Column(
+      children: [
+        _buildTabs(),
+        Expanded(
+          child: Obx(() {
+            final ordersList = controller.currentTab.value == 0
+                ? controller.orders
+                : controller.finalizedOrders;
+
+            return RefreshIndicator(
+              onRefresh: () async => controller.currentTab.value == 0
+                  ? await controller.loadOrders()
+                  : await controller.loadFinalizedOrders(),
+              child: ordersList.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        const SizedBox(height: 50),
+                        Center(
+                          child: Text(
+                            controller.currentTab.value == 0
+                                ? 'No hay pedidos nuevos'
+                                : 'No hay pedidos finalizados',
+                            style: const TextStyle(
+                              fontSize: 18,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: ordersList.length,
+                      itemBuilder: (context, index) {
+                        final order = ordersList[index];
+                        return _buildOrderCard(context, order);
+                      },
                     ),
-                  ),
-                ],
-              )
-            : ListView.builder(
-                padding: const EdgeInsets.all(16),
-                physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: controller.orders.length,
-                itemBuilder: (context, index) {
-                  final order = controller.orders[index];
-                  return _buildOrderCard(context, order);
-                },
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTabs() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Obx(
+        () => Row(
+          children: [
+            Expanded(
+              child: _buildTabButton(
+                title: 'Pendientes',
+                isSelected: controller.currentTab.value == 0,
+                onTap: () => controller.changeTab(0),
               ),
-      );
-    });
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildTabButton(
+                title: 'Historial',
+                isSelected: controller.currentTab.value == 1,
+                onTap: () => controller.changeTab(1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabButton({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[900] : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: isSelected ? Colors.blue[900]! : Colors.grey[300]!,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
   }
 
   /*build tarjeta de pedido*/
@@ -46,6 +129,11 @@ class CommandsView extends GetView<CommandsController> {
     try {
       if (order.openingDate != null) {
         final date = DateTime.parse(order.openingDate!);
+        formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(date);
+      }
+      if (order.closingDate != null &&
+          (order.status == 'Finalizada' || order.status == 'FINALIZED')) {
+        final date = DateTime.parse(order.closingDate!);
         formattedDate = DateFormat('dd/MM/yyyy HH:mm').format(date);
       }
     } catch (_) {}
@@ -205,6 +293,7 @@ class CommandsView extends GetView<CommandsController> {
       case 'Anulada':
         color = Colors.red;
         break;
+
       default:
         color = Colors.grey;
     }
@@ -231,4 +320,3 @@ class CommandsView extends GetView<CommandsController> {
     );
   }
 }
-

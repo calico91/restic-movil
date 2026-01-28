@@ -15,7 +15,11 @@ class CommandsController extends GetxController {
   final WebSocketService _webSocketService = Get.find<WebSocketService>();
   final StorageService _storageService = Get.find<StorageService>();
 
+  // Tab Handling
+  final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
   final RxList<OrderModel> orders = <OrderModel>[].obs;
+  final RxList<OrderModel> finalizedOrders = <OrderModel>[].obs;
+
   final RxList<Map<String, dynamic>> orderStatuses =
       <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> orderDetailStatuses =
@@ -37,6 +41,12 @@ class CommandsController extends GetxController {
 
   /*cargar pedidos activos */
   Future<void> loadOrders({bool withOverlay = false}) async {
+    // Si estamos en finalizados, cargar finalizados
+    if (currentTab.value == 1) {
+       await loadFinalizedOrders(withOverlay: withOverlay);
+       return;
+    }
+
     try {
       final result = await ordersRepository.getOrdersByStatus('OPEN');
       // Ordenar por fecha: primero los más antiguos
@@ -48,6 +58,32 @@ class CommandsController extends GetxController {
       orders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading active orders: $e');
+    }
+  }
+
+  /*cargar pedidos finalizados*/
+  Future<void> loadFinalizedOrders({bool withOverlay = false}) async {
+    try {
+      final result = await ordersRepository.getOrdersByStatus('FINALIZED');
+      // Ordenar por fecha cierre descendente
+      result.sort((a, b) {
+        final dateA = DateTime.tryParse(a.closingDate ?? '') ?? DateTime.now();
+        final dateB = DateTime.tryParse(b.closingDate ?? '') ?? DateTime.now();
+        return dateB.compareTo(dateA);
+      });
+      finalizedOrders.assignAll(result);
+    } catch (e) {
+      debugPrint('Error loading finalized orders: $e');
+    }
+  }
+
+  /*cambiar tab*/
+  void changeTab(int index) {
+    currentTab.value = index;
+    if (index == 0) {
+      loadOrders(withOverlay: true);
+    } else {
+      loadFinalizedOrders(withOverlay: true);
     }
   }
 

@@ -16,6 +16,12 @@ class OrdersController extends GetxController {
 
   final RxList<OrderModel> _allOrders = <OrderModel>[].obs;
   final RxList<OrderModel> orders = <OrderModel>[].obs;
+  
+  // Tab Handling
+  final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
+  final RxList<OrderModel> _allFinalizedOrders = <OrderModel>[].obs;
+  final RxList<OrderModel> finalizedOrders = <OrderModel>[].obs;
+
   final RxList<Map<String, dynamic>> orderStatuses =
       <Map<String, dynamic>>[].obs;
   final RxList<Map<String, dynamic>> orderDetailStatuses =
@@ -43,6 +49,12 @@ class OrdersController extends GetxController {
 
   /*obtener pedidos en estado open*/
   Future<void> loadOrders({bool withOverlay = true}) async {
+    // Si estamos en la pestaña de finalizados, cargamos finalizados
+    if (currentTab.value == 1) {
+      await loadFinalizedOrders(withOverlay: withOverlay);
+      return;
+    }
+
     Future<void> loadAction() async {
       try {
         final result = await ordersRepository.getOrdersByStatus('OPEN');
@@ -61,6 +73,40 @@ class OrdersController extends GetxController {
       );
     } else {
       await loadAction();
+    }
+  }
+
+  /*obtener pedidos finalizados*/
+  Future<void> loadFinalizedOrders({bool withOverlay = true}) async {
+    Future<void> loadAction() async {
+      try {
+        final result = await ordersRepository.getOrdersByStatus('FINALIZED');
+        _allFinalizedOrders.assignAll(result);
+        _filterOrders();
+      } catch (e) {
+        final String errorMessage = ExceptionHandler.extractMessage(e);
+        Get.showSnackbar(ErrorSnackbar(errorMessage));
+      }
+    }
+
+    if (withOverlay) {
+      Get.showOverlay(
+        loadingWidget: const LoadingCharging(),
+        asyncFunction: loadAction,
+      );
+    } else {
+      await loadAction();
+    }
+  }
+
+  /*cambiar tab*/
+  void changeTab(int index) {
+    currentTab.value = index;
+    searchController.clear();
+    if (index == 0) {
+      loadOrders(withOverlay: true);
+    } else {
+      loadFinalizedOrders(withOverlay: true);
     }
   }
 
@@ -151,16 +197,23 @@ class OrdersController extends GetxController {
   /*filtrar pedidos por mesa*/
   void _filterOrders() {
     final query = searchController.text.toLowerCase();
+    
+    // Determinar qué lista filtrar basada en el tab actual
+    final sourceList = currentTab.value == 0 ? _allOrders : _allFinalizedOrders;
+    final targetList = currentTab.value == 0 ? orders : finalizedOrders;
+
     if (query.isEmpty) {
-      orders.assignAll(_allOrders);
+      targetList.assignAll(sourceList);
     } else {
-      orders.assignAll(
-        _allOrders.where((order) {
+      targetList.assignAll(
+        sourceList.where((order) {
           final tableNames =
               order.tables?.map((t) => t.name?.toLowerCase() ?? '').toList() ??
               [];
           // Busca si alguna mesa contiene el texto buscado
-          return tableNames.any((name) => name.contains(query));
+          // Tambien buscar por numero de orden
+          final orderNumber = order.orderNumber?.toString() ?? '';
+          return tableNames.any((name) => name.contains(query)) || orderNumber.contains(query);
         }).toList(),
       );
     }

@@ -14,11 +14,80 @@ class OrdersView extends GetView<OrdersController> {
     return Column(
       children: [
         _buildSearchBar(),
-        const SizedBox(height: 20),
-        _buildCreateOrderButton(),
+        const SizedBox(height: 10),
+        _buildTabs(),
+        const SizedBox(height: 10),
+        Obx(() => controller.currentTab.value == 0
+            ? _buildCreateOrderButton()
+            : const SizedBox.shrink()),
         const SizedBox(height: 20),
         _buildOrdersList(),
       ],
+    );
+  }
+
+  Widget _buildTabs() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Obx(
+        () => Row(
+          children: [
+            Expanded(
+              child: _buildTabButton(
+                title: 'Activos',
+                isSelected: controller.currentTab.value == 0,
+                onTap: () => controller.changeTab(0),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildTabButton(
+                title: 'Finalizados',
+                isSelected: controller.currentTab.value == 1,
+                onTap: () => controller.changeTab(1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTabButton({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[900] : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: isSelected ? Colors.blue[900]! : Colors.grey[300]!,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
     );
   }
 
@@ -84,24 +153,30 @@ class OrdersView extends GetView<OrdersController> {
   /*build lista de pedidos*/
   Widget _buildOrdersList() {
     return Expanded(
-      child: RefreshIndicator(
-        onRefresh: () async => await controller.loadOrders(withOverlay: false),
-        child: Obx(
-          () => ListView.builder(
+      child: Obx(() {
+        final ordersList = controller.currentTab.value == 0
+            ? controller.orders
+            : controller.finalizedOrders;
+        
+        return RefreshIndicator(
+          onRefresh: () async => controller.currentTab.value == 0
+              ? await controller.loadOrders(withOverlay: false)
+              : await controller.loadFinalizedOrders(withOverlay: false),
+          child: ListView.builder(
             physics: const AlwaysScrollableScrollPhysics(),
             padding: const EdgeInsets.only(
               left: 16,
               right: 16,
               bottom: 80, // Space for the floating bottom nav
             ),
-            itemCount: controller.orders.length,
+            itemCount: ordersList.length,
             itemBuilder: (context, index) {
-              final order = controller.orders[index];
+              final order = ordersList[index];
               return _buildOrderCard(context, order);
             },
           ),
-        ),
-      ),
+        );
+      }),
     );
   }
 
@@ -119,6 +194,11 @@ class OrdersView extends GetView<OrdersController> {
       case 'PREPARING':
         statusColor = Colors.blue;
         statusText = 'Preparando';
+        break;
+      case 'FINALIZADA':
+      case 'FINALIZED':
+        statusColor = Colors.black87;
+        statusText = 'Finalizado';
         break;
       case 'READY':
       case 'SERVED':
@@ -138,7 +218,15 @@ class OrdersView extends GetView<OrdersController> {
 
     // Formatear fecha
     String dateText = '';
-    if (order.openingDate != null) {
+    
+    
+    // Si tiene fecha de cierre mostrarla tambien o en lugar de
+    if (order.closingDate != null && (statusText == 'Finalizado')) {
+        try {
+          final date = DateTime.parse(order.closingDate!);
+          dateText = DateFormat('dd/MM, HH:mm').format(date);
+        } catch (_) {}
+    }if (order.openingDate != null) {
       try {
         final date = DateTime.parse(order.openingDate!);
         dateText = DateFormat('dd/MM, HH:mm').format(date);

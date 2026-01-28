@@ -4,6 +4,7 @@ import 'package:restic_movil/app/data/models/table_model.dart';
 class OrderModel {
   final String? id;
   final String? openingDate;
+  final String? closingDate;
   final int? orderNumber;
   final String? status;
   final String? originType;
@@ -16,6 +17,7 @@ class OrderModel {
     this.id,
     this.orderNumber,
     this.openingDate,
+    this.closingDate,
     this.status,
     this.originType,
     this.tables,
@@ -28,6 +30,7 @@ class OrderModel {
     return OrderModel(
       id: json['id'],
       openingDate: json['openingDate'],
+      closingDate: json['closingDate'],
       status: json['status'],
       orderNumber: json['orderNumber'],
       originType: json['originType'],
@@ -48,6 +51,7 @@ class OrderModel {
     return {
       'id': id,
       'orderNumber': orderNumber,
+      'closingDate': closingDate,
       'openingDate': openingDate,
       'status': status,
       'originType': originType,
