@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
-import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 
 class ProductSelectionWidget extends StatelessWidget {
@@ -143,7 +142,6 @@ class ProductSelectionWidget extends StatelessWidget {
                         ),
                         padding: EdgeInsets.zero,
                       ),
-                      // Usamos Obx para asegurar que la cantidad se actualice reactivamente
                       Obx(() => Text(
                         '${getQuantity(product)}',
                         style: const TextStyle(

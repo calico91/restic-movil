@@ -8,8 +8,12 @@ class OrderDetailsModal {
     required BuildContext context,
     required OrderModel order,
     required List<Map<String, dynamic>> availableStatuses,
-    required Function(List<String> detailIds, String status, String orderIdentifier)
-        onUpdateStatus,
+    required Function(
+      List<String> detailIds,
+      String status,
+      String orderIdentifier,
+    )
+    onUpdateStatus,
     required String Function(String) getStatusDescription,
   }) {
     final RxSet<String> selectedIds = <String>{}.obs;
@@ -72,7 +76,10 @@ class OrderDetailsModal {
                   itemBuilder: (context, index) {
                     final item = order.details![index];
                     return _buildDetailItem(
-                        item, selectedIds, getStatusDescription);
+                      item,
+                      selectedIds,
+                      getStatusDescription,
+                    );
                   },
                 ),
               ),
@@ -84,12 +91,12 @@ class OrderDetailsModal {
                     onPressed: selectedIds.isEmpty
                         ? null
                         : () => _showStatusSelection(
-                              context,
-                              selectedIds.toList(),
-                              order,
-                              availableStatuses,
-                              onUpdateStatus,
-                            ),
+                            context,
+                            selectedIds.toList(),
+                            order,
+                            availableStatuses,
+                            onUpdateStatus,
+                          ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.blue[900],
                       foregroundColor: Colors.white,
@@ -163,6 +170,42 @@ class OrderDetailsModal {
   ) {
     if (item.id == null) return const SizedBox.shrink();
 
+    Color statusColor;
+    Color quantityBgColor;
+    Color quantityTextColor;
+
+    switch (item.status) {
+      case 'Pendiente':
+        statusColor = Colors.blue;
+        quantityBgColor = Colors.blue[100]!;
+        quantityTextColor = Colors.blue[900]!;
+        break;
+      case 'En preparación':
+        statusColor = Colors.orange;
+        quantityBgColor = Colors.orange[100]!;
+        quantityTextColor = Colors.orange[900]!;
+        break;
+      case 'Preparado':
+        statusColor = Colors.red;
+        quantityBgColor = Colors.red[100]!;
+        quantityTextColor = Colors.red[900]!;
+        break;
+      case 'Servido':
+        statusColor = Colors.green;
+        quantityBgColor = Colors.green[100]!;
+        quantityTextColor = Colors.green[900]!;
+        break;
+      case 'Anulado':
+        statusColor = Colors.grey;
+        quantityBgColor = Colors.grey[300]!;
+        quantityTextColor = Colors.grey[800]!;
+        break;
+      default:
+        statusColor = Colors.grey;
+        quantityBgColor = Colors.grey[200]!;
+        quantityTextColor = Colors.black87;
+    }
+
     return Obx(
       () => Padding(
         padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -184,12 +227,12 @@ class OrderDetailsModal {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   CircleAvatar(
-                    backgroundColor: Colors.blue[100],
+                    backgroundColor: quantityBgColor,
                     radius: 18,
                     child: Text(
                       '${item.quantity ?? 0}',
                       style: TextStyle(
-                        color: Colors.blue[900],
+                        color: quantityTextColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 14,
                       ),
@@ -210,8 +253,9 @@ class OrderDetailsModal {
                         Text(
                           'Estado: ${getStatusDescription(item.status ?? "N/A")}',
                           style: TextStyle(
-                            color: Colors.grey[600],
+                            color: statusColor,
                             fontSize: 12,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                         if (item.observations != null &&
