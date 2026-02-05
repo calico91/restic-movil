@@ -10,12 +10,8 @@ class CategoriesRepository {
   Future<List<CategoryModel>> getCategories() async {
     try {
       final response = await _client.get(UrlPaths.getCategories);
-      if (response != null && response is List) {
-        return (response).map((e) => CategoryModel.fromJson(e)).toList();
-      }
-      return [];
+      return (response as List).map((e) => CategoryModel.fromJson(e)).toList();
     } catch (e) {
-      // In a real app, you might want to throw a custom exception or handle it better
       rethrow;
     }
   }

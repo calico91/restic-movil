@@ -18,6 +18,9 @@ class UrlPaths {
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
 
+  // Customers
+  static const String getCustomers = 'customers/all';
+
   // Categories
   static const String getCategories = 'categories/all';
 }

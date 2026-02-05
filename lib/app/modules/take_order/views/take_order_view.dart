@@ -4,6 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/customer_selection_modal.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
@@ -18,6 +19,8 @@ class TakeOrderView extends GetView<TakeOrderController> {
       showBackButton: true,
       onBack: controller.goBack,
       floatingActionButton: Obx(() {
+        /*El botón de acción flotante solo se muestra si hay productos en 
+        el pedido actual.*/
         if (controller.currentOrder.isEmpty) return const SizedBox.shrink();
         return FloatingActionButton.extended(
           onPressed: () => _showOrderSummary(context),
@@ -29,51 +32,151 @@ class TakeOrderView extends GetView<TakeOrderController> {
           backgroundColor: Colors.blue[900],
         );
       }),
-      body: Obx(() {
-        return SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              ReactiveForm(
-                formGroup: controller.form,
-                child: _buildOriginSection(),
-              ),
-              const SizedBox(height: 20),
-              if (controller.tables.isNotEmpty)
-                ExpandableSection(
-                  title: 'Mesas Disponibles',
-                  icon: Icons.table_restaurant,
-                  initiallyExpanded: true,
-                  content: GridView.builder(
-                    padding: EdgeInsets.zero,
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 1.0,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ReactiveForm(
+              formGroup: controller.form,
+              child: _buildOriginSection(),
+            ),
+            const SizedBox(height: 20),
+            /*Dependiendo del origen del pedido, se muestra la sección de mesas o clientes.
+            Si el origen es "SALON", se muestran las mesas disponibles para seleccionar.  */
+            StreamBuilder(
+              stream: controller.form.control('origin').valueChanges,
+              builder: (context, snapshot) {
+                final origin = controller.form.control('origin').value;
+                if (origin == 'SALON') {
+                  return Obx(() {
+                    if (controller.tables.isNotEmpty) {
+                      return ExpandableSection(
+                        title: 'Mesas Disponibles',
+                        icon: Icons.table_restaurant,
+                        initiallyExpanded: true,
+                        content: GridView.builder(
+                          padding: EdgeInsets.zero,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 3,
+                                crossAxisSpacing: 10,
+                                mainAxisSpacing: 10,
+                                childAspectRatio: 1.0,
+                              ),
+                          itemCount: controller.tables.length,
+                          itemBuilder: (context, index) {
+                            final table = controller.tables[index];
+                            return _buildTableCard(table);
+                          },
                         ),
-                    itemCount: controller.tables.length,
-                    itemBuilder: (context, index) {
-                      final table = controller.tables[index];
-                      return _buildTableCard(table);
-                    },
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  });
+                } else if (origin == 'TAKE_AWAY' || origin == 'DELIVERY') {
+                  return ExpandableSection(
+                    title: 'Cliente',
+                    icon: Icons.person,
+                    initiallyExpanded: true,
+                    content: _buildCustomerCard(context),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+            const SizedBox(height: 20),
+            StreamBuilder(
+              stream: controller.form.control('origin').valueChanges,
+              builder: (context, snapshot) {
+                return _buildProductsSection();
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /*widget para seleccionar o mostrar cliente seleccionado*/
+  Widget _buildCustomerCard(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        controller.searchCustomers('');
+        Get.bottomSheet(
+          const CustomerSelectionModal(),
+          isScrollControlled: true,
+          ignoreSafeArea: false,
+        );
+      },
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey.shade300),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 5,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Obx(() {
+          final customer = controller.selectedCustomer.value;
+          if (customer == null) {
+            return Column(
+              children: [
+                Icon(Icons.person_add, size: 40, color: Colors.grey),
+                const SizedBox(height: 8),
+                Text(
+                  'Seleccione un cliente',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
                   ),
                 ),
-              const SizedBox(height: 20),
-              StreamBuilder(
-                stream: controller.form.control('origin').valueChanges,
-                builder: (context, snapshot) {
-                  return _buildProductsSection();
-                },
+              ],
+            );
+          }
+          /* Si hay un cliente seleccionado, muestra su información */
+          return Row(
+            children: [
+              CircleAvatar(
+                backgroundColor: Colors.blue[900],
+                child: Text(
+                  customer.name?[0].toUpperCase() ?? '?',
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      customer.fullName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      customer.phone ?? 'Sin teléfono',
+                      style: TextStyle(color: Colors.grey.shade600),
+                    ),
+                  ],
+                ),
               ),
             ],
-          ),
-        );
-      }),
+          );
+        }),
+      ),
     );
   }
 
@@ -164,23 +267,30 @@ class TakeOrderView extends GetView<TakeOrderController> {
 
   /*muestra la seccion de productos */
   Widget _buildProductsSection() {
-    final origin = controller.form.control('origin').value;
+    return Obx(() {
+      final origin = controller.form.control('origin').value;
 
-    if (controller.categories.isEmpty || origin == null) {
-      return const SizedBox.shrink();
-    }
+      // if (controller.categories.isEmpty || origin == null) {
+      if (controller.categories.isEmpty) {
+        return const SizedBox.shrink();
+      }
 
-    if (origin == 'SALON' && controller.tables.isEmpty) {
-      return const SizedBox.shrink();
-    }
+      if (origin == 'SALON') {
+        if (controller.tables.isEmpty) {
+          return const SizedBox.shrink();
+        }
+      } else if (origin == null) {
+        return const SizedBox.shrink();
+      }
 
-    return ProductSelectionWidget(
-      categories: controller.categories,
-      getQuantity: controller.getProductQuantity,
-      onIncrement: controller.incrementProduct,
-      onDecrement: controller.decrementProduct,
-      onEdit: (product) => _showAddProductDialog(Get.context!, product),
-    );
+      return ProductSelectionWidget(
+        categories: controller.categories,
+        getQuantity: controller.getProductQuantity,
+        onIncrement: controller.incrementProduct,
+        onDecrement: controller.decrementProduct,
+        onEdit: (product) => _showAddProductDialog(Get.context!, product),
+      );
+    });
   }
 
   /*muestra el dialogo para agregar producto al pedido */

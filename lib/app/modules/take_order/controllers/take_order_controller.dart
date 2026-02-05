@@ -1,10 +1,12 @@
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/customer_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/origin_type.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
+import 'package:restic_movil/app/data/repositories/customer_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -18,12 +20,14 @@ class TakeOrderController extends GetxController {
   final OrdersRepository ordersRepository;
   final TablesRepository tablesRepository;
   final CategoriesRepository categoriesRepository;
+  final CustomerRepository customerRepository;
   final StorageService storageService;
 
   TakeOrderController({
     required this.ordersRepository,
     required this.tablesRepository,
     required this.categoriesRepository,
+    required this.customerRepository,
     required this.storageService,
   });
 
@@ -35,7 +39,10 @@ class TakeOrderController extends GetxController {
   final RxList<OriginType> originTypes = <OriginType>[].obs;
   final RxList<TableModel> tables = <TableModel>[].obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
+  final RxList<CustomerModel> customers = <CustomerModel>[].obs;
+  final RxList<CustomerModel> filteredCustomers = <CustomerModel>[].obs; // Para busqueda
   final RxList<String> selectedTableIds = <String>[].obs;
+  final Rxn<CustomerModel> selectedCustomer = Rxn<CustomerModel>();
   final RxList<OrderItemModel> currentOrder = <OrderItemModel>[].obs;
 
   double get totalOrderAmount =>
@@ -49,11 +56,58 @@ class TakeOrderController extends GetxController {
     form.control('origin').valueChanges.listen((value) {
       if (value == 'SALON') {
         _loadTables();
+        selectedCustomer.value = null;
+      } else if (value == 'TAKE_AWAY' || value == 'DELIVERY') {
+        _fetchCustomers();
+        tables.clear();
+        selectedTableIds.clear();
       } else {
         tables.clear();
         selectedTableIds.clear();
+        selectedCustomer.value = null;
       }
     });
+  }
+
+  /*cargar clientes de la api*/
+  Future<void> _fetchCustomers() async {
+    if (customers.isNotEmpty) return;
+
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final result = await customerRepository.getAllCustomers();
+          customers.assignAll(result);
+          filteredCustomers.assignAll(result);
+        } catch (e,t) {
+          print(e);
+          print(t);
+          print('--------------------');
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
+  void searchCustomers(String query) {
+    if (query.isEmpty) {
+      filteredCustomers.assignAll(customers);
+      return;
+    }
+
+    final lowerQuery = query.toLowerCase();
+    filteredCustomers.assignAll(
+      customers.where((customer) {
+        return (customer.name?.toLowerCase().contains(lowerQuery) ?? false) ||
+            (customer.phone?.contains(query) ?? false);
+      }).toList(),
+    );
+  }
+
+  void selectCustomer(CustomerModel customer) {
+    selectedCustomer.value = customer;
   }
 
   @override
@@ -62,6 +116,10 @@ class TakeOrderController extends GetxController {
     _loadInitialData();
   }
 
+  /*cargar datos iniciales: origenes y categorias/productos. 
+  Se hace en paralelo para optimizar tiempos. 
+  Si falla alguna, se muestra el error pero se intenta cargar 
+  la otra para no bloquear toda la pantalla*/
   Future<void> _loadInitialData() async {
     Get.showOverlay(
       loadingWidget: LoadingCharging(),
@@ -213,15 +271,26 @@ class TakeOrderController extends GetxController {
 
   /*crear nuevo pedido*/
   Future<void> createOrder() async {
+    final origin = form.control('origin').value;
+
     // Validar si es SALON y no tiene mesas seleccionadas
-    if (form.control('origin').value == 'SALON' && selectedTableIds.isEmpty) {
+    if (origin == 'SALON' && selectedTableIds.isEmpty) {
       Get.showSnackbar(
         const ErrorSnackbar('Debe seleccionar al menos una mesa'),
       );
       return;
     }
 
-    final orderData = {
+    // Validar cliente para otros origenes
+    if ((origin == 'TAKE_AWAY' || origin == 'DELIVERY') &&
+        selectedCustomer.value == null) {
+      Get.showSnackbar(
+        const ErrorSnackbar('Debe seleccionar un cliente'),
+      );
+      return;
+    }
+
+    final Map<String, dynamic> orderData = {
       "details": currentOrder
           .map(
             (item) => {
@@ -231,10 +300,15 @@ class TakeOrderController extends GetxController {
             },
           )
           .toList(),
-      "originType": form.control('origin').value,
-      "tableIds": selectedTableIds.toList(),
+      "originType": origin,
       "observations": form.control('observations').value ?? "",
     };
+
+    if (origin == 'SALON') {
+      orderData["tableIds"] = selectedTableIds.toList();
+    } else {
+      orderData["customerId"] = selectedCustomer.value?.id;
+    }
 
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
@@ -242,7 +316,8 @@ class TakeOrderController extends GetxController {
         try {
           await ordersRepository.createOrder(orderData);
           _clearForm();
-          if (Get.isBottomSheetOpen ?? false) Get.back(); // Cerrar el resumen
+          // Cerrar el resumen
+          if (Get.isBottomSheetOpen ?? false) Get.back();
           Get.showSnackbar(const InfoSnackbar('Pedido creado correctamente'));
 
           // Actualizar lista de pedidos si el controlador existe
@@ -259,6 +334,7 @@ class TakeOrderController extends GetxController {
 
   void _clearForm() {
     selectedTableIds.clear();
+    selectedCustomer.value = null;
     currentOrder.clear();
     // Resetear el formulario completamnte, incluyendo el origen, dejandolo en null (estado inicial)
     form.reset();
