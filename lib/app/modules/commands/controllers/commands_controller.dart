@@ -43,8 +43,8 @@ class CommandsController extends GetxController {
   Future<void> loadOrders({bool withOverlay = false}) async {
     // Si estamos en finalizados, cargar finalizados
     if (currentTab.value == 1) {
-       await loadFinalizedOrders(withOverlay: withOverlay);
-       return;
+      await loadFinalizedOrders(withOverlay: withOverlay);
+      return;
     }
 
     try {
@@ -102,7 +102,7 @@ class CommandsController extends GetxController {
 
       // Filtrar SERVED en este controlador (Cocina)
       orderStatuses.assignAll(
-        orderStatuses.where((s) => s['name'] != 'PAID',).toList(),
+        orderStatuses.where((s) => s['name'] != 'PAID').toList(),
       );
 
       // Detail Statuses
@@ -119,7 +119,7 @@ class CommandsController extends GetxController {
 
       // Filtrar SERVED en este controlador (Cocina)
       orderDetailStatuses.assignAll(
-        details.where((s) => s['name'] != 'SERVED',).toList(),
+        details.where((s) => s['name'] != 'SERVED').toList(),
       );
     } catch (e) {
       final String errorMessage = ExceptionHandler.extractMessage(e);
@@ -164,37 +164,6 @@ class CommandsController extends GetxController {
               title: '¡Operación Exitosa!',
               message:
                   'Orden de pedido #$orderIdentifier se cambio a estado ${getDetailStatusDescription(status)} correctamente.',
-              onClose: () => Get.back(),
-            ),
-          );
-        } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
-        }
-      },
-    );
-  }
-
-  /*actualizar estado de la orden */
-  Future<void> updateOrderStatus(
-    String orderId,
-    String status,
-    String orderIdentifier,
-  ) async {
-    Get.showOverlay(
-      loadingWidget: LoadingCharging(),
-      asyncFunction: () async {
-        try {
-          await ordersRepository.updateOrderStatus(orderId, status);
-          await loadOrders(); // Recargar ordenes
-          Get.back(); // Cerrar modal de estado
-
-          // Mostrar modal éxito
-          Get.dialog(
-            ModalInfo(
-              title: '¡Operación Exitosa!',
-              message:
-                  'pedido #$orderIdentifier se cambio a estado ${getStatusDescription(status)} correctamente.',
               onClose: () => Get.back(),
             ),
           );

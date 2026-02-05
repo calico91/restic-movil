@@ -223,62 +223,8 @@ class CommandsView extends GetView<CommandsController> {
                   ),
                 ),
               const SizedBox(height: 8),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () => _showOrderStatusSelection(context, order),
-                  icon: const Icon(Icons.edit, size: 16),
-                  label: const Text('Cambiar Estado de Orden'),
-                  style: OutlinedButton.styleFrom(
-                    visualDensity: VisualDensity.compact,
-                  ),
-                ),
-              ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-
-  /*mostrar seleccion de estado de orden */
-  void _showOrderStatusSelection(BuildContext context, OrderModel order) {
-    if (order.id == null) return;
-
-    Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Cambiar Estado de Orden',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 20),
-            ...controller.orderStatuses.map((status) {
-              return ListTile(
-                title: Text(status['description'] ?? status['name']),
-                trailing: const Icon(Icons.chevron_right),
-                onTap: () {
-                  final String orderIdentifier = order.orderNumber != null
-                      ? '${order.orderNumber}'
-                      : (order.id != null ? order.id!.substring(0, 8) : 'N/A');
-
-                  controller.updateOrderStatus(
-                    order.id!,
-                    status['name'],
-                    orderIdentifier,
-                  );
-                },
-              );
-            }),
-          ],
         ),
       ),
     );
