@@ -2,13 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
-import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
-import 'package:restic_movil/app/modules/take_order/views/widgets/customer_selection_modal.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/salon/table_card_widget.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/take_away_delivery/customer_card_widget.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 
+/*
+  Vista principal para tomar pedidos en el restaurante.
+  Permite seleccionar el origen del pedido, mesas o clientes, y agregar productos al pedido.
+  Muestra un resumen del pedido con opción para confirmar.
+*/
 class TakeOrderView extends GetView<TakeOrderController> {
   const TakeOrderView({super.key});
 
@@ -69,7 +74,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
                           itemCount: controller.tables.length,
                           itemBuilder: (context, index) {
                             final table = controller.tables[index];
-                            return _buildTableCard(table);
+                            return TableCardWidget(table: table);
                           },
                         ),
                       );
@@ -77,11 +82,11 @@ class TakeOrderView extends GetView<TakeOrderController> {
                     return const SizedBox.shrink();
                   });
                 } else if (origin == 'TAKE_AWAY' || origin == 'DELIVERY') {
-                  return ExpandableSection(
+                  return const ExpandableSection(
                     title: 'Cliente',
                     icon: Icons.person,
                     initiallyExpanded: true,
-                    content: _buildCustomerCard(context),
+                    content: CustomerCardWidget(),
                   );
                 }
                 return const SizedBox.shrink();
@@ -96,86 +101,6 @@ class TakeOrderView extends GetView<TakeOrderController> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  /*widget para seleccionar o mostrar cliente seleccionado*/
-  Widget _buildCustomerCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        controller.searchCustomers('');
-        Get.bottomSheet(
-          const CustomerSelectionModal(),
-          isScrollControlled: true,
-          ignoreSafeArea: false,
-        );
-      },
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.grey.shade300),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 5,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Obx(() {
-          final customer = controller.selectedCustomer.value;
-          if (customer == null) {
-            return Column(
-              children: [
-                Icon(Icons.person_add, size: 40, color: Colors.grey),
-                const SizedBox(height: 8),
-                Text(
-                  'Seleccione un cliente',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
-            );
-          }
-          /* Si hay un cliente seleccionado, muestra su información */
-          return Row(
-            children: [
-              CircleAvatar(
-                backgroundColor: Colors.blue[900],
-                child: Text(
-                  customer.name?[0].toUpperCase() ?? '?',
-                  style: const TextStyle(color: Colors.white),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      customer.fullName,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
-                      ),
-                    ),
-                    Text(
-                      customer.phone ?? 'Sin teléfono',
-                      style: TextStyle(color: Colors.grey.shade600),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          );
-        }),
       ),
     );
   }
@@ -210,59 +135,6 @@ class TakeOrderView extends GetView<TakeOrderController> {
         );
       }),
     );
-  }
-
-  /*muestra la tarjeta de la mesa */
-  Widget _buildTableCard(TableModel table) {
-    return Obx(() {
-      final isSelected = controller.selectedTableIds.contains(table.id);
-      return GestureDetector(
-        onTap: () => controller.toggleTableSelection(table.id!),
-        child: Container(
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.blue[100] : Colors.white,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: isSelected ? Colors.blue : Colors.transparent,
-              width: 2,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 5,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.table_restaurant,
-                color: isSelected ? Colors.blue : Colors.grey,
-                size: 30,
-              ),
-              const SizedBox(height: 5),
-              Text(
-                table.name ?? 'Mesa',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? Colors.blue[900] : Colors.black87,
-                ),
-              ),
-              Text(
-                table.location ?? '',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isSelected ? Colors.blue[700] : Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-      );
-    });
   }
 
   /*muestra la seccion de productos */

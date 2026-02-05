@@ -40,7 +40,8 @@ class TakeOrderController extends GetxController {
   final RxList<TableModel> tables = <TableModel>[].obs;
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<CustomerModel> customers = <CustomerModel>[].obs;
-  final RxList<CustomerModel> filteredCustomers = <CustomerModel>[].obs; // Para busqueda
+  final RxList<CustomerModel> filteredCustomers =
+      <CustomerModel>[].obs; // Para busqueda
   final RxList<String> selectedTableIds = <String>[].obs;
   final Rxn<CustomerModel> selectedCustomer = Rxn<CustomerModel>();
   final RxList<OrderItemModel> currentOrder = <OrderItemModel>[].obs;
@@ -80,10 +81,7 @@ class TakeOrderController extends GetxController {
           final result = await customerRepository.getAllCustomers();
           customers.assignAll(result);
           filteredCustomers.assignAll(result);
-        } catch (e,t) {
-          print(e);
-          print(t);
-          print('--------------------');
+        } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
         }
@@ -284,9 +282,7 @@ class TakeOrderController extends GetxController {
     // Validar cliente para otros origenes
     if ((origin == 'TAKE_AWAY' || origin == 'DELIVERY') &&
         selectedCustomer.value == null) {
-      Get.showSnackbar(
-        const ErrorSnackbar('Debe seleccionar un cliente'),
-      );
+      Get.showSnackbar(const ErrorSnackbar('Debe seleccionar un cliente'));
       return;
     }
 
