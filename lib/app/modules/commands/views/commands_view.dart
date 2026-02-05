@@ -138,6 +138,26 @@ class CommandsView extends GetView<CommandsController> {
       }
     } catch (_) {}
 
+    // Lógica para título de la tarjeta
+    String title = '';
+    final origin = order.originType;
+
+    if (origin == 'TAKE_AWAY' ||
+        origin == 'DELIVERY' ||
+        origin == 'Para llevar' ||
+        origin == 'Domicilio') {
+      title =
+          order.customerName ??
+          order.customerId ??
+          (origin ?? 'Sin Información');
+    } else {
+      // Asumimos Salón u otros
+      title = _formatTables(order.tables);
+      if (title == 'N/A' && origin != null) {
+        title = origin;
+      }
+    }
+
     return Card(
       elevation: 4,
       margin: const EdgeInsets.only(bottom: 16),
@@ -157,7 +177,7 @@ class CommandsView extends GetView<CommandsController> {
                     child: SingleChildScrollView(
                       scrollDirection: Axis.horizontal,
                       child: Text(
-                        '#${order.orderNumber ?? "N/A"} - Mesa: ${_formatTables(order.tables)}',
+                        '#${order.orderNumber ?? "N/A"} - $title',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 18,
