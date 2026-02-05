@@ -23,20 +23,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
       title: 'Tomar Pedido',
       showBackButton: true,
       onBack: controller.goBack,
-      floatingActionButton: Obx(() {
-        /*El botón de acción flotante solo se muestra si hay productos en 
-        el pedido actual.*/
-        if (controller.currentOrder.isEmpty) return const SizedBox.shrink();
-        return FloatingActionButton.extended(
-          onPressed: () => _showOrderSummary(context),
-          label: Text(
-            'Ver Pedido (${controller.currentOrder.length})',
-            style: TextStyle(color: Colors.white),
-          ),
-          icon: const Icon(Icons.shopping_cart, color: Colors.white),
-          backgroundColor: Colors.blue[900],
-        );
-      }),
+      floatingActionButton: _buildFloatingActionButton(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -47,61 +34,78 @@ class TakeOrderView extends GetView<TakeOrderController> {
               child: _buildOriginSection(),
             ),
             const SizedBox(height: 20),
-            /*Dependiendo del origen del pedido, se muestra la sección de mesas o clientes.
-            Si el origen es "SALON", se muestran las mesas disponibles para seleccionar.  */
-            StreamBuilder(
-              stream: controller.form.control('origin').valueChanges,
-              builder: (context, snapshot) {
-                final origin = controller.form.control('origin').value;
-                if (origin == 'SALON') {
-                  return Obx(() {
-                    if (controller.tables.isNotEmpty) {
-                      return ExpandableSection(
-                        title: 'Mesas Disponibles',
-                        icon: Icons.table_restaurant,
-                        initiallyExpanded: true,
-                        content: GridView.builder(
-                          padding: EdgeInsets.zero,
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                crossAxisCount: 3,
-                                crossAxisSpacing: 10,
-                                mainAxisSpacing: 10,
-                                childAspectRatio: 1.0,
-                              ),
-                          itemCount: controller.tables.length,
-                          itemBuilder: (context, index) {
-                            final table = controller.tables[index];
-                            return TableCardWidget(table: table);
-                          },
-                        ),
-                      );
-                    }
-                    return const SizedBox.shrink();
-                  });
-                } else if (origin == 'TAKE_AWAY' || origin == 'DELIVERY') {
-                  return const ExpandableSection(
-                    title: 'Cliente',
-                    icon: Icons.person,
-                    initiallyExpanded: true,
-                    content: CustomerCardWidget(),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
+            _buildSelectionSection(),
             const SizedBox(height: 20),
-            StreamBuilder(
-              stream: controller.form.control('origin').valueChanges,
-              builder: (context, snapshot) {
-                return _buildProductsSection();
-              },
-            ),
+            _buildProductsSection(),
           ],
         ),
       ),
+    );
+  }
+
+  /* El botón de acción flotante solo se muestra si hay productos en el pedido actual. 
+Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
+  Widget _buildFloatingActionButton(BuildContext context) {
+    return Obx(() {
+      /*El botón de acción flotante solo se muestra si hay productos en 
+        el pedido actual.*/
+      if (controller.currentOrder.isEmpty) return const SizedBox.shrink();
+      return FloatingActionButton.extended(
+        onPressed: () => _showOrderSummary(context),
+        label: Text(
+          'Ver Pedido (${controller.currentOrder.length})',
+          style: TextStyle(color: Colors.white),
+        ),
+        icon: const Icon(Icons.shopping_cart, color: Colors.white),
+        backgroundColor: Colors.blue[900],
+      );
+    });
+  }
+
+  /* Dependiendo del origen del pedido, se muestra la sección de mesas o clientes.
+     Si el origen es "SALON", se muestran las mesas disponibles para seleccionar. */
+  Widget _buildSelectionSection() {
+    return StreamBuilder(
+      stream: controller.form.control('origin').valueChanges,
+      builder: (context, snapshot) {
+        final origin = controller.form.control('origin').value;
+        if (origin == 'SALON') {
+          return Obx(() {
+            if (controller.tables.isNotEmpty) {
+              return ExpandableSection(
+                title: 'Mesas Disponibles',
+                icon: Icons.table_restaurant,
+                initiallyExpanded: true,
+                content: GridView.builder(
+                  padding: EdgeInsets.zero,
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 3,
+                    crossAxisSpacing: 10,
+                    mainAxisSpacing: 10,
+                    childAspectRatio: 1.0,
+                  ),
+                  itemCount: controller.tables.length,
+                  itemBuilder: (context, index) {
+                    final table = controller.tables[index];
+                    return TableCardWidget(table: table);
+                  },
+                ),
+              );
+            }
+            return const SizedBox.shrink();
+          });
+        } else if (origin == 'TAKE_AWAY' || origin == 'DELIVERY') {
+          return const ExpandableSection(
+            title: 'Cliente',
+            icon: Icons.person,
+            initiallyExpanded: true,
+            content: CustomerCardWidget(),
+          );
+        }
+        return const SizedBox.shrink();
+      },
     );
   }
 
@@ -139,30 +143,35 @@ class TakeOrderView extends GetView<TakeOrderController> {
 
   /*muestra la seccion de productos */
   Widget _buildProductsSection() {
-    return Obx(() {
-      final origin = controller.form.control('origin').value;
+    return StreamBuilder(
+      stream: controller.form.control('origin').valueChanges,
+      builder: (context, snapshot) {
+        return Obx(() {
+          final origin = controller.form.control('origin').value;
 
-      // if (controller.categories.isEmpty || origin == null) {
-      if (controller.categories.isEmpty) {
-        return const SizedBox.shrink();
-      }
+          // if (controller.categories.isEmpty || origin == null) {
+          if (controller.categories.isEmpty) {
+            return const SizedBox.shrink();
+          }
 
-      if (origin == 'SALON') {
-        if (controller.tables.isEmpty) {
-          return const SizedBox.shrink();
-        }
-      } else if (origin == null) {
-        return const SizedBox.shrink();
-      }
+          if (origin == 'SALON') {
+            if (controller.tables.isEmpty) {
+              return const SizedBox.shrink();
+            }
+          } else if (origin == null) {
+            return const SizedBox.shrink();
+          }
 
-      return ProductSelectionWidget(
-        categories: controller.categories,
-        getQuantity: controller.getProductQuantity,
-        onIncrement: controller.incrementProduct,
-        onDecrement: controller.decrementProduct,
-        onEdit: (product) => _showAddProductDialog(Get.context!, product),
-      );
-    });
+          return ProductSelectionWidget(
+            categories: controller.categories,
+            getQuantity: controller.getProductQuantity,
+            onIncrement: controller.incrementProduct,
+            onDecrement: controller.decrementProduct,
+            onEdit: (product) => _showAddProductDialog(Get.context!, product),
+          );
+        });
+      },
+    );
   }
 
   /*muestra el dialogo para agregar producto al pedido */
