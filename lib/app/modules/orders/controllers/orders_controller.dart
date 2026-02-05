@@ -211,7 +211,7 @@ class OrdersController extends GetxController {
     );
   }
 
-  /*filtrar pedidos por mesa*/
+  /*filtrar pedidos por mesa o cliente*/
   void _filterOrders() {
     final query = searchController.text.toLowerCase();
 
@@ -226,12 +226,17 @@ class OrdersController extends GetxController {
         sourceList.where((order) {
           final tableNames =
               order.tables?.map((t) => t.name?.toLowerCase() ?? '').toList() ??
-              [];
+                  [];
           // Busca si alguna mesa contiene el texto buscado
           // Tambien buscar por numero de orden
           final orderNumber = order.orderNumber?.toString() ?? '';
+          
+          // Buscar por nombre de cliente
+          final customerName = order.customerName?.toLowerCase() ?? '';
+
           return tableNames.any((name) => name.contains(query)) ||
-              orderNumber.contains(query);
+              orderNumber.contains(query) ||
+              customerName.contains(query);
         }).toList(),
       );
     }

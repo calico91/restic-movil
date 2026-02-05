@@ -6,6 +6,12 @@ import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 
+/*
+  Hoja modal para agregar productos adicionales a un pedido existente.
+  Permite seleccionar productos, ajustar cantidades y agregar comentarios.
+  Muestra un resumen de los productos seleccionados y el total adicional.
+  Al confirmar, agrega los productos al pedido a través del controlador.
+*/
 class AddProductsSheet extends GetView<OrdersController> {
   final OrderModel order;
 
@@ -28,7 +34,10 @@ class AddProductsSheet extends GetView<OrdersController> {
               children: [
                 Text(
                   'Agregar a pedido #${order.orderNumber}',
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -40,21 +49,19 @@ class AddProductsSheet extends GetView<OrdersController> {
           const Divider(),
           Expanded(
             child: SingleChildScrollView(
-              child: Obx(
-                () {
-                  // Forzar reactividad
-                  // ignore: unused_local_variable
-                  final _ = controller.tempAdditionalOrderItems.length;
+              child: Obx(() {
+                // Forzar reactividad
+                // ignore: unused_local_variable
+                final _ = controller.tempAdditionalOrderItems.length;
 
-                  return ProductSelectionWidget(
-                    categories: controller.categories.toList(),
-                    getQuantity: controller.getTempProductQuantity,
-                    onIncrement: controller.incrementTempProduct,
-                    onDecrement: controller.decrementTempProduct,
-                    onEdit: (product) => _showAddProductDialog(product),
-                  );
-                },
-              ),
+                return ProductSelectionWidget(
+                  categories: controller.categories.toList(),
+                  getQuantity: controller.getTempProductQuantity,
+                  onIncrement: controller.incrementTempProduct,
+                  onDecrement: controller.decrementTempProduct,
+                  onEdit: (product) => _showAddProductDialog(product),
+                );
+              }),
             ),
           ),
           Obx(() {

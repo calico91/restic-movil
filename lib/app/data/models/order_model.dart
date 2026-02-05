@@ -9,6 +9,8 @@ class OrderModel {
   final String? status;
   final String? originType;
   final List<TableModel>? tables;
+  final String? customerId;
+  final String? customerName;
   final String? observations;
   final double? total;
   final List<OrderDetailModel>? details;
@@ -21,6 +23,8 @@ class OrderModel {
     this.status,
     this.originType,
     this.tables,
+    this.customerId,
+    this.customerName,
     this.observations,
     this.total,
     this.details,
@@ -37,6 +41,8 @@ class OrderModel {
       tables: json['tables'] != null
           ? (json['tables'] as List).map((i) => TableModel.fromJson(i)).toList()
           : null,
+      customerId: json['customerId'],
+      customerName: json['customerName'],
       observations: json['observations'],
       total: (json['total'] as num?)?.toDouble(),
       details: json['details'] != null
@@ -56,6 +62,8 @@ class OrderModel {
       'status': status,
       'originType': originType,
       'tables': tables?.map((i) => i.toJson()).toList(),
+      'customerId': customerId,
+      'customerName': customerName,
       'observations': observations,
       'total': total,
       'details': details?.map((i) => i.toJson()).toList(),

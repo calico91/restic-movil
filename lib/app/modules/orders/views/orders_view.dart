@@ -111,7 +111,7 @@ class OrdersView extends GetView<OrdersController> {
       child: TextField(
         controller: controller.searchController,
         decoration: const InputDecoration(
-          hintText: 'Buscar por mesa',
+          hintText: 'mesa o nombre del cliente',
           prefixIcon: Icon(Icons.search, color: Colors.blue),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(vertical: 15),
@@ -161,11 +161,7 @@ class OrdersView extends GetView<OrdersController> {
             : await controller.loadFinalizedOrders(withOverlay: false),
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(
-            left: 16,
-            right: 16,
-            bottom: 80, // Space for the floating bottom nav
-          ),
+          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
           itemCount: ordersList.length,
           itemBuilder: (context, index) {
             final order = ordersList[index];
@@ -221,10 +217,22 @@ class OrdersView extends GetView<OrdersController> {
       } catch (_) {}
     }
 
-    // Obtener titulo (Mesas)
-    String title = order.tables?.map((t) => t.name).join(', ') ?? 'Sin Mesa';
-    if (title.isEmpty && order.originType != null) {
-      title = order.originType!;
+    // Obtener titulo (Mesas o Cliente)
+    String title = order.tables?.map((t) => t.name).join(', ') ?? '';
+
+    // Si no hay mesas, intentamos usar el cliente si es Take Away o Delivery
+    if (title.isEmpty &&
+        (order.originType == 'TAKE_AWAY' || order.originType == 'DELIVERY' || order.originType == 'Para llevar')) {
+      if (order.customerName != null) {
+        title = order.customerName!;
+      } else if (order.originType != null) {
+        title = order.originType!;
+      } else {
+        title = 'Sin información';
+      }
+    } else if (title.isEmpty) {
+      // Fallback a origin type
+      title = order.originType ?? 'Sin Mesa';
     }
 
     final idDisplay = order.orderNumber!;
@@ -283,25 +291,26 @@ class OrdersView extends GetView<OrdersController> {
               isBold: true,
             ),
             _buildInfoRow('Estado:', statusText, valueColor: statusColor),
+            _buildInfoRow('Origen:', order.originType ?? 'N/A'),
             _buildInfoRow('Fecha y hora:', dateText),
             const SizedBox(height: 15),
             Row(
               children: [
                 if (controller.currentTab.value == 0)
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: () => _showOrderDetails(context, order),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[900],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
+                  Expanded(
+                    child: ElevatedButton(
+                      onPressed: () => _showOrderDetails(context, order),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[900],
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
                       ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      child: const Text('Ver Detalles'),
                     ),
-                    child: const Text('Ver Detalles'),
                   ),
-                ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: OutlinedButton(
