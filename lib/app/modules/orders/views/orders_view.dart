@@ -222,8 +222,7 @@ class OrdersView extends GetView<OrdersController> {
 
     // Si no hay mesas, intentamos usar el cliente si es Take Away o Delivery
     if (title.isEmpty &&
-        (order.originType == 'TAKE_AWAY' ||
-            order.originType == 'DELIVERY' ||
+        (order.originType == 'Domicilio' ||
             order.originType == 'Para llevar')) {
       if (order.customerName != null) {
         title = order.customerName!;
