@@ -1,4 +1,5 @@
 import 'package:restic_movil/app/data/models/price_model.dart';
+import 'package:restic_movil/app/data/models/combo_group_model.dart';
 
 class ProductModel {
   final String? id;
@@ -7,6 +8,8 @@ class ProductModel {
   final bool? active;
   final String? subcategoryId;
   final PriceModel? price;
+  final String? productType;
+  final List<ComboGroupModel>? comboGroups;
 
   ProductModel({
     this.id,
@@ -15,6 +18,8 @@ class ProductModel {
     this.active,
     this.subcategoryId,
     this.price,
+    this.productType,
+    this.comboGroups,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -25,6 +30,12 @@ class ProductModel {
       active: json['active'],
       subcategoryId: json['subcategory_id'],
       price: json['price'] != null ? PriceModel.fromJson(json['price']) : null,
+      productType: json['productType'],
+      comboGroups: json['combo_groups'] != null
+          ? (json['combo_groups'] as List)
+              .map((e) => ComboGroupModel.fromJson(e))
+              .toList()
+          : null,
     );
   }
 
@@ -36,6 +47,8 @@ class ProductModel {
       'active': active,
       'subcategory_id': subcategoryId,
       'price': price?.toJson(),
+      'productType': productType,
+      'combo_groups': comboGroups?.map((e) => e.toJson()).toList(),
     };
   }
 }

@@ -70,6 +70,12 @@ class TakeOrderController extends GetxController {
     });
   }
 
+  @override
+  void onReady() {
+    super.onReady();
+    _loadInitialData();
+  }
+
   /*cargar clientes de la api*/
   Future<void> _fetchCustomers() async {
     if (customers.isNotEmpty) return;
@@ -89,6 +95,8 @@ class TakeOrderController extends GetxController {
     );
   }
 
+  /*filtrar clientes por nombre o telefono. La busqueda es case-insensitive 
+  y permite coincidencias parciales.*/
   void searchCustomers(String query) {
     if (query.isEmpty) {
       filteredCustomers.assignAll(customers);
@@ -104,14 +112,9 @@ class TakeOrderController extends GetxController {
     );
   }
 
+  /*seleccionar cliente para pedido take away o delivery*/
   void selectCustomer(CustomerModel customer) {
     selectedCustomer.value = customer;
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-    _loadInitialData();
   }
 
   /*cargar datos iniciales: origenes y categorias/productos. 

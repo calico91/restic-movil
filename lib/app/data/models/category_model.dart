@@ -2,6 +2,8 @@ import 'package:restic_movil/app/data/models/subcategory_model.dart';
 export 'package:restic_movil/app/data/models/subcategory_model.dart';
 export 'package:restic_movil/app/data/models/product_model.dart';
 export 'package:restic_movil/app/data/models/price_model.dart';
+export 'package:restic_movil/app/data/models/combo_group_model.dart';
+export 'package:restic_movil/app/data/models/combo_option_model.dart';
 
 class CategoryModel {
   final String? id;
