@@ -197,17 +197,31 @@ class TakeOrderController extends GetxController {
   }
 
   /*agregar producto al pedido */
-  void addToOrder(ProductModel product, int quantity, String? comment) {
+  void addToOrder(
+    ProductModel product,
+    int quantity,
+    String? comment, {
+    List<Map<String, String>>? comboSelections,
+    double additionalPrice = 0,
+  }) {
     // Normalizar comentario: tratar vacíos o solo espacios como null
     final normalizedComment = (comment == null || comment.trim().isEmpty)
         ? null
         : comment.trim();
 
     // Verificar si ya existe el producto con el mismo comentario
-    final index = currentOrder.indexWhere(
-      (item) =>
-          item.product.id == product.id && item.comment == normalizedComment,
-    );
+    // Para combos, si hay selecciones, por ahora no agrupamos para evitar complejidad
+    // (o se podria implementar deep equality check)
+    int index = -1;
+
+    if (comboSelections == null || comboSelections.isEmpty) {
+      index = currentOrder.indexWhere(
+        (item) =>
+            item.product.id == product.id &&
+            item.comment == normalizedComment &&
+            (item.comboSelections == null || item.comboSelections!.isEmpty),
+      );
+    }
 
     if (index != -1) {
       currentOrder[index].quantity += quantity;
@@ -218,6 +232,8 @@ class TakeOrderController extends GetxController {
           product: product,
           quantity: quantity,
           comment: normalizedComment,
+          comboSelections: comboSelections,
+          additionalPrice: additionalPrice,
         ),
       );
     }
@@ -290,15 +306,22 @@ class TakeOrderController extends GetxController {
     }
 
     final Map<String, dynamic> orderData = {
-      "details": currentOrder
-          .map(
-            (item) => {
-              "productId": item.product.id,
-              "quantity": item.quantity,
-              "observations": item.comment ?? "",
-            },
-          )
-          .toList(),
+      "details": currentOrder.map(
+        (item) {
+          final detail = {
+            "productId": item.product.id,
+            "quantity": item.quantity,
+            "observations": item.comment ?? "",
+          };
+
+          if (item.comboSelections != null &&
+              item.comboSelections!.isNotEmpty) {
+            detail["comboSelections"] = item.comboSelections;
+          }
+
+          return detail;
+        },
+      ).toList(),
       "originType": origin,
       "observations": form.control('observations').value ?? "",
     };

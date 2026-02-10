@@ -194,8 +194,11 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     Get.dialog(
       ComboSelectionDialog(
         product: product,
-        onConfirm: (product, quantity, comment) {
-          controller.addToOrder(product, quantity, comment);
+        onConfirm: (product, quantity, comment, comboSelections,
+            additionalPrice) {
+          controller.addToOrder(product, quantity, comment,
+              comboSelections: comboSelections,
+              additionalPrice: additionalPrice);
         },
       ),
     );
