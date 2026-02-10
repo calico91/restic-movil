@@ -66,6 +66,9 @@ class ProductSelectionWidget extends StatelessWidget {
   }
 
   Widget _buildProductRow(ProductModel product) {
+    final isCombo = product.productType == 'COMBO';
+    final quantity = getQuantity(product);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
@@ -112,64 +115,101 @@ class ProductSelectionWidget extends StatelessWidget {
                 ],
               ),
             ),
-            Row(
-              children: [
-                IconButton(
-                  onPressed: () => onEdit(product),
-                  icon: const Icon(
-                    Icons.edit_note,
-                    color: Colors.orange,
-                  ),
-                  tooltip: 'Agregar con notas',
-                ),
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.grey[100],
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.remove,
-                          color: Colors.red,
-                          size: 20,
-                        ),
-                        onPressed: () => onDecrement(product),
-                        constraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                        padding: EdgeInsets.zero,
-                      ),
-                      Obx(() => Text(
-                        '${getQuantity(product)}',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      )),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.add,
-                          color: Colors.green,
-                          size: 20,
-                        ),
-                        onPressed: () => onIncrement(product),
-                        constraints: const BoxConstraints(
-                          minWidth: 36,
-                          minHeight: 36,
-                        ),
-                        padding: EdgeInsets.zero,
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+             if (isCombo)
+               _buildComboActions(product, quantity)
+             else
+               _buildStandardActions(product),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildComboActions(ProductModel product, int quantity) {
+     return Column(
+       crossAxisAlignment: CrossAxisAlignment.end,
+       children: [
+         ElevatedButton(
+           onPressed: () => onIncrement(product), // Usamos onIncrement para activar el diálogo
+           style: ElevatedButton.styleFrom(
+             backgroundColor: Colors.blue[900],
+             foregroundColor: Colors.white,
+             minimumSize: const Size(80, 36),
+             padding: const EdgeInsets.symmetric(horizontal: 12),
+           ),
+           child: const Text('Configurar'),
+         ),
+         if (quantity > 0)
+           Padding(
+             padding: const EdgeInsets.only(top: 4),
+             child: Text(
+               '$quantity en pedido',
+               style: const TextStyle(
+                 fontSize: 12,
+                 color: Colors.blue, 
+                 fontWeight: FontWeight.bold
+               ),
+             ),
+           ),
+       ],
+     );
+  }
+
+  Widget _buildStandardActions(ProductModel product) {
+    return Row(
+      children: [
+        IconButton(
+          onPressed: () => onEdit(product),
+          icon: const Icon(
+            Icons.edit_note,
+            color: Colors.orange,
+          ),
+          tooltip: 'Agregar con notas',
+        ),
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey[100],
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            children: [
+              IconButton(
+                icon: const Icon(
+                  Icons.remove,
+                  color: Colors.red,
+                  size: 20,
+                ),
+                onPressed: () => onDecrement(product),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+                padding: EdgeInsets.zero,
+              ),
+              Obx(() => Text(
+                '${getQuantity(product)}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              )),
+              IconButton(
+                icon: const Icon(
+                  Icons.add,
+                  color: Colors.green,
+                  size: 20,
+                ),
+                onPressed: () => onIncrement(product),
+                constraints: const BoxConstraints(
+                  minWidth: 36,
+                  minHeight: 36,
+                ),
+                padding: EdgeInsets.zero,
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

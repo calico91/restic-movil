@@ -5,6 +5,7 @@ import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/salon/table_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/take_away_delivery/customer_card_widget.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
@@ -165,12 +166,43 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
           return ProductSelectionWidget(
             categories: controller.categories,
             getQuantity: controller.getProductQuantity,
-            onIncrement: controller.incrementProduct,
-            onDecrement: controller.decrementProduct,
-            onEdit: (product) => _showAddProductDialog(Get.context!, product),
+            onIncrement: (product) {
+              if (product.productType == 'COMBO') {
+                _showComboDialog(context, product);
+              } else {
+                controller.incrementProduct(product);
+              }
+            },
+            onDecrement: (product) {
+              // Para combos, decrementar elimina el último agregado o requiere gestión específica.
+              // Por simplicidad, usamos la lógica por defecto, pero advertimos si es necesario.
+              // La lógica actual en el controller ya filtra por comentarios vacíos, así que
+              // productos con opciones (comentarios) no se borrarán con este botón (-).
+              // El usuario debe borrarlos desde el resumen.
+              controller.decrementProduct(product);
+            },
+            onEdit: (product) {
+              if (product.productType == 'COMBO') {
+                 _showComboDialog(context, product);
+              } else {
+                _showAddProductDialog(context, product);
+              }
+            },
           );
         });
       },
+    );
+  }
+
+  /* Mostrar dialogo de seleccion de combo */
+  void _showComboDialog(BuildContext context, ProductModel product) {
+    Get.dialog(
+      ComboSelectionDialog(
+        product: product,
+        onConfirm: (product, quantity, comment) {
+          controller.addToOrder(product, quantity, comment);
+        },
+      ),
     );
   }
 
