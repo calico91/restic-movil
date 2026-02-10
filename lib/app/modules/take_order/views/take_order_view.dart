@@ -174,16 +174,11 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
               }
             },
             onDecrement: (product) {
-              // Para combos, decrementar elimina el último agregado o requiere gestión específica.
-              // Por simplicidad, usamos la lógica por defecto, pero advertimos si es necesario.
-              // La lógica actual en el controller ya filtra por comentarios vacíos, así que
-              // productos con opciones (comentarios) no se borrarán con este botón (-).
-              // El usuario debe borrarlos desde el resumen.
               controller.decrementProduct(product);
             },
             onEdit: (product) {
               if (product.productType == 'COMBO') {
-                 _showComboDialog(context, product);
+                _showComboDialog(context, product);
               } else {
                 _showAddProductDialog(context, product);
               }
