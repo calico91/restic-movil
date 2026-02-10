@@ -258,6 +258,23 @@ class OrderDetailsModal {
                             fontWeight: FontWeight.bold,
                           ),
                         ),
+                        if (item.comboSelections != null &&
+                            item.comboSelections!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: item.comboSelections!.map((selection) {
+                                return Text(
+                                  '• ${selection.selectedProductName ?? 'Opción'} (${selection.comboGroupName ?? ''})',
+                                  style: TextStyle(
+                                    color: Colors.grey[700],
+                                    fontSize: 12,
+                                  ),
+                                );
+                              }).toList(),
+                            ),
+                          ),
                         if (item.observations != null &&
                             item.observations!.isNotEmpty)
                           Padding(

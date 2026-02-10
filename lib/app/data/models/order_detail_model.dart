@@ -1,7 +1,10 @@
+import 'package:restic_movil/app/data/models/order_combo_selection_model.dart';
+
 class OrderDetailModel {
   final String? id;
   final String? productId;
   final String? productName;
+  final String? productType;
   final double? unitPrice;
   final int? quantity;
   final double? subtotal;
@@ -10,11 +13,13 @@ class OrderDetailModel {
   final String? addedAt;
   final String? preparedAt;
   final String? servedAt;
+  final List<OrderComboSelectionModel>? comboSelections;
 
   OrderDetailModel({
     this.id,
     this.productId,
     this.productName,
+    this.productType,
     this.unitPrice,
     this.quantity,
     this.subtotal,
@@ -23,6 +28,7 @@ class OrderDetailModel {
     this.addedAt,
     this.preparedAt,
     this.servedAt,
+    this.comboSelections,
   });
 
   factory OrderDetailModel.fromJson(Map<String, dynamic> json) {
@@ -30,6 +36,7 @@ class OrderDetailModel {
       id: json['id'],
       productId: json['productId'],
       productName: json['productName'],
+      productType: json['productType'],
       unitPrice: (json['unitPrice'] as num?)?.toDouble(),
       quantity: json['quantity'],
       subtotal: (json['subtotal'] as num?)?.toDouble(),
@@ -38,6 +45,11 @@ class OrderDetailModel {
       addedAt: json['addedAt'],
       preparedAt: json['preparedAt'],
       servedAt: json['servedAt'],
+      comboSelections: json['comboSelections'] != null
+          ? (json['comboSelections'] as List)
+              .map((i) => OrderComboSelectionModel.fromJson(i))
+              .toList()
+          : null,
     );
   }
 
@@ -46,6 +58,7 @@ class OrderDetailModel {
       'id': id,
       'productId': productId,
       'productName': productName,
+      'productType': productType,
       'unitPrice': unitPrice,
       'quantity': quantity,
       'subtotal': subtotal,
@@ -54,6 +67,7 @@ class OrderDetailModel {
       'addedAt': addedAt,
       'preparedAt': preparedAt,
       'servedAt': servedAt,
+      'comboSelections': comboSelections?.map((i) => i.toJson()).toList(),
     };
   }
 }
