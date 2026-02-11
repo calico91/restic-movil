@@ -135,7 +135,8 @@ class ComboSelectionDialog extends StatelessWidget {
     return Obx(() {
       final currentCount = controller.getGroupTotalCount(group.id);
       final min = controller.getAdjustedLimit(group.minSelections ?? 0);
-      final max = controller.getAdjustedLimit(group.maxSelections ?? 1);
+      // Validar con la cantidad seleccionada en el input, ignorando el json
+      final max = controller.quantity.value;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,

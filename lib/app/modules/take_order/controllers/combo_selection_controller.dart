@@ -60,7 +60,8 @@ class ComboSelectionController extends GetxController {
     for (var group in product.comboGroups!) {
       final totalSelected = getGroupTotalCount(group.id);
       final min = getAdjustedLimit(group.minSelections ?? 0);
-      final max = getAdjustedLimit(group.maxSelections ?? 1);
+      // Validar con la cantidad seleccionada en el input, ignorando el json
+      final max = quantity.value;
 
       if (group.required == true) {
         if (totalSelected < min) return false;
@@ -95,20 +96,27 @@ class ComboSelectionController extends GetxController {
   }
 
   void incrementOption(ComboGroupModel group, ComboOptionModel option) {
+    if (group.id == null || option.id == null) return;
+
     final currentGroupTotal = getGroupTotalCount(group.id);
-    final max = getAdjustedLimit(group.maxSelections ?? 1);
+    // Validar con la cantidad seleccionada en el input, ignorando el json
+    final max = quantity.value;
 
     if (currentGroupTotal < max) {
-      final groupMap = selections[group.id] ?? {};
+      final Map<String, int> groupMap =
+          Map<String, int>.from(selections[group.id] ?? {});
       groupMap[option.id!] = (groupMap[option.id!] ?? 0) + 1;
       selections[group.id!] = groupMap;
     }
   }
 
   void decrementOption(ComboGroupModel group, ComboOptionModel option) {
+    if (group.id == null || option.id == null) return;
+
     final count = getOptionCount(group.id, option.id);
     if (count > 0) {
-      final groupMap = selections[group.id]!;
+      final Map<String, int> groupMap =
+          Map<String, int>.from(selections[group.id] ?? {});
       groupMap[option.id!] = count - 1;
       if (groupMap[option.id!] == 0) {
         groupMap.remove(option.id);
