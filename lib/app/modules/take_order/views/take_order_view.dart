@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
+import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/salon/table_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/take_away_delivery/customer_card_widget.dart';
@@ -307,18 +308,37 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                   itemCount: controller.currentOrder.length,
                   itemBuilder: (context, index) {
                     final item = controller.currentOrder[index];
+                    final comboDetails = _buildComboDetails(item);
+
                     return ListTile(
                       title: Text(
                         '${item.product.name} (x${item.quantity})',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: item.comment != null && item.comment!.isNotEmpty
-                          ? Text(
-                              'Nota: ${item.comment}',
-                              style: const TextStyle(
-                                fontStyle: FontStyle.italic,
-                                color: Colors.grey,
-                              ),
+                      subtitle: (comboDetails.isNotEmpty ||
+                              (item.comment != null &&
+                                  item.comment!.isNotEmpty))
+                          ? Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                if (comboDetails.isNotEmpty)
+                                  Text(
+                                    comboDetails,
+                                    style: TextStyle(
+                                      color: Colors.grey[800],
+                                      fontSize: 13,
+                                    ),
+                                  ),
+                                if (item.comment != null &&
+                                    item.comment!.isNotEmpty)
+                                  Text(
+                                    'Nota: ${item.comment}',
+                                    style: const TextStyle(
+                                      fontStyle: FontStyle.italic,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                              ],
                             )
                           : null,
                       trailing: Row(
@@ -361,5 +381,35 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
       ),
       isScrollControlled: true,
     );
+  }
+
+  String _buildComboDetails(OrderItemModel item) {
+    if (item.comboSelections == null || item.comboSelections!.isEmpty) {
+      return '';
+    }
+
+    final Map<String, int> counts = {};
+    for (var selection in item.comboSelections!) {
+      final id = selection['comboOptionId'];
+      if (id != null) {
+        counts[id] = (counts[id] ?? 0) + 1;
+      }
+    }
+
+    List<String> details = [];
+    if (item.product.comboGroups != null) {
+      for (var group in item.product.comboGroups!) {
+        if (group.options != null) {
+          for (var option in group.options!) {
+            if (counts.containsKey(option.id)) {
+              final count = counts[option.id];
+              final name = option.productName ?? 'Opción';
+              details.add('$name ($count)');
+            }
+          }
+        }
+      }
+    }
+    return details.join(' - ');
   }
 }
