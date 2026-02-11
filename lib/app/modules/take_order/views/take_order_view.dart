@@ -275,14 +275,14 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                   'Resumen del Pedido',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  'Total: \$${controller.totalOrderAmount.toStringAsFixed(0)}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  ),
-                ),
+                Obx(() => Text(
+                      'Total: \$${controller.totalOrderAmount.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    )),
               ],
             ),
             const Divider(),
@@ -347,7 +347,12 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                           Text('\$${item.total.toStringAsFixed(0)}'),
                           IconButton(
                             icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () => controller.removeFromOrder(item),
+                            onPressed: () {
+                              controller.removeFromOrder(item);
+                              if (controller.currentOrder.isEmpty) {
+                                Get.back();
+                              }
+                            },
                           ),
                         ],
                       ),
