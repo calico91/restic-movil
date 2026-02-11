@@ -6,6 +6,7 @@ class OrderComboSelectionModel {
   final String? selectedProductId;
   final String? selectedProductName;
   final double? additionalPrice;
+  final int? quantity;
 
   OrderComboSelectionModel({
     this.id,
@@ -15,6 +16,7 @@ class OrderComboSelectionModel {
     this.selectedProductId,
     this.selectedProductName,
     this.additionalPrice,
+    this.quantity,
   });
 
   factory OrderComboSelectionModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class OrderComboSelectionModel {
       selectedProductId: json['selectedProductId'],
       selectedProductName: json['selectedProductName'],
       additionalPrice: (json['additionalPrice'] as num?)?.toDouble(),
+      quantity: json['quantity'] as int?,
     );
   }
 
@@ -38,6 +41,7 @@ class OrderComboSelectionModel {
       'selectedProductId': selectedProductId,
       'selectedProductName': selectedProductName,
       'additionalPrice': additionalPrice,
+      'quantity': quantity,
     };
   }
 }

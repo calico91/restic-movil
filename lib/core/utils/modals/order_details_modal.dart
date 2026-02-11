@@ -265,8 +265,13 @@ class OrderDetailsModal {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: item.comboSelections!.map((selection) {
+                                final quantityText =
+                                    (selection.quantity != null &&
+                                        selection.quantity! > 1)
+                                    ? ' (${selection.quantity})'
+                                    : '';
                                 return Text(
-                                  '• ${selection.selectedProductName ?? 'Opción'} (${selection.comboGroupName ?? ''})',
+                                  '• ${selection.selectedProductName ?? 'Opción'} (${selection.comboGroupName ?? ''})$quantityText',
                                   style: TextStyle(
                                     color: Colors.grey[700],
                                     fontSize: 12,
