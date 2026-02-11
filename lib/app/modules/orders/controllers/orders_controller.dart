@@ -272,14 +272,31 @@ class OrdersController extends GetxController {
   }
 
   /* Manipulación de items temporales */
-  void addToTempOrder(ProductModel product, int quantity, String? comment) {
+  void addToTempOrder(
+    ProductModel product,
+    int quantity,
+    String? comment, {
+    List<Map<String, String>>? comboSelections,
+    double additionalPrice = 0,
+  }) {
     final normalizedComment = (comment == null || comment.trim().isEmpty)
         ? null
         : comment.trim();
-    final index = tempAdditionalOrderItems.indexWhere(
-      (item) =>
-          item.product.id == product.id && item.comment == normalizedComment,
-    );
+    
+    // Check duplication logic:
+    // If it's a combo, we might want to check if the combo selections are identical.
+    // For simplicity, for combos we can just add a new item or implement deep comparison. 
+    // Here I'll mimic take_order logic: separate combos if needed.
+    
+    int index = -1;
+    if (comboSelections == null || comboSelections.isEmpty) {
+      index = tempAdditionalOrderItems.indexWhere(
+        (item) =>
+            item.product.id == product.id &&
+            item.comment == normalizedComment &&
+            (item.comboSelections == null || item.comboSelections!.isEmpty),
+      );
+    }
 
     if (index != -1) {
       tempAdditionalOrderItems[index].quantity += quantity;
@@ -290,6 +307,8 @@ class OrdersController extends GetxController {
           product: product,
           quantity: quantity,
           comment: normalizedComment,
+          comboSelections: comboSelections,
+          additionalPrice: additionalPrice,
         ),
       );
     }
@@ -297,6 +316,7 @@ class OrdersController extends GetxController {
 
   /* Incrementar cantidad temporal de un producto */
   void incrementTempProduct(ProductModel product) {
+    // Solo llama a esto si no es combo o si se maneja desde fuera
     addToTempOrder(product, 1, null);
   }
 
@@ -329,15 +349,18 @@ class OrdersController extends GetxController {
   Future<void> confirmAddProducts(OrderModel order) async {
     if (tempAdditionalOrderItems.isEmpty) return;
 
-    final itemsToAdd = tempAdditionalOrderItems
-        .map(
-          (item) => {
-            'productId': item.product.id,
-            'quantity': item.quantity,
-            'observations': item.comment ?? '',
-          },
-        )
-        .toList();
+    final itemsToAdd = tempAdditionalOrderItems.map((item) {
+      final detail = {
+        'productId': item.product.id,
+        'quantity': item.quantity,
+        'observations': item.comment ?? '',
+      };
+
+      if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
+        detail["comboSelections"] = item.comboSelections;
+      }
+      return detail;
+    }).toList();
 
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),

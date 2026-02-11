@@ -4,6 +4,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 
 /*
@@ -57,9 +58,21 @@ class AddProductsSheet extends GetView<OrdersController> {
                 return ProductSelectionWidget(
                   categories: controller.categories.toList(),
                   getQuantity: controller.getTempProductQuantity,
-                  onIncrement: controller.incrementTempProduct,
+                  onIncrement: (product) {
+                    if (product.productType == 'COMBO') {
+                      _showComboDialog(context, product);
+                    } else {
+                      controller.incrementTempProduct(product);
+                    }
+                  },
                   onDecrement: controller.decrementTempProduct,
-                  onEdit: (product) => _showAddProductDialog(product),
+                  onEdit: (product) {
+                    if (product.productType == 'COMBO') {
+                      _showComboDialog(context, product);
+                    } else {
+                      _showAddProductDialog(product);
+                    }
+                  },
                 );
               }),
             ),
@@ -174,6 +187,25 @@ class AddProductsSheet extends GetView<OrdersController> {
             child: const Text('Agregar'),
           ),
         ],
+      ),
+    );
+  }
+
+  /* Mostrar dialogo de seleccion de combo */
+  void _showComboDialog(BuildContext context, ProductModel product) {
+    Get.dialog(
+      ComboSelectionDialog(
+        product: product,
+        onConfirm:
+            (product, quantity, comment, comboSelections, additionalPrice) {
+              controller.addToTempOrder(
+                product,
+                quantity,
+                comment,
+                comboSelections: comboSelections,
+                additionalPrice: additionalPrice,
+              );
+            },
       ),
     );
   }
