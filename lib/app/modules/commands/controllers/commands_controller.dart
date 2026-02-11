@@ -49,12 +49,6 @@ class CommandsController extends GetxController {
 
     try {
       final result = await ordersRepository.getOrdersByStatus('OPEN');
-      // Ordenar por fecha: primero los más antiguos
-      result.sort((a, b) {
-        final dateA = DateTime.tryParse(a.openingDate ?? '') ?? DateTime.now();
-        final dateB = DateTime.tryParse(b.openingDate ?? '') ?? DateTime.now();
-        return dateA.compareTo(dateB);
-      });
       orders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading active orders: $e');
@@ -65,12 +59,6 @@ class CommandsController extends GetxController {
   Future<void> loadFinalizedOrders({bool withOverlay = false}) async {
     try {
       final result = await ordersRepository.getOrdersByStatus('FINALIZED');
-      // Ordenar por fecha cierre descendente
-      result.sort((a, b) {
-        final dateA = DateTime.tryParse(a.closingDate ?? '') ?? DateTime.now();
-        final dateB = DateTime.tryParse(b.closingDate ?? '') ?? DateTime.now();
-        return dateB.compareTo(dateA);
-      });
       finalizedOrders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading finalized orders: $e');
@@ -178,10 +166,18 @@ class CommandsController extends GetxController {
   /*conectar al websocket */
   void _connectWebSocket() {
     _webSocketService.connect();
-    _webSocketService.ordersStream.listen((order) {
-      // Agregar el nuevo pedido al final de la lista
-      orders.add(order);
+
+    // Escuchar actualizaciones completas de ordenes abiertas
+    _webSocketService.openOrdersStream.listen((updatedOrders) {
+      // Solo actualizar si estamos en la pestaña de pedidos activos (0)
+      if (currentTab.value == 0) {
+        orders.assignAll(updatedOrders);
+      }
     });
+
+    // Mantener la escucha de nuevas ordenes individuales si se requiere notificar o añadir incrementalmente
+    // en caso de que la lista completa no llegue siempre.
+    // _webSocketService.ordersStream.listen((order) { ... });
   }
 
   @override

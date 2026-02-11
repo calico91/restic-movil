@@ -10,9 +10,13 @@ class WebSocketService extends GetxService {
   StompClient? _client;
   final StorageService _storageService = Get.find<StorageService>();
 
-  // Stream controller to broadcast new orders
+  /* Controlador de flujo para transmitir actualizaciones de órdenes individuales */
   final _ordersController = StreamController<OrderModel>.broadcast();
   Stream<OrderModel> get ordersStream => _ordersController.stream;
+
+  /* Controlador de flujo para transmitir actualizaciones de la lista de órdenes abiertas */
+  final _openOrdersController = StreamController<List<OrderModel>>.broadcast();
+  Stream<List<OrderModel>> get openOrdersStream => _openOrdersController.stream;
 
   // URL del WebSocket, asumiendo el puerto y path estándar basado en la URL de la API
   static const String _socketUrl = 'ws://192.168.101.8:8093/ws';
@@ -44,11 +48,12 @@ class WebSocketService extends GetxService {
 
   void _onConnect(StompFrame frame, String branchId) {
     debugPrint('Connected to WebSocket');
-    final destination = '/topic/branch/$branchId/orders/created';
-    debugPrint('Subscribing to $destination');
 
+    /* Suscribirse a nuevas órdenes */
+    final createdDestination = '/topic/branch/$branchId/orders/created';
+    debugPrint('Subscribing to $createdDestination');
     _client?.subscribe(
-      destination: destination,
+      destination: createdDestination,
       callback: (frame) {
         if (frame.body != null) {
           try {
@@ -58,6 +63,24 @@ class WebSocketService extends GetxService {
             _ordersController.add(order);
           } catch (e) {
             debugPrint('Error parsing order: $e');
+          }
+        }
+      },
+    );
+
+    /* Suscribirse a actualizaciones de la lista de órdenes abiertas */
+    final openOrdersDestination = '/topic/branch/$branchId/orders/open';
+    debugPrint('Subscribing to $openOrdersDestination');
+    _client?.subscribe(
+      destination: openOrdersDestination,
+      callback: (frame) {
+        if (frame.body != null) {
+          try {
+            final List<dynamic> jsonList = jsonDecode(frame.body!);
+            final orders = jsonList.map((j) => OrderModel.fromJson(j)).toList();
+            _openOrdersController.add(orders);
+          } catch (e) {
+            debugPrint('Error parsing open orders list: $e');
           }
         }
       },
