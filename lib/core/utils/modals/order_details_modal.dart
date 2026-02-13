@@ -9,7 +9,7 @@ class OrderDetailsModal {
     required OrderModel order,
     required List<Map<String, dynamic>> availableStatuses,
     required Function(
-      List<String> detailIds,
+      List<Map<String, dynamic>> items,
       String status,
       String orderIdentifier,
     )
@@ -121,12 +121,13 @@ class OrderDetailsModal {
     );
   }
 
+  /* Mostrar dialogo de selección de estados para los detalles seleccionados */
   static void _showStatusSelection(
     BuildContext context,
     List<String> detailIds,
     OrderModel order,
     List<Map<String, dynamic>> availableStatuses,
-    Function(List<String>, String, String) onUpdateStatus,
+    Function(List<Map<String, dynamic>>, String, String) onUpdateStatus,
   ) {
     Get.bottomSheet(
       Container(
@@ -148,12 +149,54 @@ class OrderDetailsModal {
               return ListTile(
                 title: Text(status['description'] ?? status['name']),
                 trailing: const Icon(Icons.chevron_right),
-                onTap: () {
+                onTap: () async {
                   final String orderIdentifier = order.orderNumber != null
                       ? '${order.orderNumber}'
                       : (order.id != null ? order.id!.substring(0, 8) : 'N/A');
 
-                  onUpdateStatus(detailIds, status['name'], orderIdentifier);
+                  // Si el estado es CANCELED (Anulado), verificar cantidades
+                  if (status['name'] == 'CANCELED') {
+                    final selectedDetails =
+                        order.details
+                            ?.where((d) => detailIds.contains(d.id))
+                            .toList() ??
+                        [];
+
+                    // Verificar si alguno tiene cantidad > 1
+                    final hasMultiQuantity = selectedDetails.any(
+                      (d) => (d.quantity ?? 0) > 1,
+                    );
+
+                    if (hasMultiQuantity) {
+                      // Cerrar bottom sheet primero
+                      Get.back();
+
+                      // Mostrar dialogo de selección de cantidades
+                      final result = await _showQuantitySelection(
+                        context,
+                        selectedDetails,
+                      );
+
+                      if (result != null) {
+                        onUpdateStatus(result, status['name'], orderIdentifier);
+                      }
+                      return;
+                    }
+                  }
+
+                  final items =
+                      order.details
+                          ?.where((d) => detailIds.contains(d.id))
+                          .map(
+                            (d) => {
+                              'detailId': d.id,
+                              'quantity': d.quantity ?? 1,
+                            },
+                          )
+                          .toList() ??
+                      [];
+
+                  onUpdateStatus(items, status['name'], orderIdentifier);
                 },
               );
             }),
@@ -163,6 +206,110 @@ class OrderDetailsModal {
     );
   }
 
+  /* Mostrar dialogo de selección de cantidades para anular parcialmente */
+  static Future<List<Map<String, dynamic>>?> _showQuantitySelection(
+    BuildContext context,
+    List<OrderDetailModel> details,
+  ) async {
+    // Map to track quantities: detailId -> quantity
+    final quantities = <String, int>{};
+    for (var d in details) {
+      quantities[d.id!] = d.quantity ?? 1;
+    }
+
+    return await Get.dialog<List<Map<String, dynamic>>>(
+      AlertDialog(
+        title: const Text('Confirmar Cantidades'),
+        content: SizedBox(
+          width: double.maxFinite,
+          child: ListView.builder(
+            shrinkWrap: true,
+            itemCount: details.length,
+            itemBuilder: (context, index) {
+              final item = details[index];
+              final maxQty = item.quantity ?? 1;
+
+              // Si solo tiene 1, no mostramos selector, solo texto informativo
+              if (maxQty <= 1) {
+                return ListTile(
+                  title: Text(item.productName ?? ''),
+                  subtitle: const Text('Anular: 1'),
+                );
+              }
+
+              return StatefulBuilder(
+                builder: (context, setState) {
+                  final currentQty = quantities[item.id!]!;
+                  return Column(
+                    children: [
+                      ListTile(
+                        title: Text(item.productName ?? ''),
+                        subtitle: Text('Anular: $currentQty / $maxQty'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove_circle_outline),
+                              onPressed: currentQty > 1
+                                  ? () {
+                                      setState(() {
+                                        quantities[item.id!] = currentQty - 1;
+                                      });
+                                    }
+                                  : null,
+                            ),
+                            Text(
+                              '$currentQty',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add_circle_outline),
+                              onPressed: currentQty < maxQty
+                                  ? () {
+                                      setState(() {
+                                        quantities[item.id!] = currentQty + 1;
+                                      });
+                                    }
+                                  : null,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Divider(),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final result = quantities.entries
+                  .map((e) => {'detailId': e.key, 'quantity': e.value})
+                  .toList();
+              Get.back(result: result);
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text(
+              'Anular Seleccionados',
+              style: TextStyle(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /* Construir widget para cada detalle de pedido con colores según estado y checkbox de selección */
   static Widget _buildDetailItem(
     OrderDetailModel item,
     RxSet<String> selectedIds,

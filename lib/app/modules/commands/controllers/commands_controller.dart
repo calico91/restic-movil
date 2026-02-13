@@ -133,7 +133,7 @@ class CommandsController extends GetxController {
 
   /*actualizar estado de detalle de pedido */
   Future<void> updateDetailsStatus(
-    List<String> detailIds,
+    List<Map<String, dynamic>> items,
     String status,
     String orderIdentifier,
   ) async {
@@ -141,7 +141,7 @@ class CommandsController extends GetxController {
       loadingWidget: LoadingCharging(),
       asyncFunction: () async {
         try {
-          await ordersRepository.updateOrderDetailsStatus(detailIds, status);
+          await ordersRepository.updateOrderDetailsStatus(items, status);
           await loadOrders(); // Recargar ordenes
           Get.back(); // Cerrar modal de estado (si está abierto)
           Get.back(); // Cerrar modal de detalles

@@ -181,7 +181,7 @@ class OrdersController extends GetxController {
 
   /*actualizar estado de detalle de pedido */
   Future<void> updateDetailsStatus(
-    List<String> detailIds,
+    List<Map<String, dynamic>> items,
     String status,
     String orderIdentifier,
   ) async {
@@ -189,7 +189,7 @@ class OrdersController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          await ordersRepository.updateOrderDetailsStatus(detailIds, status);
+          await ordersRepository.updateOrderDetailsStatus(items, status);
           await loadOrders(withOverlay: false);
           Get.back(); // Cerrar bottom sheet
           Get.back(); // Cerrar modal detalle

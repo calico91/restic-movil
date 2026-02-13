@@ -2,13 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
-
-
 
 class BaseHttpClient {
   static const String _baseUrl = 'http://192.168.101.8:8093/api/';
@@ -16,17 +15,12 @@ class BaseHttpClient {
 
   BaseHttpClient();
 
-  Future<dynamic> get(
-    String path, {
-    Map<String, String>? parameters,
-  }) async {
-    return _executeRequest(
-      () async {
-        final uri = _buildUri(path, parameters);
-        final headers = await _getHeaders();
-        return http.get(uri, headers: headers);
-      },
-    );
+  Future<dynamic> get(String path, {Map<String, String>? parameters}) async {
+    return _executeRequest(() async {
+      final uri = _buildUri(path, parameters);
+      final headers = await _getHeaders();
+      return http.get(uri, headers: headers);
+    });
   }
 
   Future<dynamic> post(
@@ -34,17 +28,15 @@ class BaseHttpClient {
     Map<String, dynamic>? body,
     Map<String, String>? parameters,
   }) async {
-    return _executeRequest(
-      () async {
-        final uri = _buildUri(path, parameters);
-        final headers = await _getHeaders();
-        return http.post(
-          uri,
-          headers: headers,
-          body: body != null ? json.encode(body) : null,
-        );
-      },
-    );
+    return _executeRequest(() async {
+      final uri = _buildUri(path, parameters);
+      final headers = await _getHeaders();
+      return http.post(
+        uri,
+        headers: headers,
+        body: body != null ? json.encode(body) : null,
+      );
+    });
   }
 
   Future<dynamic> put(
@@ -52,17 +44,20 @@ class BaseHttpClient {
     Map<String, dynamic>? body,
     Map<String, String>? parameters,
   }) async {
-    return _executeRequest(
-      () async {
-        final uri = _buildUri(path, parameters);
-        final headers = await _getHeaders();
-        return http.put(
-          uri,
-          headers: headers,
-          body: body != null ? json.encode(body) : null,
-        );
-      },
+
+    debugPrint(
+      'PUT request to $path with body: $body and parameters: $parameters',
     );
+    
+    return _executeRequest(() async {
+      final uri = _buildUri(path, parameters);
+      final headers = await _getHeaders();
+      return http.put(
+        uri,
+        headers: headers,
+        body: body != null ? json.encode(body) : null,
+      );
+    });
   }
 
   Future<dynamic> delete(
@@ -70,27 +65,27 @@ class BaseHttpClient {
     Map<String, dynamic>? body,
     Map<String, String>? parameters,
   }) async {
-    return _executeRequest(
-      () async {
-        final uri = _buildUri(path, parameters);
-        final headers = await _getHeaders();
-        return http.delete(
-          uri,
-          headers: headers,
-          body: body != null ? json.encode(body) : null,
-        );
-      },
-    );
+    return _executeRequest(() async {
+      final uri = _buildUri(path, parameters);
+      final headers = await _getHeaders();
+      return http.delete(
+        uri,
+        headers: headers,
+        body: body != null ? json.encode(body) : null,
+      );
+    });
   }
 
   Uri _buildUri(String path, Map<String, String>? parameters) {
     if (path.startsWith('http')) {
       return Uri.parse(path).replace(queryParameters: parameters);
     }
-    
-    final String cleanUrl = _baseUrl.endsWith('/') ? _baseUrl.substring(0, _baseUrl.length - 1) : _baseUrl;
+
+    final String cleanUrl = _baseUrl.endsWith('/')
+        ? _baseUrl.substring(0, _baseUrl.length - 1)
+        : _baseUrl;
     final String cleanPath = path.startsWith('/') ? path : '/$path';
-    
+
     final baseUri = Uri.parse(cleanUrl + cleanPath);
     if (parameters != null) {
       return baseUri.replace(queryParameters: parameters);
@@ -106,7 +101,7 @@ class BaseHttpClient {
 
     final token = await _storageService.getToken();
     if (token != null && token.isNotEmpty) {
-      headers['Authorization'] = 'Bearer $token'; 
+      headers['Authorization'] = 'Bearer $token';
     }
 
     final branchId = await _storageService.getBranchId();
@@ -117,26 +112,22 @@ class BaseHttpClient {
     return headers;
   }
 
-  Future<dynamic> _executeRequest(Future<http.Response> Function() requestFn) async {
+  Future<dynamic> _executeRequest(
+    Future<http.Response> Function() requestFn,
+  ) async {
     try {
       final response = await requestFn().timeout(const Duration(seconds: 30));
       return _processResponse(response);
     } on SocketException {
-      throw FetchDataException(
-        'No hay conexión a internet',
-        '',
-      );
+      throw FetchDataException('No hay conexión a internet', '');
     } on TimeoutException {
-       throw ApiNotRespondingException(
+      throw ApiNotRespondingException(
         'El servidor tardó demasiado en responder',
         '',
-       );
+      );
     } catch (e) {
       if (e is HttpException) rethrow;
-      throw FetchDataException(
-        'Error inesperado: $e',
-        '',
-      );
+      throw FetchDataException('Error inesperado: $e', '');
     }
   }
 
@@ -149,14 +140,18 @@ class BaseHttpClient {
       return jsonResponse;
     } else {
       String errorMessage = 'Error desconocido';
-      
+
       if (jsonResponse is Map<String, dynamic>) {
         // Parse custom ApiError
         try {
           final apiError = ApiError.fromJson(jsonResponse);
-          errorMessage = apiError.error ?? apiError.recommendation ?? 'Error en la petición';
+          errorMessage =
+              apiError.error ??
+              apiError.recommendation ??
+              'Error en la petición';
         } catch (_) {
-          errorMessage = jsonResponse['error'] ?? jsonResponse['message'] ?? response.body;
+          errorMessage =
+              jsonResponse['error'] ?? jsonResponse['message'] ?? response.body;
         }
       }
 
@@ -174,7 +169,7 @@ class BaseHttpClient {
       }
     }
   }
-  
+
   dynamic _decodeBody(String body) {
     try {
       return json.decode(body);

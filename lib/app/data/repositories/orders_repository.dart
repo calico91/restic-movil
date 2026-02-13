@@ -17,9 +17,12 @@ class OrdersRepository {
     await _client.post(UrlPaths.createOrder, body: data);
   }
 
-  Future<void> addOrderItems(String orderId, List<Map<String, dynamic>> products) async {
+  Future<void> addOrderItems(
+    String orderId,
+    List<Map<String, dynamic>> products,
+  ) async {
     await _client.put(
-      '${UrlPaths.addProductsToOrder}/$orderId/add-products', 
+      '${UrlPaths.addProductsToOrder}/$orderId/add-products',
       body: {'products': products},
     );
   }
@@ -40,13 +43,11 @@ class OrdersRepository {
   }
 
   Future<void> updateOrderDetailsStatus(
-    List<String> detailIds,
+    List<Map<String, dynamic>> items,
     String status,
   ) async {
-    final data = {
-      'detailIds': detailIds,
-      'status': status,
-    };
+    
+    final data = {'details': items, 'status': status};
     await _client.put(UrlPaths.updateOrderDetailStatus, body: data);
   }
 
@@ -56,5 +57,4 @@ class OrdersRepository {
       parameters: {'status': status},
     );
   }
-
 }
