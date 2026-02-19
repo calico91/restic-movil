@@ -163,7 +163,9 @@ class CommandsView extends GetView<CommandsController> {
       margin: const EdgeInsets.only(bottom: 16),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       child: InkWell(
-        onTap: () => _showOrderDetails(context, order),
+        onTap: controller.currentTab.value == 0
+            ? () => _showOrderDetails(context, order)
+            : null,
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
