@@ -47,9 +47,7 @@ class OpenShiftView extends GetView<OpenShiftController> {
                 ReactiveTextField<String>(
                   formControlName: 'initialAmount',
                   keyboardType: TextInputType.number,
-                  inputFormatters: [
-                    ThousandsSeparatorInputFormatter(),
-                  ],
+                  inputFormatters: [ThousandsSeparatorInputFormatter()],
                   decoration: const InputDecoration(
                     labelText: 'Monto Inicial (COP)',
                     border: OutlineInputBorder(),
