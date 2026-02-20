@@ -15,8 +15,11 @@ class OpenShiftController extends GetxController {
 
   final form = FormGroup({
     'cashierId': FormControl<String>(validators: [Validators.required]),
-    'initialAmount': FormControl<double>(
-      validators: [Validators.required, Validators.min(0)],
+    'initialAmount': FormControl<String>(
+      validators: [
+        Validators.required,
+        Validators.pattern(RegExp(r'^[0-9.]+$')),
+      ],
     ),
     'terminalId': FormControl<String>(validators: [Validators.required]),
     'remarks': FormControl<String>(validators: [Validators.maxLength(250)]),
@@ -55,10 +58,19 @@ class OpenShiftController extends GetxController {
       return;
     }
 
+    final initialAmountString = form.control('initialAmount').value as String;
+    final initialAmount =
+        double.tryParse(initialAmountString.replaceAll('.', '')) ?? 0.0;
+
+    if (initialAmount <= 0) {
+      form.control('initialAmount').setErrors({'min': true});
+      form.control('initialAmount').markAsTouched();
+      return;
+    }
+
     final cashierId = form.control('cashierId').value as String;
-    final initialAmount = form.control('initialAmount').value as double;
-    final terminalId = form.control('terminalId').value as String;
     final remarks = form.control('remarks').value as String?;
+    final terminalId = form.control('terminalId').value as String;
 
     await Get.showOverlay(
       loadingWidget: const LoadingCharging(),

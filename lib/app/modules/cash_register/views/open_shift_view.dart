@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/open_shift_controller.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -43,9 +44,12 @@ class OpenShiftView extends GetView<OpenShiftController> {
                       .toList(),
                 ),
                 const SizedBox(height: 16),
-                ReactiveTextField<double>(
+                ReactiveTextField<String>(
                   formControlName: 'initialAmount',
                   keyboardType: TextInputType.number,
+                  inputFormatters: [
+                    ThousandsSeparatorInputFormatter(),
+                  ],
                   decoration: const InputDecoration(
                     labelText: 'Monto Inicial (COP)',
                     border: OutlineInputBorder(),
