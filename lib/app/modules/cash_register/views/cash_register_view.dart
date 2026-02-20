@@ -17,41 +17,51 @@ class CashRegisterView extends GetView<CashRegisterController> {
                 ? controller.pendingOrders
                 : controller.historyOrders;
 
-            if (orders.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.receipt_long_outlined,
-                      size: 64,
-                      color: Colors.grey[400],
+            return RefreshIndicator(
+              onRefresh: () async => controller.currentTab.value == 0
+                  ? await controller.loadPendingOrders()
+                  : await controller.loadHistoryOrders(),
+              child: orders.isEmpty
+                  ? ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        const SizedBox(height: 50),
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                Icons.receipt_long_outlined,
+                                size: 64,
+                                color: Colors.grey[400],
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                controller.currentTab.value == 0
+                                    ? 'No hay pedidos pendientes'
+                                    : 'No hay historial de pedidos',
+                                style: TextStyle(
+                                    color: Colors.grey[600], fontSize: 16),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount: orders.length,
+                      itemBuilder: (context, index) {
+                        final order = orders[index];
+                        return OrderPaymentCard(
+                          order: order,
+                          onTap: () {
+                            // TODO: Implement navigation to payment detail
+                          },
+                        );
+                      },
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      controller.currentTab.value == 0
-                          ? 'No hay pedidos pendientes'
-                          : 'No hay historial de pedidos',
-                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
-                    ),
-                  ],
-                ),
-              );
-            }
-
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              physics: const AlwaysScrollableScrollPhysics(),
-              itemCount: orders.length,
-              itemBuilder: (context, index) {
-                final order = orders[index];
-                return OrderPaymentCard(
-                  order: order,
-                  onTap: () {
-                    // TODO: Implement navigation to payment detail
-                  },
-                );
-              },
             );
           }),
         ),

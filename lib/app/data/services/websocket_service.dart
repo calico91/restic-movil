@@ -19,7 +19,7 @@ class WebSocketService extends GetxService {
   Stream<List<OrderModel>> get openOrdersStream => _openOrdersController.stream;
 
   // URL del WebSocket, asumiendo el puerto y path estándar basado en la URL de la API
-  static const String _socketUrl = 'ws://192.168.101.8:8093/ws';
+  static const String _socketUrl = 'ws://192.168.0.105:8093/ws';
 
   Future<void> connect() async {
     final branchId = await _storageService.getBranchId();

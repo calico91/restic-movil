@@ -87,15 +87,32 @@ class OrderPaymentCard extends StatelessWidget {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(
-                    Icons.table_restaurant,
+                  Icon(
+                    [
+                          'TAKE_AWAY',
+                          'PARA LLEVAR',
+                          'DELIVERY',
+                          'DOMICILIO',
+                        ].contains(order.originType?.toUpperCase())
+                        ? Icons.person
+                        : Icons.table_restaurant,
                     size: 20,
                     color: Colors.grey,
                   ),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      order.tables?.map((e) => e.name).join(', ') ?? 'Sin mesa',
+                      [
+                            'TAKE_AWAY',
+                            'PARA LLEVAR',
+                            'DELIVERY',
+                            'DOMICILIO',
+                          ].contains(order.originType?.toUpperCase())
+                          ? (order.customerName ??
+                                order.customerId ??
+                                'Cliente sin nombre')
+                          : (order.tables?.map((e) => e.name).join(', ') ??
+                                'Sin mesa'),
                       style: const TextStyle(fontSize: 14),
                     ),
                   ),
@@ -104,7 +121,11 @@ class OrderPaymentCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.person, size: 20, color: Colors.grey),
+                  const Icon(
+                    Icons.add_location_sharp,
+                    size: 20,
+                    color: Colors.grey,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     order.originType ?? 'Desconocido',
