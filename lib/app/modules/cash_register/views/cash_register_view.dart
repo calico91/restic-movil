@@ -1,19 +1,126 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/cash_register_controller.dart';
+import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
+import 'package:restic_movil/app/modules/cash_register/views/widgets/order_payment_card.dart';
 
 class CashRegisterView extends GetView<CashRegisterController> {
   const CashRegisterView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text(
-        'Opciones de caja',
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.black54,
+    return Column(
+      children: [
+        _buildTabs(),
+        Expanded(
+          child: Obx(() {
+            final orders = controller.currentTab.value == 0
+                ? controller.pendingOrders
+                : controller.historyOrders;
+
+            if (orders.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(
+                      Icons.receipt_long_outlined,
+                      size: 64,
+                      color: Colors.grey[400],
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      controller.currentTab.value == 0
+                          ? 'No hay pedidos pendientes'
+                          : 'No hay historial de pedidos',
+                      style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              physics: const AlwaysScrollableScrollPhysics(),
+              itemCount: orders.length,
+              itemBuilder: (context, index) {
+                final order = orders[index];
+                return OrderPaymentCard(
+                  order: order,
+                  onTap: () {
+                    // TODO: Implement navigation to payment detail
+                  },
+                );
+              },
+            );
+          }),
+        ),
+      ],
+    );
+  }
+
+  /*construir las pestañas de pendientes e historial*/
+  Widget _buildTabs() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Obx(
+        () => Row(
+          children: [
+            Expanded(
+              child: _buildTabButton(
+                title: 'Pendientes',
+                isSelected: controller.currentTab.value == 0,
+                onTap: () => controller.changeTab(0),
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: _buildTabButton(
+                title: 'Historial',
+                isSelected: controller.currentTab.value == 1,
+                onTap: () => controller.changeTab(1),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /*construir el botón de las pestañas*/
+  Widget _buildTabButton({
+    required String title,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(30),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? Colors.blue[900] : Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+            color: isSelected ? Colors.blue[900]! : Colors.grey[300]!,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: Colors.blue.withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
+        ),
+        alignment: Alignment.center,
+        child: Text(
+          title,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontWeight: FontWeight.bold,
+          ),
         ),
       ),
     );

@@ -14,6 +14,7 @@ class UrlPaths {
   static const String updateOrderStatus = 'orders/update-status';
   static const String updateOrder = 'orders/update';
   static const String addProductsToOrder = 'orders'; // /:id/add-products
+  static const String getOrdersByStatuses = 'orders/by-statuses';
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
