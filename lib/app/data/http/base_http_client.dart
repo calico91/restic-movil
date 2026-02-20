@@ -10,7 +10,7 @@ import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 
 class BaseHttpClient {
-  static const String _baseUrl = 'http://192.168.101.8:8093/api/';
+  static const String _baseUrl = 'http://192.168.0.105:8093/api/';
   final StorageService _storageService = Get.find<StorageService>();
 
   BaseHttpClient();

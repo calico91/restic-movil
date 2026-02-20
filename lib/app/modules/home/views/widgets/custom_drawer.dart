@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
+import 'package:restic_movil/app/routes/app_routes.dart';
 
 class CustomDrawer extends GetView<HomeController> {
   const CustomDrawer({super.key});
@@ -19,6 +20,11 @@ class CustomDrawer extends GetView<HomeController> {
                   icon: Icons.person_outline,
                   title: 'Mi Perfil',
                   onTap: () {},
+                ),
+                _buildDrawerItem(
+                  icon: Icons.point_of_sale,
+                  title: 'Opciones de Caja',
+                  onTap: () => Get.toNamed(Routes.OPEN_SHIFT),
                 ),
                 _buildDrawerItem(
                   icon: Icons.settings_outlined,

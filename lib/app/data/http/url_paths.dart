@@ -23,4 +23,9 @@ class UrlPaths {
 
   // Categories
   static const String getCategories = 'categories/all';
+
+  // Cashier
+  static const String getAdminAndCashierUsers = 'users/admin-and-cashier';
+  static const String getTerminals = 'terminals/all';
+  static const String openCashierShift = 'cashier-shifts/open';
 }
