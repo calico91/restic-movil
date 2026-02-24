@@ -5,6 +5,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/modals/order_details_modal.dart';
+import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
 class OrdersView extends GetView<OrdersController> {
   const OrdersView({super.key});
@@ -174,25 +175,9 @@ class OrdersView extends GetView<OrdersController> {
 
   /*build tarjeta de pedido*/
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
-    Color statusColor;
     String statusText = order.status ?? '';
 
-    switch (statusText) {
-      case 'Abierta':
-        statusColor = Colors.orange;
-        break;
-      case 'Anulada':
-        statusColor = Colors.blue;
-        break;
-      case 'Pagada':
-        statusColor = Colors.black87;
-        break;
-      case 'Finalizada':
-        statusColor = Colors.green;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
+  
 
     final currencyFormat = NumberFormat.currency(
       locale: 'es_CO',
@@ -204,7 +189,7 @@ class OrdersView extends GetView<OrdersController> {
     String dateText = '';
 
     // Si tiene fecha de cierre mostrarla tambien o en lugar de
-    if (order.closingDate != null && (statusText == 'Finalizado')) {
+    if (order.closingDate != null && (statusText == 'Finalizada' || statusText == 'FINALIZED')) {
       try {
         final date = DateTime.parse(order.closingDate!);
         dateText = DateFormat('dd/MM, HH:mm').format(date);
@@ -223,7 +208,9 @@ class OrdersView extends GetView<OrdersController> {
     // Si no hay mesas, intentamos usar el cliente si es Take Away o Delivery
     if (title.isEmpty &&
         (order.originType == 'Domicilio' ||
-            order.originType == 'Para llevar')) {
+            order.originType == 'Para llevar' ||
+            order.originType == 'TAKE_AWAY' ||
+            order.originType == 'DELIVERY')) {
       if (order.customerName != null) {
         title = order.customerName!;
       } else if (order.originType != null) {
@@ -291,7 +278,22 @@ class OrdersView extends GetView<OrdersController> {
               currencyFormat.format(order.total ?? 0),
               isBold: true,
             ),
-            _buildInfoRow('Estado:', statusText, valueColor: statusColor),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 4),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Estado:',
+                    style: TextStyle(color: Colors.black87),
+                  ),
+                  OrderStatusChip(
+                    status: statusText,
+                    label: statusText, // O controller.getStatusDescription(statusText) si existe
+                  ),
+                ],
+              ),
+            ),
             _buildInfoRow('Origen:', order.originType ?? 'N/A'),
             _buildInfoRow('Fecha y hora:', dateText),
             const SizedBox(height: 15),

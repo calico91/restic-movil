@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:intl/intl.dart';
+import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
 class OrderPaymentCard extends StatelessWidget {
   final OrderModel order;
@@ -12,31 +13,6 @@ class OrderPaymentCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'es_CO', symbol: '\$');
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-
-    // Get color based on status
-    Color statusColor;
-    switch (order.status?.toUpperCase()) {
-      case 'OPEN':
-      case 'ABIERTA':
-        statusColor = Colors.blue;
-        break;
-      case 'FINALIZED':
-      case 'FINALIZADA':
-        statusColor = Colors.green;
-        break;
-      case 'PAID':
-      case 'PAGADA':
-      case 'CERRADA':
-        statusColor = Colors.purple;
-        break;
-      case 'CANCELED':
-      case 'CANCELADA':
-      case 'ANULADA':
-        statusColor = Colors.red;
-        break;
-      default:
-        statusColor = Colors.grey;
-    }
 
     return Card(
       elevation: 4,
@@ -53,27 +29,7 @@ class OrderPaymentCard extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: statusColor.withValues(alpha: 0.5),
-                      ),
-                    ),
-                    child: Text(
-                      order.status ?? 'Desconocido',
-                      style: TextStyle(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
+                  OrderStatusChip(status: order.status),
                   Text(
                     'Orden #${order.orderNumber}',
                     style: const TextStyle(
