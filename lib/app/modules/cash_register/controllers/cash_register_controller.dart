@@ -1,4 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/create_transaction_request.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/payment_method_model.dart';
 import 'package:restic_movil/app/data/models/transaction_type_model.dart';
@@ -6,9 +10,11 @@ import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/payment_methods_repository.dart';
 import 'package:restic_movil/app/data/repositories/transactions_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/modules/cash_register/views/widgets/transaction_modal.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class CashRegisterController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -147,5 +153,80 @@ class CashRegisterController extends GetxController {
     } else {
       loadHistoryOrders(withOverlay: true);
     }
+  }
+
+  void showTransactionModal(OrderModel order) {
+    if (order.id == null) return;
+    Get.bottomSheet(
+      TransactionModal(order: order),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+    );
+  }
+
+  /*crear formulario para crear transacción a partir de un pedido*/
+  FormGroup createTransactionForm(OrderModel order) {
+    final currencyFormat = NumberFormat.decimalPattern('es_CO');
+    return FormGroup({
+      'transactionType': FormControl<String>(value: 'SALE'),
+      'tipAmount': FormControl<String>(value: '0'),
+      'originalTransactionId': FormControl<String>(),
+      'payments': FormArray<Map<String, dynamic>>([
+        FormGroup({
+          'paymentMethod': FormControl<String>(
+            value: 'CASH',
+            validators: [Validators.required],
+          ),
+          'amount': FormControl<String>(
+            value: currencyFormat.format((order.total ?? 0).round()),
+            validators: [Validators.required],
+          ),
+          'cardLastFour': FormControl<String>(),
+          'cardBrand': FormControl<String>(),
+          'authorizationCode': FormControl<String>(),
+          'referenceNumber': FormControl<String>(),
+        }),
+      ]),
+    });
+  }
+
+  /*crear consumo de API para crear transacción a partir de formulario*/
+  Future<void> createTransaction(CreateTransactionRequest request) async {
+    // 1. Get current user ID for cashierId
+    final loginResponse = await _storageService.getUser();
+    final cashierId = loginResponse?.id;
+
+    if (cashierId == null) {
+      Get.showSnackbar(
+        const ErrorSnackbar(
+          'No se pudo identificar al usuario actual (Cajero).',
+        ),
+      );
+      return;
+    }
+
+    request.cashierId = cashierId;
+
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await transactionsRepository.createTransaction(request);
+
+          // 4. Success handling
+          Get.back();
+          Get.showSnackbar(
+            const InfoSnackbar('Transacción creada correctamente'),
+          );
+
+          // 5. Reload pending orders
+          loadPendingOrders();
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
   }
 }

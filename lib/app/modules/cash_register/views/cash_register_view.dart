@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
-import 'package:restic_movil/app/modules/cash_register/views/widgets/order_payment_card.dart';
+import 'package:restic_movil/core/utils/widgets/order_payment_card.dart';
 
 class CashRegisterView extends GetView<CashRegisterController> {
   const CashRegisterView({super.key});
@@ -41,7 +41,9 @@ class CashRegisterView extends GetView<CashRegisterController> {
                                     ? 'No hay pedidos pendientes'
                                     : 'No hay historial de pedidos',
                                 style: TextStyle(
-                                    color: Colors.grey[600], fontSize: 16),
+                                  color: Colors.grey[600],
+                                  fontSize: 16,
+                                ),
                               ),
                             ],
                           ),
@@ -57,7 +59,7 @@ class CashRegisterView extends GetView<CashRegisterController> {
                         return OrderPaymentCard(
                           order: order,
                           onTap: () {
-                            // TODO: Implement navigation to payment detail
+                            controller.showTransactionModal(order);
                           },
                         );
                       },

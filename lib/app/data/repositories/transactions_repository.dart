@@ -1,5 +1,6 @@
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
+import 'package:restic_movil/app/data/models/create_transaction_request.dart';
 import 'package:restic_movil/app/data/models/transaction_type_model.dart';
 
 class TransactionsRepository {
@@ -15,5 +16,9 @@ class TransactionsRepository {
         .toList();
 
     return types;
+  }
+
+  Future<void> createTransaction(CreateTransactionRequest request) async {
+    await _client.post(UrlPaths.createTransaction, body: request.toJson());
   }
 }
