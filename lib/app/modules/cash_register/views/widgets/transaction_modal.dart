@@ -534,8 +534,9 @@ class TransactionModal extends StatelessWidget {
     if (paymentsRaw == null || paymentsRaw.isEmpty) return;
 
     // Validate duplicate payment methods
-    final paymentMethods =
-        paymentsRaw.map((p) => p['paymentMethod'] as String).toList();
+    final paymentMethods = paymentsRaw
+        .map((p) => p['paymentMethod'] as String)
+        .toList();
     final uniqueMethods = paymentMethods.toSet();
     if (uniqueMethods.length != paymentMethods.length) {
       Get.showSnackbar(
@@ -554,9 +555,7 @@ class TransactionModal extends StatelessWidget {
     // Allow a small epsilon for floating point comparison if necessary, but >= logic usually fine
     if (totalPaid < totalToPay) {
       Get.showSnackbar(
-        const ErrorSnackbar(
-          'El monto cubierto es menor al total a pagar.',
-        ),
+        const ErrorSnackbar('El monto cubierto es menor al total a pagar.'),
       );
       return;
     }
@@ -580,8 +579,7 @@ class TransactionModal extends StatelessWidget {
 
     // Create Request
     final request = CreateTransactionRequest(
-      orderId: order
-          .id, // Assuming we need to link it, though prompt didn't specify orderId, usually it's needed or originalTransactionId
+      orderId: order.id,
       totalAmount: order.total,
       tipAmount: tipAmount,
       transactionType: values['transactionType'] as String?,

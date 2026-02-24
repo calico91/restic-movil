@@ -185,7 +185,7 @@ class CashRegisterController extends GetxController {
           'cardLastFour': FormControl<String>(),
           'cardBrand': FormControl<String>(),
           'authorizationCode': FormControl<String>(),
-          'referenceNumber': FormControl<String>(),
+          'referenceNumber': FormControl<String>(), 
         }),
       ]),
     });

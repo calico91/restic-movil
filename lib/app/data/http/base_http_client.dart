@@ -28,6 +28,11 @@ class BaseHttpClient {
     Map<String, dynamic>? body,
     Map<String, String>? parameters,
   }) async {
+
+    debugPrint(
+      'POST request to $path with body: $body and parameters: $parameters',
+    );
+    
     return _executeRequest(() async {
       final uri = _buildUri(path, parameters);
       final headers = await _getHeaders();
