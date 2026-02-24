@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
+import 'package:restic_movil/app/data/repositories/payment_methods_repository.dart';
 import '../controllers/cash_register_controller.dart';
 
 class CashRegisterBinding extends Bindings {
@@ -10,9 +11,13 @@ class CashRegisterBinding extends Bindings {
     Get.lazyPut<OrdersRepository>(
       () => OrdersRepository(Get.find<BaseHttpClient>()),
     );
+    Get.lazyPut<PaymentMethodsRepository>(
+      () => PaymentMethodsRepository(Get.find<BaseHttpClient>()),
+    );
     Get.lazyPut<CashRegisterController>(
       () => CashRegisterController(
         ordersRepository: Get.find<OrdersRepository>(),
+        paymentMethodsRepository: Get.find<PaymentMethodsRepository>(),
       ),
     );
   }

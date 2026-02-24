@@ -80,6 +80,20 @@ class StorageService extends GetxService {
     await _storage.delete(key: 'order_detail_statuses');
   }
 
+  Future<void> savePaymentMethods(List<dynamic> methods) async {
+    await _storage.write(key: 'payment_methods', value: jsonEncode(methods));
+  }
+
+  Future<List<dynamic>?> getPaymentMethods() async {
+    final str = await _storage.read(key: 'payment_methods');
+    if (str != null) return jsonDecode(str);
+    return null;
+  }
+
+  Future<void> deletePaymentMethods() async {
+    await _storage.delete(key: 'payment_methods');
+  }
+
   Future<void> saveUser(LoginResponse user) async {
     final userMap = user.toJson();
     userMap.remove('token');

@@ -16,6 +16,9 @@ class UrlPaths {
   static const String addProductsToOrder = 'orders'; // /:id/add-products
   static const String getOrdersByStatuses = 'orders/by-statuses';
 
+  // Payment Methods
+  static const String getPaymentMethods = 'payment-methods/all';
+
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
 
