@@ -30,6 +30,7 @@ class ModalInfo extends StatelessWidget {
           const SizedBox(height: 20),
           Text(
             title,
+            textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),

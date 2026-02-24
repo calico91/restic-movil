@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
@@ -212,16 +213,31 @@ class CashRegisterController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          await transactionsRepository.createTransaction(request);
+          final response =
+              await transactionsRepository.createTransaction(request);
 
           // 4. Success handling
-          Get.back();
-          Get.showSnackbar(
-            const InfoSnackbar('Transacción creada correctamente'),
+          Get.back(); // Close TransactionModal
+
+          final format = NumberFormat.currency(
+            locale: 'es_CO',
+            symbol: '\$',
+            decimalDigits: 0,
           );
 
-          // 5. Reload pending orders
-          loadPendingOrders();
+          final change = response['change'] ?? 0.0;
+
+          Get.dialog(
+            ModalInfo(
+              title: 'Pago realizado correctamente',
+              message: 'Valor a devolver: ${format.format(change)}',
+              onClose: () {
+                Get.back(); // Close ModalInfo
+                loadPendingOrders();
+              },
+            ),
+            barrierDismissible: false,
+          );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));

@@ -18,7 +18,8 @@ class TransactionsRepository {
     return types;
   }
 
-  Future<void> createTransaction(CreateTransactionRequest request) async {
-    await _client.post(UrlPaths.createTransaction, body: request.toJson());
+  Future<Map<String, dynamic>> createTransaction(CreateTransactionRequest request) async {
+    final response = await _client.post(UrlPaths.createTransaction, body: request.toJson());
+    return response as Map<String, dynamic>;
   }
 }
