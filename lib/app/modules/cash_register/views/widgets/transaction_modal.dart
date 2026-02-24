@@ -7,6 +7,7 @@ import 'package:restic_movil/app/modules/cash_register/controllers/cash_register
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
 import 'package:restic_movil/app/data/models/payment_detail_model.dart';
 import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class TransactionModal extends StatelessWidget {
   final OrderModel order;
@@ -527,8 +528,40 @@ class TransactionModal extends StatelessWidget {
   void _submitTransaction(FormGroup form) {
     final values = form.value;
 
+    final tipAmount = _parseAmount(values['tipAmount']);
     final paymentsRaw = values['payments'] as List<dynamic>?;
-    final paymentDetails = paymentsRaw?.map((p) {
+
+    if (paymentsRaw == null || paymentsRaw.isEmpty) return;
+
+    // Validate duplicate payment methods
+    final paymentMethods =
+        paymentsRaw.map((p) => p['paymentMethod'] as String).toList();
+    final uniqueMethods = paymentMethods.toSet();
+    if (uniqueMethods.length != paymentMethods.length) {
+      Get.showSnackbar(
+        const ErrorSnackbar('No se pueden repetir métodos de pago'),
+      );
+      return;
+    }
+
+    // Validate total covered
+    final totalPaid = paymentsRaw.fold<double>(
+      0.0,
+      (sum, p) => sum + _parseAmount(p['amount']),
+    );
+    final totalToPay = (order.total ?? 0.0) + tipAmount;
+
+    // Allow a small epsilon for floating point comparison if necessary, but >= logic usually fine
+    if (totalPaid < totalToPay) {
+      Get.showSnackbar(
+        const ErrorSnackbar(
+          'El monto cubierto es menor al total a pagar.',
+        ),
+      );
+      return;
+    }
+
+    final paymentDetails = paymentsRaw.map((p) {
       final map = p as Map<String, dynamic>;
 
       final method = map['paymentMethod'];
@@ -550,7 +583,7 @@ class TransactionModal extends StatelessWidget {
       orderId: order
           .id, // Assuming we need to link it, though prompt didn't specify orderId, usually it's needed or originalTransactionId
       totalAmount: order.total,
-      tipAmount: _parseAmount(values['tipAmount']),
+      tipAmount: tipAmount,
       transactionType: values['transactionType'] as String?,
       originalTransactionId: values['originalTransactionId'] as String?,
       paymentDetails: paymentDetails,
