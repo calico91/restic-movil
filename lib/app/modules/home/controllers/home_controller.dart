@@ -110,6 +110,7 @@ class HomeController extends GetxController {
     await _storageService.deleteOrderStatuses();
     await _storageService.deleteOrderDetailStatuses();
     await _storageService.deletePaymentMethods();
+    await _storageService.deleteTransactionTypes();
     Get.offAllNamed('/login');
   }
 }

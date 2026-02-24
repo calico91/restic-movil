@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/payment_method_model.dart';
+import 'package:restic_movil/app/data/models/transaction_type_model.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/payment_methods_repository.dart';
+import 'package:restic_movil/app/data/repositories/transactions_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
@@ -11,11 +13,13 @@ import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 class CashRegisterController extends GetxController {
   final OrdersRepository ordersRepository;
   final PaymentMethodsRepository paymentMethodsRepository;
+  final TransactionsRepository transactionsRepository;
   final StorageService _storageService = Get.find<StorageService>();
 
   CashRegisterController({
     required this.ordersRepository,
     required this.paymentMethodsRepository,
+    required this.transactionsRepository,
   });
 
   // Tab Handling
@@ -24,6 +28,8 @@ class CashRegisterController extends GetxController {
   final RxList<OrderModel> pendingOrders = <OrderModel>[].obs;
   final RxList<OrderModel> historyOrders = <OrderModel>[].obs;
   final RxList<PaymentMethodModel> paymentMethods = <PaymentMethodModel>[].obs;
+  final RxList<TransactionTypeModel> transactionTypes =
+      <TransactionTypeModel>[].obs;
 
   @override
   void onReady() {
@@ -35,6 +41,7 @@ class CashRegisterController extends GetxController {
     await Future.wait([
       loadPendingOrders(withOverlay: true),
       _loadPaymentMethods(),
+      _loadTransactionTypes(),
     ]);
   }
 
@@ -55,7 +62,30 @@ class CashRegisterController extends GetxController {
         );
       }
     } catch (e) {
-      Get.log('Error loading payment methods: $e');
+      final String errorMessage = ExceptionHandler.extractMessage(e);
+      Get.showSnackbar(ErrorSnackbar(errorMessage));
+    }
+  }
+
+  /*cargar tipos de transacción: primero intenta cargar desde almacenamiento local, 
+  si no hay, carga desde API y guarda en local*/
+  Future<void> _loadTransactionTypes() async {
+    try {
+      final savedTypes = await _storageService.getTransactionTypes();
+      if (savedTypes != null && savedTypes.isNotEmpty) {
+        transactionTypes.assignAll(
+          savedTypes.map((e) => TransactionTypeModel.fromJson(e)).toList(),
+        );
+      } else {
+        final types = await transactionsRepository.getTransactionTypes();
+        transactionTypes.assignAll(types);
+        await _storageService.saveTransactionTypes(
+          types.map((e) => e.toJson()).toList(),
+        );
+      }
+    } catch (e) {
+      final String errorMessage = ExceptionHandler.extractMessage(e);
+      Get.showSnackbar(ErrorSnackbar(errorMessage));
     }
   }
 

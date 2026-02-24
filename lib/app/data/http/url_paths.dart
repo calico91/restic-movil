@@ -19,6 +19,9 @@ class UrlPaths {
   // Payment Methods
   static const String getPaymentMethods = 'payment-methods/all';
 
+  // Transactions
+  static const String getTransactionTypes = 'transactions/types';
+
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
 
