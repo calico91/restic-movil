@@ -15,7 +15,6 @@ import 'package:restic_movil/app/modules/cash_register/views/widgets/transaction
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
-import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class CashRegisterController extends GetxController {
   final OrdersRepository ordersRepository;

@@ -21,7 +21,9 @@ class TransactionModal extends StatelessWidget {
     if (value is int) return value.toDouble();
     if (value is String) {
       if (value.isEmpty) return 0.0;
-      return double.tryParse(value.replaceAll('.', '')) ?? 0.0;
+      final clean = value.replaceAll(RegExp(r'[^0-9]'), '');
+      if (clean.isEmpty) return 0.0;
+      return double.tryParse(clean) ?? 0.0;
     }
     return 0.0;
   }
