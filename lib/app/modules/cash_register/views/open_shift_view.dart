@@ -11,7 +11,7 @@ class OpenShiftView extends GetView<OpenShiftController> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
-      title: 'Opciones de Caja',
+      title: 'Apertura de Caja',
       body: Obx(
         () => ReactiveForm(
           formGroup: controller.form,
@@ -20,10 +20,6 @@ class OpenShiftView extends GetView<OpenShiftController> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
-                  'Apertura de Caja',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
                 const SizedBox(height: 20),
                 ReactiveDropdownField<String>(
                   formControlName: 'cashierId',

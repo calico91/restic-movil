@@ -12,7 +12,7 @@ import 'package:restic_movil/app/data/repositories/payment_methods_repository.da
 import 'package:restic_movil/app/data/repositories/transactions_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
-import 'package:restic_movil/app/modules/cash_register/views/widgets/transaction_modal.dart';
+import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/transaction_modal.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';

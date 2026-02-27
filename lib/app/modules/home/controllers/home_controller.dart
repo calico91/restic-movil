@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
-import 'package:restic_movil/app/modules/cash_register/views/cash_register_view.dart';
+import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_register_view.dart';
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
 

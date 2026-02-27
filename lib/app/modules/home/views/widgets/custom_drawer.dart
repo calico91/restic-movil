@@ -21,10 +21,19 @@ class CustomDrawer extends GetView<HomeController> {
                   title: 'Mi Perfil',
                   onTap: () {},
                 ),
-                _buildDrawerItem(
+                _buildExpansionTile(
                   icon: Icons.point_of_sale,
                   title: 'Opciones de Caja',
-                  onTap: () => Get.toNamed(Routes.OPEN_SHIFT),
+                  children: [
+                    _buildDrawerSubItem(
+                      title: 'Apertura de Caja',
+                      onTap: () => Get.toNamed(Routes.OPEN_SHIFT),
+                    ),
+                    _buildDrawerSubItem(
+                      title: 'Egresos de Caja',
+                      onTap: () => Get.toNamed(Routes.EXPENSES),
+                    ),
+                  ],
                 ),
                 _buildDrawerItem(
                   icon: Icons.settings_outlined,
@@ -119,6 +128,41 @@ class CustomDrawer extends GetView<HomeController> {
         style: TextStyle(
           color: color ?? Colors.black87,
           fontWeight: FontWeight.w500,
+        ),
+      ),
+      onTap: onTap,
+    );
+  }
+
+  Widget _buildExpansionTile({
+    required IconData icon,
+    required String title,
+    required List<Widget> children,
+  }) {
+    return ExpansionTile(
+      leading: Icon(icon, color: Colors.black87),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.w500,
+        ),
+      ),
+      children: children,
+    );
+  }
+
+  Widget _buildDrawerSubItem({
+    required String title,
+    required VoidCallback onTap,
+  }) {
+    return ListTile(
+      contentPadding: const EdgeInsets.only(left: 72.0),
+      title: Text(
+        title,
+        style: const TextStyle(
+          color: Colors.black87,
+          fontWeight: FontWeight.w400,
         ),
       ),
       onTap: onTap,

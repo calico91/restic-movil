@@ -3,4 +3,5 @@ abstract class Routes {
   static const HOME = '/home';
   static const TAKE_ORDER = '/take-order';
   static const OPEN_SHIFT = '/cash-register/open-shift';
+  static const EXPENSES = '/cash-register/expenses';
 }
