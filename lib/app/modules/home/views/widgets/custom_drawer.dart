@@ -30,6 +30,10 @@ class CustomDrawer extends GetView<HomeController> {
                       onTap: () => Get.toNamed(Routes.OPEN_SHIFT),
                     ),
                     _buildDrawerSubItem(
+                      title: 'Cierre de Caja',
+                      onTap: () => Get.toNamed(Routes.CLOSE_SHIFT),
+                    ),
+                    _buildDrawerSubItem(
                       title: 'Egresos de Caja',
                       onTap: () => Get.toNamed(Routes.EXPENSES),
                     ),

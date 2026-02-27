@@ -35,4 +35,5 @@ class UrlPaths {
   static const String getAdminAndCashierUsers = 'users/admin-and-cashier';
   static const String getTerminals = 'terminals/all';
   static const String openCashierShift = 'cashier-shifts/open';
+  static const String closeCashierShift = 'cashier-shifts/close/cashier';
 }

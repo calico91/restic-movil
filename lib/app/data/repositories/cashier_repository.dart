@@ -46,4 +46,23 @@ class CashierRepository {
       rethrow;
     }
   }
+
+  Future<Map<String, dynamic>> closeShift({
+    required String cashierId,
+    required double declaredCashAmount,
+    String? remarks,
+  }) async {
+    try {
+      final response = await _client.put(
+        '${UrlPaths.closeCashierShift}/$cashierId',
+        body: {
+          "declaredCashAmount": declaredCashAmount,
+          if (remarks != null && remarks.isNotEmpty) "remarks": remarks,
+        },
+      );
+      return response;
+    } catch (e) {
+      rethrow;
+    }
+  }
 }
