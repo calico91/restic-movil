@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:intl/intl.dart';
+import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
 class OrderPaymentCard extends StatelessWidget {
@@ -24,7 +25,10 @@ class OrderPaymentCard extends StatelessWidget {
             Expanded(
               child: Text(
                 'Detalle Orden #${order.orderNumber}',
-                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ],
@@ -43,7 +47,10 @@ class OrderPaymentCard extends StatelessWidget {
                           flex: 4,
                           child: Text(
                             'Producto',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                         SizedBox(
@@ -51,7 +58,10 @@ class OrderPaymentCard extends StatelessWidget {
                           child: Text(
                             'Cant.',
                             textAlign: TextAlign.center,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                         Expanded(
@@ -59,7 +69,10 @@ class OrderPaymentCard extends StatelessWidget {
                           child: Text(
                             'Subtotal',
                             textAlign: TextAlign.right,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -67,13 +80,11 @@ class OrderPaymentCard extends StatelessWidget {
                     const Divider(),
                     // Lista de productos
                     ConstrainedBox(
-                      constraints: BoxConstraints(
-                        maxHeight: Get.height * 0.4,
-                      ),
+                      constraints: BoxConstraints(maxHeight: Get.height * 0.4),
                       child: ListView.separated(
                         shrinkWrap: true,
                         itemCount: details.length,
-                        separatorBuilder: (_, __) => const Divider(height: 1),
+                        separatorBuilder: (_, _) => const Divider(height: 1),
                         itemBuilder: (context, index) {
                           final detail = details[index];
                           return Padding(
@@ -93,7 +104,10 @@ class OrderPaymentCard extends StatelessWidget {
                                   child: Text(
                                     'x${detail.quantity ?? 0}',
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 13, color: Colors.grey),
+                                    style: const TextStyle(
+                                      fontSize: 13,
+                                      color: Colors.grey,
+                                    ),
                                   ),
                                 ),
                                 Expanded(
@@ -117,7 +131,10 @@ class OrderPaymentCard extends StatelessWidget {
                       children: [
                         const Text(
                           'Total:',
-                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
                         ),
                         Text(
                           currencyFormat.format(order.total ?? 0),
@@ -139,9 +156,14 @@ class OrderPaymentCard extends StatelessWidget {
               onPressed: () => Get.back(),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.blue[900],
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
-              child: const Text('Cerrar', style: TextStyle(color: Colors.white)),
+              child: const Text(
+                'Cerrar',
+                style: TextStyle(color: Colors.white),
+              ),
             ),
           ),
         ],
@@ -151,7 +173,11 @@ class OrderPaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'es_CO', symbol: '\$', decimalDigits: 0);
+    final currencyFormat = NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+    );
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
 
     return Card(
@@ -163,138 +189,119 @@ class OrderPaymentCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  OrderStatusChip(status: order.status),
-                  Text(
-                    'Orden #${order.orderNumber}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                OrderStatusChip(status: order.status),
+                Text(
+                  'Orden #${order.orderNumber}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Icon(
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Icon(
+                  [
+                        'TAKE_AWAY',
+                        'PARA LLEVAR',
+                        'DELIVERY',
+                        'DOMICILIO',
+                      ].contains(order.originType?.toUpperCase())
+                      ? Icons.person
+                      : Icons.table_restaurant,
+                  size: 20,
+                  color: Colors.grey,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
                     [
                           'TAKE_AWAY',
                           'PARA LLEVAR',
                           'DELIVERY',
                           'DOMICILIO',
                         ].contains(order.originType?.toUpperCase())
-                        ? Icons.person
-                        : Icons.table_restaurant,
-                    size: 20,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      [
-                            'TAKE_AWAY',
-                            'PARA LLEVAR',
-                            'DELIVERY',
-                            'DOMICILIO',
-                          ].contains(order.originType?.toUpperCase())
-                          ? (order.customerName ??
-                                order.customerId ??
-                                'Cliente sin nombre')
-                          : (order.tables?.map((e) => e.name).join(', ') ??
-                                'Sin mesa'),
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.add_location_sharp,
-                    size: 20,
-                    color: Colors.grey,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    order.originType ?? 'Desconocido',
+                        ? (order.customerName ??
+                              order.customerId ??
+                              'Cliente sin nombre')
+                        : (order.tables?.map((e) => e.name).join(', ') ??
+                              'Sin mesa'),
                     style: const TextStyle(fontSize: 14),
                   ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.access_time, size: 20, color: Colors.grey),
-                  const SizedBox(width: 8),
-                  Text(
-                    order.openingDate != null
-                        ? dateFormat.format(DateTime.parse(order.openingDate!))
-                        : '-',
-                    style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(
+                  Icons.add_location_sharp,
+                  size: 20,
+                  color: Colors.grey,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  order.originType ?? 'Desconocido',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.access_time, size: 20, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(
+                  order.openingDate != null
+                      ? dateFormat.format(DateTime.parse(order.openingDate!))
+                      : '-',
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Total:',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+                Text(
+                  currencyFormat.format(order.total ?? 0),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
                   ),
-                ],
-              ),
-              const Divider(height: 24),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text(
-                    'Total:',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Botones de acción
+            Row(
+              children: [
+                Expanded(
+                  child: CardPrimaryButton(
+                    text: 'Detalle Pedido',
+                    onPressed: () => _showOrderDetail(context, currencyFormat),
                   ),
-                  Text(
-                    currencyFormat.format(order.total ?? 0),
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green[700],
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Botones de acción
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () => _showOrderDetail(context, currencyFormat),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[900],
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      child: const Text('Detalle Pedido'),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: onTap,
-                      style: OutlinedButton.styleFrom(
-                        side: BorderSide(color: Colors.blue[900]!),
-                        foregroundColor: Colors.blue[900],
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      child: const Text('Pagar'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: CardOutlinedButton(text: 'Pagar', onPressed: onTap),
+                ),
+              ],
+            ),
+          ],
         ),
+      ),
     );
   }
 }

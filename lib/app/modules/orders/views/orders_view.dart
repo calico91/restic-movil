@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
+import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/modals/order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
@@ -301,32 +302,16 @@ class OrdersView extends GetView<OrdersController> {
               children: [
                 if (controller.currentTab.value == 0)
                   Expanded(
-                    child: ElevatedButton(
+                    child: CardPrimaryButton(
+                      text: 'Ver Detalles',
                       onPressed: () => _showOrderDetails(context, order),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[900],
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                      ),
-                      child: const Text('Ver Detalles'),
                     ),
                   ),
                 const SizedBox(width: 10),
                 Expanded(
-                  child: OutlinedButton(
+                  child: CardOutlinedButton(
+                    text: 'Agregar',
                     onPressed: () => controller.startAddProducts(order),
-                    style: OutlinedButton.styleFrom(
-                      side: BorderSide(color: Colors.blue[900]!),
-                      foregroundColor: Colors.blue[900],
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                    ),
-                    child: const Text('Agregar'),
                   ),
                 ),
               ],
