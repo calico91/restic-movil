@@ -11,6 +11,7 @@ import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/payment_methods_repository.dart';
 import 'package:restic_movil/app/data/repositories/transactions_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/widgets/transaction_modal.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
@@ -21,6 +22,7 @@ class CashRegisterController extends GetxController {
   final PaymentMethodsRepository paymentMethodsRepository;
   final TransactionsRepository transactionsRepository;
   final StorageService _storageService = Get.find<StorageService>();
+  final WebSocketService _webSocketService = Get.find<WebSocketService>();
 
   CashRegisterController({
     required this.ordersRepository,
@@ -38,9 +40,42 @@ class CashRegisterController extends GetxController {
       <TransactionTypeModel>[].obs;
 
   @override
+  void onInit() {
+    super.onInit();
+    _connectWebSocket();
+  }
+
+  @override
   void onReady() {
     super.onReady();
     _loadInitialData();
+  }
+
+  @override
+  void onClose() {
+    _webSocketService.disconnect();
+    super.onClose();
+  }
+
+  /*conectar al websocket */
+  void _connectWebSocket() {
+    _webSocketService.connect();
+
+    // Escuchar actualizaciones completas de ordenes abiertas
+    _webSocketService.openOrdersStream.listen((updatedOrders) {
+      if (currentTab.value == 0) {
+        loadPendingOrders(withOverlay: false);
+      }
+    });
+
+    // Escuchar ordenes individuales para recargar si es necesario
+    _webSocketService.ordersStream.listen((order) {
+      if (currentTab.value == 0) {
+        loadPendingOrders(withOverlay: false);
+      } else {
+        loadHistoryOrders(withOverlay: false);
+      }
+    });
   }
 
   Future<void> _loadInitialData() async {

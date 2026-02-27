@@ -6,6 +6,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/orders/views/widgets/add_products_sheet.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
@@ -17,6 +18,7 @@ class OrdersController extends GetxController {
   final OrdersRepository ordersRepository;
   final CategoriesRepository categoriesRepository;
   final StorageService _storageService = Get.find<StorageService>();
+  final WebSocketService _webSocketService = Get.find<WebSocketService>();
 
   OrdersController({
     required this.ordersRepository,
@@ -49,6 +51,27 @@ class OrdersController extends GetxController {
     super.onInit();
     searchController.addListener(_filterOrders);
     _loadStatuses();
+    _connectWebSocket();
+  }
+
+  /*conectar al websocket */
+  void _connectWebSocket() {
+    _webSocketService.connect();
+
+    // Escuchar actualizaciones completas de ordenes abiertas
+    _webSocketService.openOrdersStream.listen((updatedOrders) {
+      _allOrders.assignAll(updatedOrders);
+      if (currentTab.value == 0) {
+        _filterOrders();
+      }
+    });
+
+    // Escuchar ordenes individuales para recargar si es necesario
+    _webSocketService.ordersStream.listen((order) {
+      if (currentTab.value == 1) {
+        loadFinalizedOrders(withOverlay: false);
+      }
+    });
   }
 
   @override
@@ -60,6 +83,7 @@ class OrdersController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
+    _webSocketService.disconnect();
     super.onClose();
   }
 
