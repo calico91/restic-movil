@@ -156,8 +156,8 @@ Diferencia: ${currencyFormat.format(difference)}
         title: 'Caja Cerrada Correctamente',
         message: message,
         onClose: () {
-          Get.back(); // Cierra el modal
-          Get.offAllNamed(Routes.HOME); // Redirige al home y borra el stack
+          Get.back();
+          Get.back();
         },
       ),
       barrierDismissible: false,

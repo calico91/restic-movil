@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
+import 'package:restic_movil/core/utils/widgets/lazy_indexed_stack.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -30,7 +31,7 @@ class HomeView extends GetView<HomeController> {
       return CustomScaffold(
         title: currentItem.title,
         drawer: const CustomDrawer(),
-        body: IndexedStack(
+        body: LazyIndexedStack(
           index: currentIndex,
           children: controller.navigationItems.map((e) => e.view).toList(),
         ),
