@@ -97,7 +97,7 @@ class OrdersController extends GetxController {
 
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatus('OPEN');
+        final result = await ordersRepository.getOrdersByStatuses(['OPEN']);
         _allOrders.assignAll(result);
         _filterOrders();
       } catch (e) {
@@ -120,7 +120,7 @@ class OrdersController extends GetxController {
   Future<void> loadFinalizedOrders({bool withOverlay = true}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatus('FINALIZED');
+        final result = await ordersRepository.getOrdersByStatuses(['FINALIZED']);
         _allFinalizedOrders.assignAll(result);
         _filterOrders();
       } catch (e) {

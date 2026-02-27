@@ -27,11 +27,6 @@ class OrdersRepository {
     );
   }
 
-  Future<List<OrderModel>> getOrdersByStatus(String status) async {
-    final response = await _client.get('${UrlPaths.getOrdersByStatus}/$status');
-    return (response as List).map((e) => OrderModel.fromJson(e)).toList();
-  }
-
   Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses) async {
     final response = await _client.get(
       UrlPaths.getOrdersByStatuses,

@@ -48,7 +48,7 @@ class CommandsController extends GetxController {
     }
 
     try {
-      final result = await ordersRepository.getOrdersByStatus('OPEN');
+      final result = await ordersRepository.getOrdersByStatuses(['OPEN']);
       orders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading active orders: $e');
@@ -58,7 +58,7 @@ class CommandsController extends GetxController {
   /*cargar pedidos finalizados*/
   Future<void> loadFinalizedOrders({bool withOverlay = false}) async {
     try {
-      final result = await ordersRepository.getOrdersByStatus('FINALIZED');
+      final result = await ordersRepository.getOrdersByStatuses(['FINALIZED']);
       finalizedOrders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading finalized orders: $e');
