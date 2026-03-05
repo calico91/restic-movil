@@ -42,18 +42,39 @@ class CustomReactiveTextField<T> extends StatelessWidget {
       maxLines: maxLines,
       validationMessages: validationMessages,
       readOnly: readOnly,
+      style: const TextStyle(fontSize: 14), // Tamaño de texto cómodo
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
         prefixText: prefixText,
-        prefixIcon: prefixIcon,
+        prefixIcon: prefixIcon != null
+            ? IconTheme(
+                data: IconThemeData(color: Colors.blue[900]),
+                child: prefixIcon!,
+              )
+            : null,
         suffixIcon: suffixIcon,
+        filled: true,
+        fillColor: Colors.grey[50],
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25, // Un poco más de espacio horizontal por el borde redondo
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 16,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.blue.shade900, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
         ),
       ),
     );

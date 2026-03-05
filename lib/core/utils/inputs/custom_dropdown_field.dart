@@ -24,16 +24,40 @@ class CustomReactiveDropdownField<T> extends StatelessWidget {
       validationMessages: validationMessages,
       decoration: InputDecoration(
         labelText: labelText,
-        prefixIcon: prefixIcon,
+        prefixIcon: prefixIcon != null
+            ? IconTheme(
+                data: IconThemeData(color: Colors.blue[900]),
+                child: prefixIcon!,
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.grey[50], // Sutil, pero elegante
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 25,
+          vertical: 18,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.grey.shade300),
         ),
-        contentPadding: const EdgeInsets.symmetric(
-          horizontal: 20,
-          vertical: 16,
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.grey.shade300),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: BorderSide(color: Colors.blue.shade900, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(30),
+          borderSide: const BorderSide(color: Colors.red, width: 1),
         ),
       ),
       items: items,
+      icon: Icon(Icons.keyboard_arrow_down_rounded,
+          color: Colors.blue.shade900), // Flecha personalizada
+      dropdownColor: Colors.white,
+      borderRadius: BorderRadius.circular(20),
     );
   }
 }
