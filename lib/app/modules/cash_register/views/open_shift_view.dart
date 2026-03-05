@@ -4,6 +4,7 @@ import 'package:restic_movil/core/utils/formatters/thousands_separator_input_for
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/open_shift_controller.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 
 class OpenShiftView extends GetView<OpenShiftController> {
   const OpenShiftView({super.key});
@@ -90,20 +91,13 @@ class OpenShiftView extends GetView<OpenShiftController> {
                   },
                 ),
                 const SizedBox(height: 32),
-                SizedBox(
-                  width: double.infinity,
-                  height: 50,
-                  child: ElevatedButton(
-                    onPressed: controller.submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text('ENVIAR'),
-                  ),
+                ReactiveFormConsumer(
+                  builder: (context, form, child) {
+                    return CustomSubmitButton(
+                      text: 'ENVIAR',
+                      onPressed: form.valid ? controller.submit : null,
+                    );
+                  },
                 ),
               ],
             ),

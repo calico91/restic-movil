@@ -4,10 +4,10 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/close_shift/close_shift_controller.dart';
 import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
-import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
+import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
+import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:intl/intl.dart';
-import 'package:restic_movil/app/routes/app_routes.dart';
 
 class CloseShiftView extends GetView<CloseShiftController> {
   const CloseShiftView({super.key});
@@ -101,35 +101,20 @@ class CloseShiftView extends GetView<CloseShiftController> {
   }
 
   Widget _buildSubmitButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ReactiveFormConsumer(
-        builder: (context, form, child) {
-          return ElevatedButton(
-            onPressed: form.valid
-                ? () async {
-                    final result = await controller.submitCloseShift();
-                    if (result != null) {
-                      _showSuccessModal(result);
-                    }
+    return ReactiveFormConsumer(
+      builder: (context, form, child) {
+        return CustomSubmitButton(
+          text: 'Cerrar Caja',
+          onPressed: form.valid
+              ? () async {
+                  final result = await controller.submitCloseShift();
+                  if (result != null) {
+                    _showSuccessModal(result);
                   }
-                : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              backgroundColor: Colors.blue[900],
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(15),
-              ),
-              elevation: 4,
-            ),
-            child: const Text(
-              'Cerrar Caja',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-          );
-        },
-      ),
+                }
+              : null,
+        );
+      },
     );
   }
 

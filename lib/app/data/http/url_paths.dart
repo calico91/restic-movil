@@ -36,4 +36,9 @@ class UrlPaths {
   static const String getTerminals = 'terminals/all';
   static const String openCashierShift = 'cashier-shifts/open';
   static const String closeCashierShift = 'cashier-shifts/close/cashier';
+
+  // Cash Withdrawals
+  static const String getCashWithdrawalReasons = 'cash-withdrawals/reasons';
+  static const String getCashWithdrawalPaymentSources = 'cash-withdrawals/payment-sources';
+  static const String createCashWithdrawal = 'cash-withdrawals';
 }
