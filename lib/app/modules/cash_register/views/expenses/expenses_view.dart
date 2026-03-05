@@ -6,6 +6,8 @@ import 'package:restic_movil/app/data/models/cash_withdrawal_reason.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/expenses/expenses_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
+import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
 
 class ExpensesView extends GetView<ExpensesController> {
   const ExpensesView({super.key});
@@ -21,16 +23,11 @@ class ExpensesView extends GetView<ExpensesController> {
           formGroup: controller.form,
           child: Column(
             children: [
-              ReactiveTextField(
+              CustomReactiveTextField<double>(
                 formControlName: 'amount',
+                labelText: 'Monto *',
                 keyboardType: const TextInputType.numberWithOptions(
                   decimal: true,
-                ),
-                decoration: InputDecoration(
-                  labelText: 'Monto *',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
                 ),
                 validationMessages: {
                   ValidationMessage.required: (error) =>
@@ -40,39 +37,24 @@ class ExpensesView extends GetView<ExpensesController> {
                 },
               ),
               const SizedBox(height: 16),
-              ReactiveTextField(
+              CustomReactiveTextField<String>(
                 formControlName: 'concept',
-                decoration: InputDecoration(
-                  labelText: 'Concepto *',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                labelText: 'Concepto *',
                 validationMessages: {
                   ValidationMessage.required: (error) =>
                       'El concepto es obligatorio',
                 },
               ),
               const SizedBox(height: 16),
-              ReactiveTextField(
+              const CustomReactiveTextField<String>(
                 formControlName: 'voucherReference',
-                decoration: InputDecoration(
-                  labelText: 'Referencia Comprobante (Opcional)',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
+                labelText: 'Referencia Comprobante (Opcional)',
               ),
               const SizedBox(height: 16),
               Obx(
-                () => ReactiveDropdownField<CashWithdrawalReason>(
+                () => CustomReactiveDropdownField<CashWithdrawalReason>(
                   formControlName: 'reason',
-                  decoration: InputDecoration(
-                    labelText: 'Motivo *',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                  labelText: 'Motivo *',
                   items: controller.reasons
                       .map((e) => DropdownMenuItem(
                             value: e,
@@ -87,14 +69,9 @@ class ExpensesView extends GetView<ExpensesController> {
               ),
               const SizedBox(height: 16),
               Obx(
-                () => ReactiveDropdownField<CashWithdrawalPaymentSource>(
+                () => CustomReactiveDropdownField<CashWithdrawalPaymentSource>(
                   formControlName: 'paymentSource',
-                  decoration: InputDecoration(
-                    labelText: 'Medio de Pago *',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
+                  labelText: 'Medio de Pago *',
                   items: controller.paymentSources
                       .map((e) => DropdownMenuItem(
                             value: e,
@@ -115,28 +92,18 @@ class ExpensesView extends GetView<ExpensesController> {
                   if (source?.name == 'BANK_ACCOUNT') {
                     return Column(
                       children: [
-                        ReactiveTextField(
+                        CustomReactiveTextField<String>(
                           formControlName: 'bankAccountName',
-                          decoration: InputDecoration(
-                            labelText: 'Nombre Cuenta Bancaria *',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
+                          labelText: 'Nombre Cuenta Bancaria *',
                           validationMessages: {
                             ValidationMessage.required: (error) =>
                                 'El nombre de la cuenta es obligatorio',
                           },
                         ),
                         const SizedBox(height: 16),
-                        ReactiveTextField(
+                        const CustomReactiveTextField<String>(
                           formControlName: 'bankAccountReference',
-                          decoration: InputDecoration(
-                            labelText: 'Referencia Bancaria',
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                          ),
+                          labelText: 'Referencia Bancaria',
                         ),
                         const SizedBox(height: 16),
                       ],

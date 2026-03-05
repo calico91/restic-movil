@@ -5,6 +5,8 @@ import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/open_shift_controller.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
+import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
 
 class OpenShiftView extends GetView<OpenShiftController> {
   const OpenShiftView({super.key});
@@ -22,15 +24,12 @@ class OpenShiftView extends GetView<OpenShiftController> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 20),
-                ReactiveDropdownField<String>(
+                CustomReactiveDropdownField<String>(
                   formControlName: 'cashierId',
+                  labelText: 'Usuario',
                   validationMessages: {
                     ValidationMessage.required: (error) => 'Requerido',
                   },
-                  decoration: const InputDecoration(
-                    labelText: 'Usuario',
-                    border: OutlineInputBorder(),
-                  ),
                   items: controller.users
                       .map(
                         (user) => DropdownMenuItem(
@@ -41,15 +40,12 @@ class OpenShiftView extends GetView<OpenShiftController> {
                       .toList(),
                 ),
                 const SizedBox(height: 16),
-                ReactiveTextField<String>(
+                CustomReactiveTextField<String>(
                   formControlName: 'initialAmount',
+                  labelText: 'Monto Inicial (COP)',
                   keyboardType: TextInputType.number,
                   inputFormatters: [ThousandsSeparatorInputFormatter()],
-                  decoration: const InputDecoration(
-                    labelText: 'Monto Inicial (COP)',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.attach_money),
-                  ),
+                  prefixIcon: const Icon(Icons.attach_money),
                   validationMessages: {
                     ValidationMessage.required: (error) =>
                         'El monto es requerido',
@@ -58,15 +54,12 @@ class OpenShiftView extends GetView<OpenShiftController> {
                   },
                 ),
                 const SizedBox(height: 16),
-                ReactiveDropdownField<String>(
+                CustomReactiveDropdownField<String>(
                   formControlName: 'terminalId',
+                  labelText: 'Terminal',
                   validationMessages: {
                     ValidationMessage.required: (error) => 'Requerido',
                   },
-                  decoration: const InputDecoration(
-                    labelText: 'Terminal',
-                    border: OutlineInputBorder(),
-                  ),
                   items: controller.terminals
                       .map(
                         (terminal) => DropdownMenuItem(
@@ -77,14 +70,11 @@ class OpenShiftView extends GetView<OpenShiftController> {
                       .toList(),
                 ),
                 const SizedBox(height: 16),
-                ReactiveTextField(
+                CustomReactiveTextField<String>(
                   formControlName: 'remarks',
+                  labelText: 'Observaciones (Opcional)',
                   maxLines: 3,
-                  decoration: const InputDecoration(
-                    labelText: 'Observaciones (Opcional)',
-                    border: OutlineInputBorder(),
-                    helperText: 'Máximo 250 caracteres',
-                  ),
+                  hintText: 'Máximo 250 caracteres',
                   validationMessages: {
                     ValidationMessage.maxLength: (error) =>
                         'Máximo 250 caracteres permitidos',

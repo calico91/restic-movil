@@ -7,6 +7,7 @@ import 'package:restic_movil/core/utils/formatters/thousands_separator_input_for
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:intl/intl.dart';
 
 class CloseShiftView extends GetView<CloseShiftController> {
@@ -54,20 +55,15 @@ class CloseShiftView extends GetView<CloseShiftController> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 10),
-        ReactiveTextField<String>(
+        CustomReactiveTextField<String>(
           formControlName: 'declaredCashAmount',
           keyboardType: TextInputType.number,
           inputFormatters: [
             FilteringTextInputFormatter.digitsOnly,
             ThousandsSeparatorInputFormatter(),
           ],
-          decoration: InputDecoration(
-            prefixText: '\$ ',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-            filled: true,
-            fillColor: Colors.grey[100],
-            hintText: '0',
-          ),
+          prefixText: '\$ ',
+          hintText: '0',
           validationMessages: {
             ValidationMessage.required: (error) => 'Requerido',
             ValidationMessage.min: (error) => 'Debe ser mayor a 0',
@@ -86,15 +82,10 @@ class CloseShiftView extends GetView<CloseShiftController> {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
         const SizedBox(height: 10),
-        ReactiveTextField<String>(
+        const CustomReactiveTextField<String>(
           formControlName: 'remarks',
           maxLines: 3,
-          decoration: InputDecoration(
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
-            filled: true,
-            fillColor: Colors.grey[100],
-            hintText: 'Ingrese una observación si hay diferencias',
-          ),
+          hintText: 'Ingrese una observación si hay diferencias',
         ),
       ],
     );
