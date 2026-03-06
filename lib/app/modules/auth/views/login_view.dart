@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import '../controllers/login_controller.dart';
 
 class LoginView extends GetView<LoginController> {
@@ -125,35 +126,17 @@ class LoginView extends GetView<LoginController> {
   Widget _buildForm() {
     return ReactiveForm(
       formGroup: controller.form,
-      child: Column(
+      child: const Column(
         children: [
-          ReactiveTextField<String>(
+          CustomReactiveTextField<String>(
             formControlName: 'username',
-            decoration: InputDecoration(
-              labelText: 'Usuario',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
-            ),
+            labelText: 'Usuario',
           ),
-          const SizedBox(height: 20),
-          ReactiveTextField<String>(
+          SizedBox(height: 20),
+          CustomReactiveTextField<String>(
             formControlName: 'password',
             obscureText: true,
-            decoration: InputDecoration(
-              labelText: 'Contraseña',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 20,
-                vertical: 16,
-              ),
-            ),
+            labelText: 'Contraseña',
           ),
         ],
       ),

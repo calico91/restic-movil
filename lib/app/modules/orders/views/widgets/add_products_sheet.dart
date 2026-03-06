@@ -6,6 +6,7 @@ import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
 /*
   Hoja modal para agregar productos adicionales a un pedido existente.
@@ -151,21 +152,15 @@ class AddProductsSheet extends GetView<OrdersController> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ReactiveTextField(
+            CustomReactiveTextField<int>(
               formControl: quantityControl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Cantidad',
-                border: OutlineInputBorder(),
-              ),
+              labelText: 'Cantidad',
             ),
             const SizedBox(height: 10),
-            ReactiveTextField(
+            CustomReactiveTextField<String>(
               formControl: commentControl,
-              decoration: const InputDecoration(
-                labelText: 'Comentarios',
-                border: OutlineInputBorder(),
-              ),
+              labelText: 'Comentarios',
               maxLines: 3,
             ),
           ],

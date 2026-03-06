@@ -21,6 +21,7 @@ class CustomerView extends GetView<CustomerController> {
           return const Center(child: Text('No hay clientes registrados'));
         }
         return ListView.builder(
+          padding: const EdgeInsets.only(top: 5, bottom: 80),
           itemCount: controller.customers.length,
           itemBuilder: (context, index) {
             final customer = controller.customers[index];

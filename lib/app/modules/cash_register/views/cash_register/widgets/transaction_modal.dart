@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:restic_movil/app/data/models/order_model.dart';
-import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
+import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/payment_detail_model.dart';
+import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
+
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
+import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class TransactionModal extends StatelessWidget {
@@ -115,19 +118,15 @@ class TransactionModal extends StatelessWidget {
           final types = controller.transactionTypes;
           if (types.isEmpty) return const SizedBox.shrink();
 
-          return ReactiveDropdownField<String>(
+          return CustomReactiveDropdownField<String>(
             formControlName: 'transactionType',
-            decoration: const InputDecoration(
-              border: OutlineInputBorder(),
-              labelText: 'Tipo',
-            ),
+            labelText: 'Tipo',
             items: types.map((type) {
               return DropdownMenuItem(
                 value: type.code,
                 child: Text(type.description ?? type.code ?? ''),
               );
             }).toList(),
-            onChanged: (control) {},
           );
         }),
 
@@ -136,15 +135,12 @@ class TransactionModal extends StatelessWidget {
           formControlName: 'transactionType',
           builder: (context, control, child) {
             if (control.value == 'REFUND') {
-              return Padding(
-                padding: const EdgeInsets.only(top: 10),
-                child: ReactiveTextField(
+              return const Padding(
+                padding: EdgeInsets.only(top: 10),
+                child: CustomReactiveTextField(
                   formControlName: 'originalTransactionId',
-                  decoration: const InputDecoration(
-                    labelText: 'ID Transacción Original',
-                    border: OutlineInputBorder(),
-                    helperText: 'Requerido para devoluciones',
-                  ),
+                  labelText: 'ID Transacción Original',
+                  helperText: 'Requerido para devoluciones',
                 ),
               );
             }
@@ -158,14 +154,11 @@ class TransactionModal extends StatelessWidget {
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         ),
         const SizedBox(height: 5),
-        ReactiveTextField<String>(
+        CustomReactiveTextField(
           formControlName: 'tipAmount',
           keyboardType: TextInputType.number,
           inputFormatters: [ThousandsSeparatorInputFormatter()],
-          decoration: const InputDecoration(
-            prefixText: '\$ ',
-            border: OutlineInputBorder(),
-          ),
+          prefixText: '\$ ',
         ),
       ],
     );
@@ -261,18 +254,10 @@ class TransactionModal extends StatelessWidget {
                   flex: 2,
                   child: Obx(() {
                     final methods = controller.paymentMethods;
-                    return ReactiveDropdownField<String>(
+                    return CustomReactiveDropdownField<String>(
                       formControl:
                           group.control('paymentMethod') as FormControl<String>,
-                      isExpanded: true,
-                      decoration: const InputDecoration(
-                        labelText: 'Método',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 8,
-                        ),
-                      ),
+                      labelText: 'Método',
                       items: methods
                           .map(
                             (m) => DropdownMenuItem(
@@ -290,19 +275,12 @@ class TransactionModal extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   flex: 2,
-                  child: ReactiveTextField<String>(
+                  child: CustomReactiveTextField<String>(
                     formControl: group.control('amount') as FormControl<String>,
                     keyboardType: TextInputType.number,
                     inputFormatters: [ThousandsSeparatorInputFormatter()],
-                    decoration: const InputDecoration(
-                      labelText: 'Monto',
-                      prefixText: '\$ ',
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                    ),
+                    labelText: 'Monto',
+                    prefixText: '\$ ',
                   ),
                 ),
                 if (formArray.controls.length > 1)
@@ -329,30 +307,23 @@ class TransactionModal extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: ReactiveTextField(
+                              child: CustomReactiveTextField(
                                 formControl:
                                     group.control('cardLastFour')
                                         as FormControl<String>,
                                 keyboardType: TextInputType.number,
                                 maxLength: 4,
-                                decoration: const InputDecoration(
-                                  labelText: 'Últimos 4',
-                                  border: OutlineInputBorder(),
-                                  counterText: "",
-                                ),
+                                labelText: 'Últimos 4',
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: ReactiveTextField(
+                              child: CustomReactiveTextField(
                                 formControl:
                                     group.control('cardBrand')
                                         as FormControl<String>,
-                                decoration: const InputDecoration(
-                                  labelText: 'Franquicia',
-                                  hintText: 'Visa/Master',
-                                  border: OutlineInputBorder(),
-                                ),
+                                labelText: 'Franquicia',
+                                hintText: 'Visa/Master',
                               ),
                             ),
                           ],
@@ -361,26 +332,20 @@ class TransactionModal extends StatelessWidget {
                         Row(
                           children: [
                             Expanded(
-                              child: ReactiveTextField(
+                              child: CustomReactiveTextField(
                                 formControl:
                                     group.control('authorizationCode')
                                         as FormControl<String>,
-                                decoration: const InputDecoration(
-                                  labelText: 'Cód. Autorización',
-                                  border: OutlineInputBorder(),
-                                ),
+                                labelText: 'Cód. Autorización',
                               ),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
-                              child: ReactiveTextField(
+                              child: CustomReactiveTextField(
                                 formControl:
                                     group.control('referenceNumber')
                                         as FormControl<String>,
-                                decoration: const InputDecoration(
-                                  labelText: 'Referencia',
-                                  border: OutlineInputBorder(),
-                                ),
+                                labelText: 'Referencia',
                               ),
                             ),
                           ],

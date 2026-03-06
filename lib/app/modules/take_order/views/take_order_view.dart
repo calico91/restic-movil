@@ -10,6 +10,7 @@ import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_se
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
+import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
@@ -216,21 +217,15 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ReactiveTextField(
+            CustomReactiveTextField(
               formControl: quantityControl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Cantidad',
-                border: OutlineInputBorder(),
-              ),
+              labelText: 'Cantidad',
             ),
             const SizedBox(height: 10),
-            ReactiveTextField(
+            CustomReactiveTextField(
               formControl: commentControl,
-              decoration: const InputDecoration(
-                labelText: 'Comentarios',
-                border: OutlineInputBorder(),
-              ),
+              labelText: 'Comentarios',
               maxLines: 3,
             ),
           ],
@@ -290,19 +285,17 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: ReactiveForm(
                 formGroup: controller.form,
-                child: ReactiveTextField(
+                child: const CustomReactiveTextField(
                   formControlName: 'observations',
-                  decoration: const InputDecoration(
-                    labelText: 'Observaciones generales del pedido',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.comment),
-                  ),
+                  labelText: 'Observaciones generales del pedido',
+                  prefixIcon: Icon(Icons.comment),
                   maxLines: 2,
                 ),
               ),
             ),
             Flexible(
               child: Obx(() {
+
                 return ListView.builder(
                   shrinkWrap: true,
                   itemCount: controller.currentOrder.length,
