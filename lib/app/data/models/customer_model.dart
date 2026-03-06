@@ -19,7 +19,7 @@ class CustomerModel {
     this.notes,
   });
 
-  String get fullName => '$name $lastName';
+  String get fullName => '${name ?? ''} ${lastName ?? ''}'.trim();
 
   CustomerModel.fromJson(Map<String, dynamic> json) {
     id = json['id'];

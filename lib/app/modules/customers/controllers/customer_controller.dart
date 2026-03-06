@@ -1,7 +1,12 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/customer_model.dart';
 import 'package:restic_movil/app/data/repositories/customer_repository.dart';
+import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
+import 'package:restic_movil/core/utils/animations/loading_charging.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class CustomerController extends GetxController {
   final CustomerRepository _repository = Get.find();
@@ -9,12 +14,8 @@ class CustomerController extends GetxController {
   final customers = <CustomerModel>[].obs;
   late FormGroup form;
 
-  // Flag para saber si estamos editando
   final isEditing = false.obs;
   String? _editingId;
-
-  // Estado de carga para la vista
-  final isLoading = false.obs;
 
   @override
   void onInit() {
@@ -40,22 +41,21 @@ class CustomerController extends GetxController {
     });
   }
 
-  /// Carga los clientes desde el repositorio.
-  /// Maneja el estado isLoading.
   Future<void> loadCustomers() async {
-    isLoading.value = true;
-    try {
-      final result = await _repository.getAllCustomers();
-      customers.assignAll(result);
-    } catch (e) {
-      // Propagar el error a la vista is si es necesario o manejarlo localmente
-      rethrow;
-    } finally {
-      isLoading.value = false;
-    }
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final result = await _repository.getAllCustomers();
+          customers.assignAll(result);
+        } catch (e) {
+          final message = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(message));
+        }
+      },
+    );
   }
 
-  /// Abre el formulario para crear un nuevo cliente.
   void openCreateForm() {
     isEditing.value = false;
     _editingId = null;
@@ -63,7 +63,6 @@ class CustomerController extends GetxController {
     Get.toNamed('/customers/form');
   }
 
-  /// Abre el formulario para editar un cliente existente.
   void openEditForm(CustomerModel customer) {
     isEditing.value = true;
     _editingId = customer.id;
@@ -71,35 +70,88 @@ class CustomerController extends GetxController {
     Get.toNamed('/customers/form');
   }
 
-  /// Envía el formulario.
-  /// Lanza excepción si falla.
   Future<void> submit() async {
     if (form.invalid) {
       form.markAllAsTouched();
-      // Lanzamos excepción o manejamos como UI necesite. 
-      // Por consistencia, si es inválido, no hacemos throw, solo marcamos.
-      // Así la UI sabe que no pasó nada. 
-      return; 
+      return;
     }
 
-    final customerData = CustomerModel.fromJson(form.value);
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final customerData = CustomerModel.fromJson(form.value);
 
-    // Si queremos que la vista maneje el loading, necesitamos que la llamada sea asíncrona pura.
-    
-    if (isEditing.value && _editingId != null) {
-      customerData.id = _editingId;
-      await _repository.updateCustomer(customerData);
-    } else {
-      await _repository.createCustomer(customerData);
-    }
-    
-    await loadCustomers(); // Refrescar lista
+          if (isEditing.value && _editingId != null) {
+            customerData.id = _editingId;
+            await _repository.updateCustomer(customerData);
+            Get.dialog(
+              ModalInfo(
+                title: 'Éxito',
+                message: 'Cliente actualizado correctamente',
+                onClose: () {
+                  Get.back(); // Cerrar modal
+                  Get.back(); // Cerrar formulario
+                  loadCustomers(); // Recargar lista
+                },
+              ),
+            );
+          } else {
+            await _repository.createCustomer(customerData);
+            Get.dialog(
+              ModalInfo(
+                title: 'Éxito',
+                message: 'Cliente creado correctamente',
+                onClose: () {
+                  Get.back(); // Cerrar modal
+                  Get.back(); // Cerrar formulario
+                  loadCustomers(); // Recargar lista
+                },
+              ),
+            );
+          }
+        } catch (e) {
+          final message = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(message));
+        }
+      },
+    );
   }
 
-  /// Elimina un cliente.
   Future<void> deleteCustomer(String id) async {
-    await _repository.deleteCustomer(id);
-    customers.removeWhere((element) => element.id == id);
+    Get.dialog(
+      ModalInfo(
+        title: 'Confirmación',
+        message: '¿Está seguro de eliminar este cliente?',
+        buttonText: 'Eliminar',
+        icon: Icons.warning_amber_rounded,
+        iconColor:
+            // ignore: use_build_context_synchronously
+            Get.theme.primaryColor,
+        onClose: () async {
+          Get.back(); // Cerrar confirmación
+
+          Get.showOverlay(
+            loadingWidget: const LoadingCharging(),
+            asyncFunction: () async {
+              try {
+                await _repository.deleteCustomer(id);
+                customers.removeWhere((element) => element.id == id);
+                Get.dialog(
+                  ModalInfo(
+                    title: 'Éxito',
+                    message: 'Cliente eliminado correctamente',
+                    onClose: () => Get.back(),
+                  ),
+                );
+              } catch (e) {
+                final message = ExceptionHandler.extractMessage(e);
+                Get.showSnackbar(ErrorSnackbar(message));
+              }
+            },
+          );
+        },
+      ),
+    );
   }
 }
-
