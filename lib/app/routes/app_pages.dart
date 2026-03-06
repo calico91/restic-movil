@@ -11,6 +11,9 @@ import '../modules/cash_register/bindings/close_shift/close_shift_binding.dart';
 import '../modules/cash_register/views/close_shift/close_shift_view.dart';
 import '../modules/cash_register/bindings/expenses/expenses_binding.dart';
 import '../modules/cash_register/views/expenses/expenses_view.dart';
+import '../modules/customers/bindings/customer_binding.dart';
+import '../modules/customers/views/customer_view.dart';
+import '../modules/customers/views/customer_form_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -46,6 +49,16 @@ class AppPages {
       name: Routes.EXPENSES,
       page: () => const ExpensesView(),
       binding: ExpensesBinding(),
+    ),
+    GetPage(
+      name: Routes.CUSTOMERS,
+      page: () => const CustomerView(),
+      binding: CustomerBinding(),
+    ),
+    GetPage(
+      name: Routes.CUSTOMER_FORM,
+      page: () => const CustomerFormView(),
+      binding: CustomerBinding(),
     ),
   ];
 }

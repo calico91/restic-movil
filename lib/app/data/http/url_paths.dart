@@ -27,6 +27,10 @@ class UrlPaths {
 
   // Customers
   static const String getCustomers = 'customers/all';
+  static const String createCustomer = 'customers/create';
+  static const String updateCustomer = 'customers/update';
+  static const String deleteCustomer = 'customers/delete';
+  static const String getCustomerById = 'customers/get-by-id';
 
   // Categories
   static const String getCategories = 'categories/all';

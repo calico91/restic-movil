@@ -40,6 +40,11 @@ class CustomDrawer extends GetView<HomeController> {
                   ],
                 ),
                 _buildDrawerItem(
+                  icon: Icons.people_outline,
+                  title: 'Clientes',
+                  onTap: () => Get.toNamed(Routes.CUSTOMERS),
+                ),
+                _buildDrawerItem(
                   icon: Icons.settings_outlined,
                   title: 'Configuración',
                   onTap: () {},

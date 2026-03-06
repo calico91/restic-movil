@@ -102,5 +102,6 @@ asyncFunction: () async {
 - Generar siempre las respuestas en español.
 - **Manejo de Errores Standard**: Usar siempre `ExceptionHandler.extractMessage(e)` para obtener el mensaje de error y mostrarlo con `Get.showSnackbar(ErrorSnackbar(errorMessage))`.
 - **Separación de UI y Lógica**: No construir widgets complejos dentro de los controladores (`GetxController`). Extraer widgets reutilizables a archivos separados (ej. `core/utils/modals/`) y usar `Get.dialog(Widget())`.
-- Genera un breve comentario en español al inicio de cada metodo.
+- Genera un breve comentario en español al inicio de cada metodo en los controllers, describiendo su función de manera clara y concisa.
 - Para funciones complejas que esten en los controller y en las views, generar un comentario muy corto y especifico.
+

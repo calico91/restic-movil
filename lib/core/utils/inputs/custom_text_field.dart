@@ -42,7 +42,7 @@ class CustomReactiveTextField<T> extends StatelessWidget {
       maxLines: maxLines,
       validationMessages: validationMessages,
       readOnly: readOnly,
-      style: const TextStyle(fontSize: 14), // Tamaño de texto cómodo
+      style: const TextStyle(fontSize: 14), 
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -57,7 +57,7 @@ class CustomReactiveTextField<T> extends StatelessWidget {
         filled: true,
         fillColor: Colors.grey[50],
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 25, // Un poco más de espacio horizontal por el borde redondo
+          horizontal: 25, 
           vertical: 18,
         ),
         border: OutlineInputBorder(
