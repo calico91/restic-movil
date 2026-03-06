@@ -10,6 +10,7 @@ import 'package:restic_movil/core/utils/formatters/thousands_separator_input_for
 
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
+import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class TransactionModal extends StatelessWidget {
@@ -466,26 +467,14 @@ class TransactionModal extends StatelessWidget {
       ),
       child: ReactiveFormConsumer(
         builder: (context, form, child) {
-          return SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: form.valid
-                  ? () {
-                      _submitTransaction(form);
-                    }
-                  : null,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.green,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'Completar Transacción',
-                style: TextStyle(fontSize: 16, color: Colors.white),
-              ),
-            ),
+          return CustomSubmitButton(
+            text: 'Completar Transacción',
+            onPressed: form.valid
+                ? () {
+                    _submitTransaction(form);
+                  }
+                : null,
+            backgroundColor: Colors.green,
           );
         },
       ),

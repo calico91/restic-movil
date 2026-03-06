@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
+import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import '../controllers/login_controller.dart';
 
 class LoginView extends GetView<LoginController> {
@@ -144,22 +145,10 @@ class LoginView extends GetView<LoginController> {
   }
 
   Widget _buildLoginButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: controller.login,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.red[800],
-          padding: const EdgeInsets.symmetric(vertical: 15),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-        ),
-        child: Text(
-          'Ingresar',
-          style: GoogleFonts.poppins(color: Colors.white, fontSize: 18),
-        ),
-      ),
+    return CustomSubmitButton(
+      text: 'Ingresar',
+      onPressed: controller.login,
+      backgroundColor: Colors.red[800],
     );
   }
 

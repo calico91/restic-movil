@@ -5,6 +5,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
+import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:restic_movil/core/utils/modals/order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
@@ -124,31 +125,15 @@ class OrdersView extends GetView<OrdersController> {
 
   /*build boton crear pedido*/
   Widget _buildCreateOrderButton() => Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 40.0),
-    child: SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () {
-          Get.toNamed(Routes.TAKE_ORDER);
-        },
-        style: ElevatedButton.styleFrom(
+        padding: const EdgeInsets.symmetric(horizontal: 40.0),
+        child: CustomSubmitButton(
+          text: 'Crear pedido',
+          onPressed: () {
+            Get.toNamed(Routes.TAKE_ORDER);
+          },
           backgroundColor: Colors.green[600],
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(30),
-          ),
-          padding: const EdgeInsets.symmetric(vertical: 12),
         ),
-        child: const Text(
-          'Crear pedido',
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-      ),
-    ),
-  );
+      );
 
   /*build lista de pedidos*/
   Widget _buildOrdersList() => Expanded(
