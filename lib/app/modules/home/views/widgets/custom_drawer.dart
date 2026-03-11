@@ -21,6 +21,11 @@ class CustomDrawer extends GetView<HomeController> {
                   title: 'Mi Perfil',
                   onTap: () {},
                 ),
+                _buildDrawerItem(
+                  icon: Icons.restaurant_menu,
+                  title: 'Menú',
+                  onTap: () => Get.toNamed(Routes.MENU),
+                ),
                 _buildExpansionTile(
                   icon: Icons.point_of_sale,
                   title: 'Opciones de Caja',

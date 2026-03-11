@@ -14,12 +14,19 @@ import '../modules/cash_register/views/expenses/expenses_view.dart';
 import '../modules/customers/bindings/customer_binding.dart';
 import '../modules/customers/views/customer_view.dart';
 import '../modules/customers/views/customer_form_view.dart';
+import '../modules/menu/bindings/menu_binding.dart';
+import '../modules/menu/views/menu_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
   static const INITIAL = Routes.LOGIN;
 
   static final routes = [
+    GetPage(
+      name: Routes.MENU,
+      page: () => const MenuView(),
+      binding: MenuBinding(),
+    ),
     GetPage(
       name: Routes.LOGIN,
       page: () => const LoginView(),
