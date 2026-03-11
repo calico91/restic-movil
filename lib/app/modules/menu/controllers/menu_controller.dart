@@ -4,6 +4,7 @@ import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/app/modules/menu/views/widgets/menu_forms.dart';
 
 class MenuController extends GetxController {
   final CategoriesRepository _categoriesRepository;
@@ -38,5 +39,21 @@ class MenuController extends GetxController {
   /// Actualiza el indice de la categoria seleccionada en los tabs.
   void changeCategory(int index) {
     selectedCategoryIndex.value = index;
+  }
+
+  // ==========================================
+  // METODOS VISUALES PARA FORMULARIOS
+  // ==========================================
+
+  void showCategoryForm({CategoryModel? category}) {
+    Get.dialog(CategoryFormDialog(category: category));
+  }
+
+  void showSubcategoryForm({required String categoryId, SubcategoryModel? subcategory}) {
+    Get.dialog(SubcategoryFormDialog(categoryId: categoryId, subcategory: subcategory));
+  }
+
+  void showProductForm({required String subcategoryId, ProductModel? product}) {
+    Get.dialog(ProductFormDialog(subcategoryId: subcategoryId, product: product));
   }
 }
