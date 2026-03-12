@@ -25,7 +25,7 @@ class BaseHttpClient {
 
   Future<dynamic> post(
     String path, {
-    Map<String, dynamic>? body,
+    dynamic body,
     Map<String, String>? parameters,
   }) async {
 
@@ -46,7 +46,7 @@ class BaseHttpClient {
 
   Future<dynamic> put(
     String path, {
-    Map<String, dynamic>? body,
+    dynamic body,
     Map<String, String>? parameters,
   }) async {
 

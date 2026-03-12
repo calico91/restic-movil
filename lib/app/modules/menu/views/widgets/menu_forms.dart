@@ -1,36 +1,73 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
+import 'package:intl/intl.dart';
 
 class CategoryFormDialog extends StatelessWidget {
   final CategoryModel? category;
+  final Function(Map<String, dynamic>) onSubmit;
 
-  const CategoryFormDialog({super.key, this.category});
+  const CategoryFormDialog({super.key, this.category, required this.onSubmit});
 
   @override
   Widget build(BuildContext context) {
+    final form = FormGroup({
+      'name': FormControl<String>(
+        value: category?.name,
+        validators: [Validators.required],
+      ),
+      'description': FormControl<String>(
+        value: category?.description ?? '',
+        validators: [Validators.required], // ✅ @NotBlank
+      ),
+    });
+
     return AlertDialog(
       title: Text(category == null ? 'Nueva Categoría' : 'Editar Categoría'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextFormField(
-            initialValue: category?.name,
-            decoration: const InputDecoration(
-              labelText: 'Nombre de la Categoría',
-              border: OutlineInputBorder(),
+      content: ReactiveForm(
+        formGroup: form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ReactiveTextField<String>(
+              formControlName: 'name',
+              decoration: const InputDecoration(
+                labelText: 'Nombre de la Categoría',
+                border: OutlineInputBorder(),
+              ),
+              validationMessages: {'required': (error) => 'Requerido'},
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            ReactiveTextField<String>(
+              formControlName: 'description',
+              decoration: const InputDecoration(
+                labelText: 'Descripción',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
+              validationMessages: {'required': (error) => 'Requerido'},
+            ),
+          ],
+        ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: () => Get.back(),
-          child: const Text('Guardar'),
+        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
+        ReactiveForm(
+          formGroup: form,
+          child: ReactiveFormConsumer(
+            builder: (context, formGroup, child) {
+              return ElevatedButton(
+                onPressed: formGroup.valid
+                    ? () {
+                        Get.back();
+                        onSubmit(formGroup.value as Map<String, dynamic>);
+                      }
+                    : null,
+                child: const Text('Guardar'),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -40,47 +77,76 @@ class CategoryFormDialog extends StatelessWidget {
 class SubcategoryFormDialog extends StatelessWidget {
   final String categoryId;
   final SubcategoryModel? subcategory;
+  final Function(Map<String, dynamic>) onSubmit;
 
   const SubcategoryFormDialog({
     super.key,
     required this.categoryId,
     this.subcategory,
+    required this.onSubmit,
   });
 
   @override
   Widget build(BuildContext context) {
+    final form = FormGroup({
+      'name': FormControl<String>(
+        value: subcategory?.name,
+        validators: [Validators.required],
+      ),
+      'description': FormControl<String>(
+        value: subcategory?.description ?? '',
+      ), // ❌ no es requerido
+    });
+
     return AlertDialog(
       title: Text(
-          subcategory == null ? 'Nueva Subcategoría' : 'Editar Subcategoría'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TextFormField(
-            initialValue: subcategory?.name,
-            decoration: const InputDecoration(
-              labelText: 'Nombre',
-              border: OutlineInputBorder(),
+        subcategory == null ? 'Nueva Subcategoría' : 'Editar Subcategoría',
+      ),
+      content: ReactiveForm(
+        formGroup: form,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ReactiveTextField<String>(
+              formControlName: 'name',
+              decoration: const InputDecoration(
+                labelText: 'Nombre',
+                border: OutlineInputBorder(),
+              ),
+              validationMessages: {'required': (error) => 'Requerido'},
             ),
-          ),
-          const SizedBox(height: 16),
-          TextFormField(
-            initialValue: subcategory?.description,
-            decoration: const InputDecoration(
-              labelText: 'Descripción',
-              border: OutlineInputBorder(),
+            const SizedBox(height: 16),
+            ReactiveTextField<String>(
+              formControlName: 'description',
+              decoration: const InputDecoration(
+                labelText: 'Descripción',
+                border: OutlineInputBorder(),
+              ),
+              maxLines: 2,
             ),
-            maxLines: 2,
-          ),
-        ],
+          ],
+        ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: () => Get.back(),
-          child: const Text('Guardar'),
+        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
+        ReactiveForm(
+          formGroup: form,
+          child: ReactiveFormConsumer(
+            builder: (context, formGroup, child) {
+              return ElevatedButton(
+                onPressed: formGroup.valid
+                    ? () {
+                        Get.back();
+                        final data = Map<String, dynamic>.from(formGroup.value);
+                        data['categoryId'] =
+                            categoryId; // Siempre enviar categoryId
+                        onSubmit(data);
+                      }
+                    : null,
+                child: const Text('Guardar'),
+              );
+            },
+          ),
         ),
       ],
     );
@@ -88,60 +154,119 @@ class SubcategoryFormDialog extends StatelessWidget {
 }
 
 class ProductFormDialog extends StatelessWidget {
+  final String categoryId;
   final String subcategoryId;
   final ProductModel? product;
+  final Function(Map<String, dynamic>) onSubmit;
 
   const ProductFormDialog({
     super.key,
+    required this.categoryId,
     required this.subcategoryId,
     this.product,
+    required this.onSubmit,
   });
 
   @override
   Widget build(BuildContext context) {
+    final currentPrice = product?.price?.amount;
+
+    final form = FormGroup({
+      'name': FormControl<String>(
+        value: product?.name,
+        validators: [Validators.required],
+      ),
+      'description': FormControl<String>(value: product?.description ?? ''),
+      'price': FormControl<double>(
+        value: currentPrice,
+        validators: [Validators.required, Validators.min(0.0)],
+      ),
+    });
+
     return AlertDialog(
       title: Text(product == null ? 'Nuevo Producto' : 'Editar Producto'),
       content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              initialValue: product?.name,
-              decoration: const InputDecoration(
-                labelText: 'Nombre del Producto',
-                border: OutlineInputBorder(),
+        child: ReactiveForm(
+          formGroup: form,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ReactiveTextField<String>(
+                formControlName: 'name',
+                decoration: const InputDecoration(
+                  labelText: 'Nombre del Producto',
+                  border: OutlineInputBorder(),
+                ),
+                validationMessages: {'required': (error) => 'Requerido'},
               ),
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              initialValue: product?.description,
-              decoration: const InputDecoration(
-                labelText: 'Descripción',
-                border: OutlineInputBorder(),
+              const SizedBox(height: 16),
+              ReactiveTextField<String>(
+                formControlName: 'description',
+                decoration: const InputDecoration(
+                  labelText: 'Descripción',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
               ),
-              maxLines: 2,
-            ),
-            const SizedBox(height: 16),
-            TextFormField(
-              initialValue: product?.price?.amount?.toString() ?? '',
-              decoration: const InputDecoration(
-                labelText: 'Precio',
-                border: OutlineInputBorder(),
-                prefixText: '\$ ',
+              const SizedBox(height: 16),
+              ReactiveTextField<double>(
+                formControlName: 'price',
+                validationMessages: {
+                  'required': (error) => 'Requerido',
+                  'min': (error) => 'Debe ser >= 0',
+                },
+                decoration: const InputDecoration(
+                  labelText: 'Precio',
+                  border: OutlineInputBorder(),
+                  prefixText: '\$ ',
+                ),
+                keyboardType: TextInputType.number,
               ),
-              keyboardType: TextInputType.number,
-            ),
-          ],
+            ],
+          ),
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: () => Get.back(),
-          child: const Text('Cancelar'),
-        ),
-        ElevatedButton(
-          onPressed: () => Get.back(),
-          child: const Text('Guardar'),
+        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
+        ReactiveForm(
+          formGroup: form,
+          child: ReactiveFormConsumer(
+            builder: (context, formGroup, child) {
+              return ElevatedButton(
+                onPressed: formGroup.valid
+                    ? () {
+                        Get.back();
+                        final data = Map<String, dynamic>.from(formGroup.value);
+
+                        // Ajustar el objeto de salida según requirements de la API
+                        final amount = data['price'] as double;
+                        data.remove('price');
+
+                        final formattedResult = {
+                          "name": data['name'],
+                          "description": data['description'],
+                          "productType": "SIMPLE",
+                          "category_id": categoryId,
+                          "subcategory_id": subcategoryId,
+                          "prices": [
+                            {
+                              "amount": amount,
+                              "start_date": DateFormat(
+                                "yyyy-MM-dd'T'HH:mm:ss",
+                              ).format(DateTime.now()), // Vigente desde ya
+                              "end_date": null,
+                            },
+                          ],
+                          "combo_groups": null,
+                        };
+
+                        onSubmit(formattedResult);
+                      }
+                    : null,
+                child: const Text('Guardar'),
+              );
+            },
+          ),
         ),
       ],
     );

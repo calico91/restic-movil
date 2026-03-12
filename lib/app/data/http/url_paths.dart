@@ -34,6 +34,16 @@ class UrlPaths {
 
   // Categories
   static const String getCategories = 'categories/all';
+  static const String createCategories = 'categories/create';
+  static const String updateCategory = 'categories/update'; // /:id
+
+  // Subcategories
+  static const String createSubcategories = 'subcategories/create';
+  static const String updateSubcategory = 'subcategories/update'; // /:id
+
+  // Products
+  static const String createProducts = 'products/create';
+  static const String updateProduct = 'products/update'; // /:id
 
   // Cashier
   static const String getAdminAndCashierUsers = 'users/admin-and-cashier';

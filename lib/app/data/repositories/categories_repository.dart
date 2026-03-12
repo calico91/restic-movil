@@ -15,4 +15,52 @@ class CategoriesRepository {
       rethrow;
     }
   }
+
+  Future<void> createCategory(Map<String, dynamic> data) async {
+    try {
+      await _client.post(UrlPaths.createCategories, body: [data]);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateCategory(String id, Map<String, dynamic> data) async {
+    try {
+      await _client.put('${UrlPaths.updateCategory}/$id', body: data);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> createSubcategory(Map<String, dynamic> data) async {
+    try {
+      await _client.post(UrlPaths.createSubcategories, body: [data]);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateSubcategory(String id, Map<String, dynamic> data) async {
+    try {
+      await _client.put('${UrlPaths.updateSubcategory}/$id', body: data);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> createProduct(Map<String, dynamic> data) async {
+    try {
+      await _client.post(UrlPaths.createProducts, body: [data]);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateProduct(String id, Map<String, dynamic> data) async {
+    try {
+      await _client.put('${UrlPaths.updateProduct}/$id', body: data);
+    } catch (e) {
+      rethrow;
+    }
+  }
 }

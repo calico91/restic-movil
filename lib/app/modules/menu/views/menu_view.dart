@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/menu/controllers/menu_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
-import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
 import 'package:intl/intl.dart';
 
 class MenuView extends GetView<MenuController> {
@@ -109,7 +108,10 @@ class MenuView extends GetView<MenuController> {
                                                     label: const Text('Editar Sub'),
                                                   ),
                                                   TextButton.icon(
-                                                    onPressed: () => controller.showProductForm(subcategoryId: subcategory.id ?? ''),
+                                                    onPressed: () => controller.showProductForm(
+                                                      categoryId: category.id ?? '',
+                                                      subcategoryId: subcategory.id ?? ''
+                                                    ),
                                                     icon: const Icon(Icons.add, size: 16),
                                                     label: const Text('Añadir Producto'),
                                                   ),
@@ -164,6 +166,7 @@ class MenuView extends GetView<MenuController> {
                                                           constraints: const BoxConstraints(),
                                                           padding: EdgeInsets.zero,
                                                           onPressed: () => controller.showProductForm(
+                                                            categoryId: category.id ?? '',
                                                             subcategoryId: subcategory.id ?? '', 
                                                             product: product,
                                                           ),

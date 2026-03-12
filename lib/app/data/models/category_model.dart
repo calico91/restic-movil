@@ -8,14 +8,16 @@ export 'package:restic_movil/app/data/models/combo_option_model.dart';
 class CategoryModel {
   final String? id;
   final String? name;
+  final String? description;
   final List<SubcategoryModel>? subcategories;
 
-  CategoryModel({this.id, this.name, this.subcategories});
+  CategoryModel({this.id, this.name, this.description, this.subcategories});
 
   factory CategoryModel.fromJson(Map<String, dynamic> json) {
     return CategoryModel(
       id: json['id'],
       name: json['name'],
+      description: json['description'],
       subcategories: json['subcategories'] != null
           ? (json['subcategories'] as List)
               .map((e) => SubcategoryModel.fromJson(e))
@@ -28,6 +30,7 @@ class CategoryModel {
     return {
       'id': id,
       'name': name,
+      'description': description,
       'subcategories': subcategories?.map((e) => e.toJson()).toList(),
     };
   }
