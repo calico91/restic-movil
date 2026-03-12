@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
-import 'package:intl/intl.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
+import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
+import 'package:intl/intl.dart';
 
 class OrderPaymentCard extends StatelessWidget {
   final OrderModel order;
@@ -12,7 +13,7 @@ class OrderPaymentCard extends StatelessWidget {
   const OrderPaymentCard({super.key, required this.order, required this.onTap});
 
   /*muestra el modal de detalle del pedido con sus productos y precios*/
-  void _showOrderDetail(BuildContext context, NumberFormat currencyFormat) {
+  void _showOrderDetail(BuildContext context) {
     final details = order.details ?? [];
 
     Get.dialog(
@@ -113,7 +114,7 @@ class OrderPaymentCard extends StatelessWidget {
                                 Expanded(
                                   flex: 3,
                                   child: Text(
-                                    currencyFormat.format(detail.subtotal ?? 0),
+                                    CurrencyFormatter.toCurrency(detail.subtotal ?? 0),
                                     textAlign: TextAlign.right,
                                     style: const TextStyle(fontSize: 13),
                                   ),
@@ -137,7 +138,7 @@ class OrderPaymentCard extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          currencyFormat.format(order.total ?? 0),
+                          CurrencyFormatter.toCurrency(order.total ?? 0),
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -173,11 +174,6 @@ class OrderPaymentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'es_CO',
-      symbol: '\$',
-      decimalDigits: 0,
-    );
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
 
     return Card(
@@ -274,7 +270,7 @@ class OrderPaymentCard extends StatelessWidget {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                 ),
                 Text(
-                  currencyFormat.format(order.total ?? 0),
+                  CurrencyFormatter.toCurrency(order.total ?? 0),
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -290,7 +286,7 @@ class OrderPaymentCard extends StatelessWidget {
                 Expanded(
                   child: CardPrimaryButton(
                     text: 'Detalle Pedido',
-                    onPressed: () => _showOrderDetail(context, currencyFormat),
+                    onPressed: () => _showOrderDetail(context),
                   ),
                 ),
                 const SizedBox(width: 10),

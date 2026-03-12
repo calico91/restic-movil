@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:intl/intl.dart';
+import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/payment_detail_model.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
-import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
+import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
@@ -36,12 +36,6 @@ class TransactionModal extends StatelessWidget {
   Widget build(BuildContext context) {
     final form = controller.createTransactionForm(order);
 
-    final currencyFormat = NumberFormat.currency(
-      locale: 'es_CO',
-      symbol: '\$',
-      decimalDigits: 0,
-    );
-
     return Container(
       height: Get.height * 0.85,
       decoration: const BoxDecoration(
@@ -55,17 +49,17 @@ class TransactionModal extends StatelessWidget {
         formGroup: form,
         child: Column(
           children: [
-            _buildHeader(currencyFormat),
+            _buildHeader(),
             Expanded(
               child: ListView(
                 padding: const EdgeInsets.all(16),
                 children: [
-                  _buildTransactionInfo(form, currencyFormat),
+                  _buildTransactionInfo(form),
                   const SizedBox(height: 20),
-                  _buildPaymentMethodsSection(form, currencyFormat),
+                  _buildPaymentMethodsSection(form),
                   const SizedBox(height: 20),
                   const Divider(),
-                  _buildSummary(form, currencyFormat),
+                  _buildSummary(form),
                 ],
               ),
             ),
@@ -76,7 +70,7 @@ class TransactionModal extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(NumberFormat currencyFormat) {
+  Widget _buildHeader() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -106,7 +100,7 @@ class TransactionModal extends StatelessWidget {
     );
   }
 
-  Widget _buildTransactionInfo(FormGroup form, NumberFormat currencyFormat) {
+  Widget _buildTransactionInfo(FormGroup form) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -167,7 +161,6 @@ class TransactionModal extends StatelessWidget {
 
   Widget _buildPaymentMethodsSection(
     FormGroup form,
-    NumberFormat currencyFormat,
   ) {
     // Access the FormArray called 'payments'
     final paymentsArray =
@@ -208,7 +201,7 @@ class TransactionModal extends StatelessWidget {
                       validators: [Validators.required],
                     ),
                     'amount': FormControl<String>(
-                      value: currencyFormat.format(remaining),
+                      value: CurrencyFormatter.toCurrency(remaining).replaceAll('\$', '').trim(),
                       validators: [Validators.required],
                     ),
                     'cardLastFour': FormControl<String>(),
@@ -364,7 +357,7 @@ class TransactionModal extends StatelessWidget {
     );
   }
 
-  Widget _buildSummary(FormGroup form, NumberFormat currencyFormat) {
+  Widget _buildSummary(FormGroup form) {
     return ReactiveFormConsumer(
       builder: (context, form, child) {
         final orderTotal = order.total ?? 0.0;
@@ -384,34 +377,30 @@ class TransactionModal extends StatelessWidget {
 
         return Column(
           children: [
-            _summaryRow('Total Pedido:', orderTotal, currencyFormat),
-            _summaryRow('Propina:', tip, currencyFormat),
+            _summaryRow('Total Pedido:', orderTotal),
+            _summaryRow('Propina:', tip),
             const Divider(),
             _summaryRow(
               'Total a Pagar:',
               orderTotal + tip,
-              currencyFormat,
               isBold: true,
             ),
             const SizedBox(height: 10),
             _summaryRow(
               'Total Cubierto:',
               totalPaid,
-              currencyFormat,
               color: Colors.blue,
             ),
             if (difference < 0)
               _summaryRow(
                 'Faltante:',
                 difference.abs(),
-                currencyFormat,
                 color: Colors.red,
               )
             else
               _summaryRow(
                 'Cambio / Devolución:',
                 difference,
-                currencyFormat,
                 color: Colors.green,
               ),
           ],
@@ -422,8 +411,7 @@ class TransactionModal extends StatelessWidget {
 
   Widget _summaryRow(
     String label,
-    double value,
-    NumberFormat fmt, {
+    double value, {
     bool isBold = false,
     Color? color,
   }) {
@@ -440,7 +428,7 @@ class TransactionModal extends StatelessWidget {
             ),
           ),
           Text(
-            fmt.format(value),
+            CurrencyFormatter.toCurrency(value),
             style: TextStyle(
               fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
               fontSize: 16,

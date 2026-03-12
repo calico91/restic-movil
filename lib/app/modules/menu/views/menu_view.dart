@@ -3,20 +3,13 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/menu/controllers/menu_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
-import 'package:intl/intl.dart';
+import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 
 class MenuView extends GetView<MenuController> {
   const MenuView({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(
-      locale: 'es_CO',
-      symbol: '\$',
-      decimalDigits: 0,
-      customPattern: '\$ #,##0',
-    );
-
     return CustomScaffold(
       title: 'Menú',
       floatingActionButton: FloatingActionButton(
@@ -153,7 +146,7 @@ class MenuView extends GetView<MenuController> {
                                                       mainAxisSize: MainAxisSize.min,
                                                       children: [
                                                         Text(
-                                                          currencyFormat.format(price),
+                                                          CurrencyFormatter.toCurrency(price),
                                                           style: TextStyle(
                                                             fontWeight: FontWeight.bold,
                                                             color: Get.theme.primaryColor,

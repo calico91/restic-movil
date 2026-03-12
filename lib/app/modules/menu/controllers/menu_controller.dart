@@ -47,64 +47,82 @@ class MenuController extends GetxController {
   // ==========================================
 
   void showCategoryForm({CategoryModel? category}) {
-    Get.dialog(CategoryFormDialog(
-      category: category,
-      onSubmit: (data) async {
-        await _handleSave(
-          action: () async {
-            if (category == null) {
-              await _categoriesRepository.createCategory(data);
-            } else {
-              await _categoriesRepository.updateCategory(category.id!, data);
-            }
-          },
-          successMessage:
-              category == null ? 'Categoría creada exitosamente' : 'Categoría actualizada correctamente',
-        );
-      },
-    ));
+    Get.dialog(
+      CategoryFormDialog(
+        category: category,
+        onSubmit: (data) async {
+          await _handleSave(
+            action: () async {
+              if (category == null) {
+                await _categoriesRepository.createCategory(data);
+              } else {
+                await _categoriesRepository.updateCategory(category.id!, data);
+              }
+            },
+            successMessage: category == null
+                ? 'Categoría creada exitosamente'
+                : 'Categoría actualizada correctamente',
+          );
+        },
+      ),
+    );
   }
 
-  void showSubcategoryForm({required String categoryId, SubcategoryModel? subcategory}) {
-    Get.dialog(SubcategoryFormDialog(
-      categoryId: categoryId,
-      subcategory: subcategory,
-      onSubmit: (data) async {
-        await _handleSave(
-          action: () async {
-            if (subcategory == null) {
-              await _categoriesRepository.createSubcategory(data);
-            } else {
-              await _categoriesRepository.updateSubcategory(subcategory.id!, data);
-            }
-          },
-          successMessage: subcategory == null
-              ? 'Subcategoría creada exitosamente'
-              : 'Subcategoría actualizada correctamente',
-        );
-      },
-    ));
+  void showSubcategoryForm({
+    required String categoryId,
+    SubcategoryModel? subcategory,
+  }) {
+    Get.dialog(
+      SubcategoryFormDialog(
+        categoryId: categoryId,
+        subcategory: subcategory,
+        onSubmit: (data) async {
+          await _handleSave(
+            action: () async {
+              if (subcategory == null) {
+                await _categoriesRepository.createSubcategory(data);
+              } else {
+                await _categoriesRepository.updateSubcategory(
+                  subcategory.id!,
+                  data,
+                );
+              }
+            },
+            successMessage: subcategory == null
+                ? 'Subcategoría creada exitosamente'
+                : 'Subcategoría actualizada correctamente',
+          );
+        },
+      ),
+    );
   }
 
-  void showProductForm({required String categoryId, required String subcategoryId, ProductModel? product}) {
-    Get.dialog(ProductFormDialog(
-      categoryId: categoryId,
-      subcategoryId: subcategoryId, 
-      product: product,
-      onSubmit: (data) async {
-        await _handleSave(
-          action: () async {
-            if (product == null) {
-              await _categoriesRepository.createProduct(data);
-            } else {
-              await _categoriesRepository.updateProduct(product.id!, data);
-            }
-          },
-          successMessage:
-              product == null ? 'Producto creado exitosamente' : 'Producto actualizado correctamente',
-        );
-      },
-    ));
+  void showProductForm({
+    required String categoryId,
+    required String subcategoryId,
+    ProductModel? product,
+  }) {
+    Get.dialog(
+      ProductFormDialog(
+        categoryId: categoryId,
+        subcategoryId: subcategoryId,
+        product: product,
+        onSubmit: (data) async {
+          await _handleSave(
+            action: () async {
+              if (product == null) {
+                await _categoriesRepository.createProduct(data);
+              } else {
+                await _categoriesRepository.updateProduct(product.id!, data);
+              }
+            },
+            successMessage: product == null
+                ? 'Producto creado exitosamente'
+                : 'Producto actualizado correctamente',
+          );
+        },
+      ),
+    );
   }
 
   /// Ejecuta la accion (llamar a API) con loadng state, actualiza lista y muestra dialog

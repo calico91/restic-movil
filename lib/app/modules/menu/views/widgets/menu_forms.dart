@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
+import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
 import 'package:intl/intl.dart';
 
 class CategoryFormDialog extends StatelessWidget {
@@ -170,6 +171,9 @@ class ProductFormDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentPrice = product?.price?.amount;
+    final String? priceStr = currentPrice != null 
+        ? NumberFormat.decimalPattern('es_CO').format(currentPrice)
+        : null;
 
     final form = FormGroup({
       'name': FormControl<String>(
@@ -177,9 +181,12 @@ class ProductFormDialog extends StatelessWidget {
         validators: [Validators.required],
       ),
       'description': FormControl<String>(value: product?.description ?? ''),
-      'price': FormControl<double>(
-        value: currentPrice,
-        validators: [Validators.required, Validators.min(0.0)],
+      'price': FormControl<String>(
+        value: priceStr,
+        validators: [
+          Validators.required,
+          Validators.pattern(RegExp(r'^[0-9.]+$')),
+        ],
       ),
     });
 
@@ -209,11 +216,11 @@ class ProductFormDialog extends StatelessWidget {
                 maxLines: 2,
               ),
               const SizedBox(height: 16),
-              ReactiveTextField<double>(
+              ReactiveTextField<String>(
                 formControlName: 'price',
                 validationMessages: {
                   'required': (error) => 'Requerido',
-                  'min': (error) => 'Debe ser >= 0',
+                  'pattern': (error) => 'Solo se permiten números',
                 },
                 decoration: const InputDecoration(
                   labelText: 'Precio',
@@ -221,6 +228,7 @@ class ProductFormDialog extends StatelessWidget {
                   prefixText: '\$ ',
                 ),
                 keyboardType: TextInputType.number,
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
               ),
             ],
           ),
@@ -239,7 +247,8 @@ class ProductFormDialog extends StatelessWidget {
                         final data = Map<String, dynamic>.from(formGroup.value);
 
                         // Ajustar el objeto de salida según requirements de la API
-                        final amount = data['price'] as double;
+                        final priceValue = data['price'] as String;
+                        final double amount = double.tryParse(priceValue.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0.0;
                         data.remove('price');
 
                         final formattedResult = {
