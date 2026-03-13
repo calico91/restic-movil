@@ -38,7 +38,7 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
                 color: Color(0xFF0D47A1),
               ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 5),
             Expanded(
               child: Obx(
                 () => controller.devices.isEmpty
@@ -50,6 +50,7 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
                         ),
                       )
                     : ListView.builder(
+                        padding: EdgeInsets.zero,
                         itemCount: controller.devices.length,
                         itemBuilder: (context, index) {
                           final device = controller.devices[index];

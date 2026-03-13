@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/core/utils/animations/loading_charging.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class PrinterSettingsController extends GetxController {
   final PrinterService printerService = Get.find<PrinterService>();
@@ -28,20 +32,21 @@ class PrinterSettingsController extends GetxController {
       asyncFunction: () async {
         final success = await printerService.connect(device);
         if (success) {
-          Get.snackbar(
-            'Éxito',
-            'Conectado a ${device.name}',
-            snackPosition: SnackPosition.BOTTOM,
+          Get.dialog(
+            ModalInfo(
+              title: 'Éxito',
+              message: 'Conectado a ${device.name}',
+              icon: Icons.check_circle_outline,
+              iconColor: Colors.green,
+            ),
           );
         } else {
-          Get.snackbar(
-            'Error',
-            'No se pudo conectar a ${device.name}',
-            snackPosition: SnackPosition.BOTTOM,
+          Get.showSnackbar(
+            ErrorSnackbar('No se pudo conectar a ${device.name}'),
           );
         }
       },
-      loadingWidget: const Center(child: CircularProgressIndicator()),
+      loadingWidget: const LoadingCharging(),
     );
   }
 
@@ -50,13 +55,11 @@ class PrinterSettingsController extends GetxController {
     Get.showOverlay(
       asyncFunction: () async {
         await printerService.disconnect();
-        Get.snackbar(
-          'Desconectado',
-          'Impresora desconectada correctamente',
-          snackPosition: SnackPosition.BOTTOM,
+        Get.showSnackbar(
+          const InfoSnackbar('Impresora desconectada correctamente'),
         );
       },
-      loadingWidget: const Center(child: CircularProgressIndicator()),
+      loadingWidget: const LoadingCharging(),
     );
   }
 }

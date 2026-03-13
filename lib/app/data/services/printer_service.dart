@@ -73,12 +73,15 @@ class PrinterService extends GetxService {
     try {
       if (await bluetooth.isConnected == true) {
         await bluetooth.disconnect();
+        isConnected.value = false;
       }
       await bluetooth.connect(device);
       selectedDevice.value = device;
+      isConnected.value = true;
       return true;
     } catch (e) {
       _logger.e("Error conectando a impresora: $e");
+      isConnected.value = false;
       return false;
     }
   }
@@ -88,6 +91,7 @@ class PrinterService extends GetxService {
     try {
       await bluetooth.disconnect();
       selectedDevice.value = null;
+      isConnected.value = false;
     } catch (e) {
       _logger.e("Error desconectando impresora: $e");
     }

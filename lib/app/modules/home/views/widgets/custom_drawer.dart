@@ -60,10 +60,7 @@ class CustomDrawer extends GetView<HomeController> {
                   children: [
                     _buildDrawerSubItem(
                       title: 'Impresora',
-                      onTap: () {
-                        Get.back(); // Cerrar drawer
-                        Get.toNamed(Routes.PRINTER_SETTINGS);
-                      },
+                      onTap: () => Get.toNamed(Routes.PRINTER_SETTINGS),
                     ),
                   ],
                 ),
@@ -105,7 +102,7 @@ class CustomDrawer extends GetView<HomeController> {
             ),
             child: const CircleAvatar(
               radius: 40,
-              backgroundImage: AssetImage('assets/images/logo.png'), 
+              backgroundImage: AssetImage('assets/images/logo.png'),
               // Fallback or placeholder if logo not present, using Icon for now until asset is confirmed
               child: Icon(Icons.person, size: 40, color: Colors.grey),
             ),
@@ -130,10 +127,7 @@ class CustomDrawer extends GetView<HomeController> {
             builder: (context, snapshot) {
               return Text(
                 snapshot.data ?? 'Restic Movil',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
+                style: const TextStyle(color: Colors.white70, fontSize: 14),
               );
             },
           ),
