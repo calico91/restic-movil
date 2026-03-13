@@ -53,11 +53,10 @@ class UserFormDialog extends StatelessWidget {
           Validators.maxLength(80),
         ],
       ),
-      'password': FormControl<String>(
-        validators: user == null
-            ? [Validators.required, Validators.minLength(6)]
-            : [Validators.minLength(6)],
-      ),
+      if (user == null)
+        'password': FormControl<String>(
+          validators: [Validators.required, Validators.minLength(6)],
+        ),
       'isActive': FormControl<bool>(
         value: user?.isActive ?? true,
         validators: [Validators.required],
@@ -152,16 +151,18 @@ class UserFormDialog extends StatelessWidget {
             },
           ),
           const SizedBox(height: 12),
-          CustomReactiveTextField<String>(
-            formControlName: 'password',
-            labelText: user == null ? 'Contraseña *' : 'Contraseña (Opcional)',
-            obscureText: true,
-            validationMessages: {
-              'required': (error) => 'Requerido',
-              'minLength': (error) => 'Mínimo 6 caracteres',
-            },
-          ),
-          const SizedBox(height: 12),
+          if (user == null) ...[
+            CustomReactiveTextField<String>(
+              formControlName: 'password',
+              labelText: 'Contraseña *',
+              obscureText: true,
+              validationMessages: {
+                'required': (error) => 'Requerido',
+                'minLength': (error) => 'Mínimo 6 caracteres',
+              },
+            ),
+            const SizedBox(height: 12),
+          ],
           ReactiveSwitchListTile(
             formControlName: 'isActive',
             title: const Text('Activo'),
