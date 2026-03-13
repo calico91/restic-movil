@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
-import 'package:restic_movil/core/utils/modals/order_details_modal.dart';
+import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import '../controllers/commands_controller.dart';
 
 class CommandsView extends GetView<CommandsController> {
@@ -279,7 +279,7 @@ class CommandsView extends GetView<CommandsController> {
 
   /*mostrar detalles del pedido */
   void _showOrderDetails(BuildContext context, OrderModel order) {
-    OrderDetailsModal.show(
+    GlobalOrderDetailsModal.show(
       context: context,
       order: order,
       availableStatuses: controller.orderDetailStatuses,

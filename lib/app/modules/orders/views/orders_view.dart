@@ -6,7 +6,7 @@ import 'package:restic_movil/app/modules/orders/controllers/orders_controller.da
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
-import 'package:restic_movil/core/utils/modals/order_details_modal.dart';
+import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
 class OrdersView extends GetView<OrdersController> {
@@ -309,7 +309,7 @@ class OrdersView extends GetView<OrdersController> {
 
   /*mostrar modal de detalles de pedido*/
   void _showOrderDetails(BuildContext context, OrderModel order) {
-    OrderDetailsModal.show(
+    GlobalOrderDetailsModal.show(
       context: context,
       order: order,
       availableStatuses: controller.orderDetailStatuses,

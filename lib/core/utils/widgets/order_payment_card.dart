@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
+import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:intl/intl.dart';
@@ -17,168 +17,6 @@ class OrderPaymentCard extends StatelessWidget {
     required this.onTap,
     this.showPaymentButton = true,
   });
-
-  /*muestra el modal de detalle del pedido con sus productos y precios*/
-  void _showOrderDetail(BuildContext context) {
-    final details = order.details ?? [];
-
-    Get.dialog(
-      AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Row(
-          children: [
-            const Icon(Icons.receipt_long_outlined, color: Colors.blue),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(
-                'Detalle Orden #${order.orderNumber}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ],
-        ),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: details.isEmpty
-              ? const Center(child: Text('Sin productos registrados'))
-              : Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Encabezado
-                    const Row(
-                      children: [
-                        Expanded(
-                          flex: 4,
-                          child: Text(
-                            'Producto',
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        SizedBox(
-                          width: 36,
-                          child: Text(
-                            'Cant.',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 3,
-                          child: Text(
-                            'Subtotal',
-                            textAlign: TextAlign.right,
-                            style: TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const Divider(),
-                    // Lista de productos
-                    ConstrainedBox(
-                      constraints: BoxConstraints(maxHeight: Get.height * 0.4),
-                      child: ListView.separated(
-                        shrinkWrap: true,
-                        itemCount: details.length,
-                        separatorBuilder: (_, _) => const Divider(height: 1),
-                        itemBuilder: (context, index) {
-                          final detail = details[index];
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 6),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Expanded(
-                                  flex: 4,
-                                  child: Text(
-                                    detail.productName ?? '-',
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                                SizedBox(
-                                  width: 36,
-                                  child: Text(
-                                    'x${detail.quantity ?? 0}',
-                                    textAlign: TextAlign.center,
-                                    style: const TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                ),
-                                Expanded(
-                                  flex: 3,
-                                  child: Text(
-                                    CurrencyFormatter.toCurrency(
-                                      detail.subtotal ?? 0,
-                                    ),
-                                    textAlign: TextAlign.right,
-                                    style: const TextStyle(fontSize: 13),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                    ),
-                    const Divider(),
-                    // Total
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Total:',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                          ),
-                        ),
-                        Text(
-                          CurrencyFormatter.toCurrency(order.total ?? 0),
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 15,
-                            color: Colors.green[700],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-        ),
-        actions: [
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () => Get.back(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[900],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-              child: const Text(
-                'Cerrar',
-                style: TextStyle(color: Colors.white),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -294,7 +132,11 @@ class OrderPaymentCard extends StatelessWidget {
                 Expanded(
                   child: CardPrimaryButton(
                     text: 'Detalle Pedido',
-                    onPressed: () => _showOrderDetail(context),
+                    onPressed: () => GlobalOrderDetailsModal.show(
+                      context: context,
+                      order: order,
+                      isReadOnly: true,
+                    ),
                   ),
                 ),
                 if (showPaymentButton) ...[
