@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/customer_model.dart';
@@ -10,8 +11,10 @@ import 'package:restic_movil/app/data/repositories/customer_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
@@ -339,13 +342,33 @@ class TakeOrderController extends GetxController {
           await ordersRepository.createOrder(orderData);
           _clearForm();
           // Cerrar el resumen
-          if (Get.isBottomSheetOpen ?? false) Get.back();
-          Get.showSnackbar(const InfoSnackbar('Pedido creado correctamente'));
+          if (Get.isBottomSheetOpen ?? false) {
+            Get.back();
+          }
 
           // Actualizar lista de pedidos si el controlador existe
           if (Get.isRegistered<OrdersController>()) {
             Get.find<OrdersController>().loadOrders(withOverlay: false);
           }
+
+          Get.dialog(
+            ModalInfo(
+              title: 'Pedido Creado!',
+              message: 'El pedido ha sido creado exitosamente.',
+              icon: Icons.check_circle,
+              buttonText: 'Ir a Pedidos',
+              onClose: () {
+                Get.until((route) => route.settings.name == Routes.HOME);
+              },
+              secondaryButtonText: 'Imprimir Orden',
+              onSecondaryAction: () {
+                // Aqu� ir�a la l�gica de impresi�n
+                print('Imprimiendo orden...');
+                Get.showSnackbar(const InfoSnackbar('Enviando a imprimir...'));
+              },
+            ),
+            barrierDismissible: false,
+          );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));

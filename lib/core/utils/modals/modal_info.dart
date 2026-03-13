@@ -6,6 +6,8 @@ class ModalInfo extends StatelessWidget {
   final String message;
   final VoidCallback? onClose;
   final String buttonText;
+  final VoidCallback? onSecondaryAction;
+  final String? secondaryButtonText;
   final IconData icon;
   final Color iconColor;
 
@@ -15,6 +17,8 @@ class ModalInfo extends StatelessWidget {
     required this.message,
     this.onClose,
     this.buttonText = 'Cerrar',
+    this.onSecondaryAction,
+    this.secondaryButtonText,
     this.icon = Icons.check_circle_outline,
     this.iconColor = Colors.green,
   });
@@ -40,21 +44,53 @@ class ModalInfo extends StatelessWidget {
             style: const TextStyle(fontSize: 16),
           ),
           const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: onClose ?? () => Get.back(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue[900],
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          if (onSecondaryAction != null && secondaryButtonText != null) ...[
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: onSecondaryAction,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D47A1), // Deep Blue del tema
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                icon: const Icon(Icons.print, color: Colors.white, size: 20),
+                label: Text(
+                  secondaryButtonText!,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
-              child: Text(
-                buttonText,
-                style: const TextStyle(color: Colors.white),
-              ),
             ),
+            const SizedBox(height: 10),
+          ],
+          SizedBox(
+            width: double.infinity,
+            child: (onSecondaryAction != null)
+                ? OutlinedButton(
+                    onPressed: onClose ?? () => Get.back(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0D47A1),
+                      side: const BorderSide(color: Color(0xFF0D47A1)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(buttonText),
+                  )
+                : ElevatedButton(
+                    onPressed: onClose ?? () => Get.back(),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue[900],
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    child: Text(
+                      buttonText,
+                      style: const TextStyle(color: Colors.white),
+                    ),
+                  ),
           ),
         ],
       ),
