@@ -22,6 +22,11 @@ class CustomDrawer extends GetView<HomeController> {
                   onTap: () {},
                 ),
                 _buildDrawerItem(
+                  icon: Icons.manage_accounts,
+                  title: 'Usuarios',
+                  onTap: () => Get.toNamed(Routes.USERS),
+                ),
+                _buildDrawerItem(
                   icon: Icons.restaurant_menu,
                   title: 'Menú',
                   onTap: () => Get.toNamed(Routes.MENU),

@@ -46,7 +46,13 @@ class UrlPaths {
   static const String updateProduct = 'products/update'; // /:id
 
   // Cashier
-  static const String getAdminAndCashierUsers = 'users/admin-and-cashier';
+  static const String getAdminAndCashierUsers = 'users/admin-and-cashier';  static const String getUsers = 'users/all';
+  static const String createUser = 'users/create';
+  static const String updateUser = 'users/update';
+  static const String getUserById = 'users/get-by-id';
+
+  // Roles
+  static const String getRoles = 'roles/all';
   static const String getTerminals = 'terminals/all';
   static const String openCashierShift = 'cashier-shifts/open';
   static const String closeCashierShift = 'cashier-shifts/close/cashier';
