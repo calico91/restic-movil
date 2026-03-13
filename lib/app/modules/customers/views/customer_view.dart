@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/customers/controllers/customer_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
+import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
 
 class CustomerView extends GetView<CustomerController> {
   const CustomerView({super.key});
@@ -11,10 +12,8 @@ class CustomerView extends GetView<CustomerController> {
     return CustomScaffold(
       title: 'Clientes',
       showBackButton: true,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: CustomFloatingActionButton(
         onPressed: controller.openCreateForm,
-        backgroundColor: Colors.blue[900],
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Obx(() {
         if (controller.customers.isEmpty) {

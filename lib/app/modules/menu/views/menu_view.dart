@@ -4,6 +4,7 @@ import 'package:restic_movil/app/modules/menu/controllers/menu_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
+import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
 
 class MenuView extends GetView<MenuController> {
   const MenuView({super.key});
@@ -12,10 +13,8 @@ class MenuView extends GetView<MenuController> {
   Widget build(BuildContext context) {
     return CustomScaffold(
       title: 'Menú',
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: CustomFloatingActionButton(
         onPressed: () => controller.showCategoryForm(),
-        backgroundColor: Get.theme.primaryColor,
-        child: const Icon(Icons.add, color: Colors.white),
       ),
       body: Obx(() {
         if (controller.categories.isEmpty) {
