@@ -5,6 +5,7 @@ import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
+import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
 
 class MenuView extends GetView<MenuController> {
   const MenuView({super.key});
@@ -33,9 +34,9 @@ class MenuView extends GetView<MenuController> {
               TabBar(
                 isScrollable: true,
                 onTap: controller.changeCategory,
-                labelColor: Get.theme.primaryColor,
+                labelColor: const Color(0xFF0D47A1),
                 unselectedLabelColor: Colors.grey,
-                indicatorColor: Get.theme.primaryColor,
+                indicatorColor: const Color(0xFF0D47A1),
                 tabs: controller.categories.map((category) {
                   return Tab(text: category.name ?? 'Sin nombre');
                 }).toList(),
@@ -54,15 +55,18 @@ class MenuView extends GetView<MenuController> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              TextButton.icon(
+                              CustomEditButton(
                                 onPressed: () => controller.showCategoryForm(category: category),
-                                icon: const Icon(Icons.edit, size: 20),
-                                label: const Text('Editar Categoría'),
+                                label: 'Editar Categoría',
                               ),
                               ElevatedButton.icon(
                                 onPressed: () => controller.showSubcategoryForm(categoryId: category.id ?? ''),
                                 icon: const Icon(Icons.add, size: 20),
                                 label: const Text('Subcategoría'),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF0D47A1),
+                                  foregroundColor: Colors.white,
+                                ),
                               ),
                             ],
                           ),
@@ -91,13 +95,13 @@ class MenuView extends GetView<MenuController> {
                                               child: Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                                 children: [
-                                                  TextButton.icon(
+                                                  CustomEditButton(
                                                     onPressed: () => controller.showSubcategoryForm(
                                                       categoryId: category.id ?? '', 
                                                       subcategory: subcategory,
                                                     ),
-                                                    icon: const Icon(Icons.edit, size: 16),
-                                                    label: const Text('Editar Sub'),
+                                                    label: 'Editar Sub',
+                                                    iconSize: 16,
                                                   ),
                                                   TextButton.icon(
                                                     onPressed: () => controller.showProductForm(
@@ -106,6 +110,9 @@ class MenuView extends GetView<MenuController> {
                                                     ),
                                                     icon: const Icon(Icons.add, size: 16),
                                                     label: const Text('Añadir Producto'),
+                                                    style: TextButton.styleFrom(
+                                                      foregroundColor: const Color(0xFF0D47A1),
+                                                    ),
                                                   ),
                                                 ],
                                               ),
@@ -146,17 +153,15 @@ class MenuView extends GetView<MenuController> {
                                                       children: [
                                                         Text(
                                                           CurrencyFormatter.toCurrency(price),
-                                                          style: TextStyle(
+                                                          style: const TextStyle(
                                                             fontWeight: FontWeight.bold,
-                                                            color: Get.theme.primaryColor,
+                                                            color: Color(0xFF0D47A1),
                                                             fontSize: 16,
                                                           ),
                                                         ),
                                                         const SizedBox(width: 8),
-                                                        IconButton(
-                                                          icon: const Icon(Icons.edit, color: Colors.grey, size: 20),
-                                                          constraints: const BoxConstraints(),
-                                                          padding: EdgeInsets.zero,
+                                                        CustomEditButton(
+                                                          iconSize: 20,
                                                           onPressed: () => controller.showProductForm(
                                                             categoryId: category.id ?? '',
                                                             subcategoryId: subcategory.id ?? '', 

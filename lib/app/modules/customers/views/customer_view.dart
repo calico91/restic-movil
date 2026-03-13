@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/customers/controllers/customer_controller.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
+import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
 
 class CustomerView extends GetView<CustomerController> {
   const CustomerView({super.key});
@@ -32,11 +33,13 @@ class CustomerView extends GetView<CustomerController> {
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: Colors.blue[100],
+                  backgroundColor: const Color(
+                    0xFF0D47A1,
+                  ).withValues(alpha: 0.1),
                   child: Text(
                     customer.name?[0].toUpperCase() ?? '?',
-                    style: TextStyle(
-                      color: Colors.blue[900],
+                    style: const TextStyle(
+                      color: Color(0xFF0D47A1),
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -79,13 +82,26 @@ class CustomerView extends GetView<CustomerController> {
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    IconButton(
-                      icon: const Icon(Icons.edit, color: Colors.blue),
+                    CustomEditButton(
                       onPressed: () => controller.openEditForm(customer),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => controller.deleteCustomer(customer.id!),
+                    const SizedBox(width: 8),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFB71C1C).withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(
+                          Icons.delete,
+                          color: Color(0xFFB71C1C),
+                          size: 20,
+                        ),
+                        onPressed: () =>
+                            controller.deleteCustomer(customer.id!),
+                        constraints: const BoxConstraints(),
+                        padding: const EdgeInsets.all(8),
+                      ),
                     ),
                   ],
                 ),

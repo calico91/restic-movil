@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
+import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
 import '../controllers/users_controller.dart';
 import 'widgets/user_form_dialog.dart';
 
@@ -47,7 +48,9 @@ class UsersView extends GetView<UsersController> {
               ),
               child: ListTile(
                 leading: CircleAvatar(
-                  backgroundColor: user.isActive ? Colors.blue : Colors.grey,
+                  backgroundColor: user.isActive
+                      ? const Color(0xFF0D47A1)
+                      : Colors.grey,
                   child: const Icon(Icons.person, color: Colors.white),
                 ),
                 title: Text(
@@ -71,15 +74,19 @@ class UsersView extends GetView<UsersController> {
                                 vertical: 2,
                               ),
                               decoration: BoxDecoration(
-                                color: Colors.blue.withValues(alpha: 0.1),
+                                color: const Color(
+                                  0xFF0D47A1,
+                                ).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
-                                border: Border.all(color: Colors.blue),
+                                border: Border.all(
+                                  color: const Color(0xFF0D47A1),
+                                ),
                               ),
                               child: Text(
                                 role,
                                 style: const TextStyle(
                                   fontSize: 10,
-                                  color: Colors.blue,
+                                  color: Color(0xFF0D47A1),
                                 ),
                               ),
                             ),
@@ -88,8 +95,7 @@ class UsersView extends GetView<UsersController> {
                     ),
                   ],
                 ),
-                trailing: IconButton(
-                  icon: const Icon(Icons.edit, color: Colors.blue),
+                trailing: CustomEditButton(
                   onPressed: () => _showUserForm(context, user),
                 ),
               ),
