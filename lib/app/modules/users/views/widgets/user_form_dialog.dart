@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
+
+import 'package:restic_movil/core/utils/modals/custom_form_dialog.dart';
 
 class UserFormDialog extends StatelessWidget {
   final UserModel? user;
@@ -67,183 +68,153 @@ class UserFormDialog extends StatelessWidget {
       ),
     });
 
-    return ReactiveForm(
+    return CustomFormDialog(
+      title: user == null ? 'Nuevo Usuario' : 'Editar Usuario',
       formGroup: form,
-      child: AlertDialog(
-        title: Text(user == null ? 'Nuevo Usuario' : 'Editar Usuario'),
-        content: SizedBox(
-          width: double.maxFinite,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-              CustomReactiveTextField<String>(
-                formControlName: 'username',
-                labelText: 'Usuario *',
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'maxLength': (error) => 'Máximo 50 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'name',
-                labelText: 'Primer Nombre *',
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'maxLength': (error) => 'Máximo 50 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'secondName',
-                labelText: 'Segundo Nombre',
-                validationMessages: {
-                  'maxLength': (error) => 'Máximo 50 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'lastName',
-                labelText: 'Primer Apellido *',
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'maxLength': (error) => 'Máximo 50 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'secondLastName',
-                labelText: 'Segundo Apellido',
-                validationMessages: {
-                  'maxLength': (error) => 'Máximo 50 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'mobileNumber',
-                labelText: 'Número Móvil *',
-                keyboardType: TextInputType.phone,
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'maxLength': (error) => 'Máximo 20 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'email',
-                labelText: 'Correo Electrónico *',
-                keyboardType: TextInputType.emailAddress,
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'email': (error) => 'Formato inválido',
-                  'maxLength': (error) => 'Máximo 80 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              CustomReactiveTextField<String>(
-                formControlName: 'password',
-                labelText: user == null
-                    ? 'Contraseña *'
-                    : 'Contraseña (Opcional)',
-                obscureText: true,
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'minLength': (error) => 'Mínimo 6 caracteres',
-                },
-              ),
-              const SizedBox(height: 12),
-              ReactiveSwitchListTile(
-                formControlName: 'isActive',
-                title: const Text('Activo'),
-              ),
-              const SizedBox(height: 12),
-              const Text(
-                'Roles *',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              ReactiveFormArray<String>(
-                formArrayName: 'roles',
-                builder: (context, formArray, child) {
-                  return Column(
-                    children: roles.map((role) {
-                      final isSelected = formArray.controls.any(
-                        (c) => c.value == role.name,
-                      );
-                      return CheckboxListTile(
-                        title: Text(role.name ?? ''),
-                        value: isSelected,
-                        onChanged: (bool? checked) {
-                          if (checked == true) {
-                            formArray.add(
-                              FormControl<String>(value: role.name),
-                            );
-                          } else {
-                            final index = formArray.controls.indexWhere(
-                              (c) => c.value == role.name,
-                            );
-                            if (index != -1) {
-                              formArray.removeAt(index);
-                            }
-                          }
-                          formArray.markAsTouched();
-                        },
-                      );
-                    }).toList(),
-                  );
-                },
-              ),
-              ReactiveFormConsumer(
-                builder: (context, formGroup, child) {
-                  if (formGroup.control('roles').touched &&
-                      formGroup.control('roles').invalid) {
-                    return const Padding(
-                      padding: EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        'Debe seleccionar al menos un rol',
-                        style: TextStyle(color: Colors.red, fontSize: 12),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              ),
-            ],
+      onSave: () {
+        final data = Map<String, dynamic>.from(form.value);
+
+        // Remove password if it is empty (only possible on updates)
+        if (data['password'] == null || (data['password'] as String).isEmpty) {
+          data.remove('password');
+        }
+
+        // Transform FormArray to Set/List
+        final rolesData = form.control('roles').value as List?;
+        data['roles'] = rolesData?.whereType<String>().toList() ?? [];
+
+        onSubmit(data);
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          CustomReactiveTextField<String>(
+            formControlName: 'username',
+            labelText: 'Usuario *',
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'maxLength': (error) => 'Máximo 50 caracteres',
+            },
           ),
-        ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-        ReactiveFormConsumer(
-          builder: (context, formGroup, child) {
-            return ElevatedButton(
-              onPressed: formGroup.valid
-                  ? () {
-                      final data = Map<String, dynamic>.from(formGroup.value);
-
-                      // Remove password if it is empty (only possible on updates)
-                      if (data['password'] == null ||
-                          (data['password'] as String).isEmpty) {
-                        data.remove('password');
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'name',
+            labelText: 'Primer Nombre *',
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'maxLength': (error) => 'Máximo 50 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'secondName',
+            labelText: 'Segundo Nombre',
+            validationMessages: {
+              'maxLength': (error) => 'Máximo 50 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'lastName',
+            labelText: 'Primer Apellido *',
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'maxLength': (error) => 'Máximo 50 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'secondLastName',
+            labelText: 'Segundo Apellido',
+            validationMessages: {
+              'maxLength': (error) => 'Máximo 50 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'mobileNumber',
+            labelText: 'Número Móvil *',
+            keyboardType: TextInputType.phone,
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'maxLength': (error) => 'Máximo 20 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'email',
+            labelText: 'Correo Electrónico *',
+            keyboardType: TextInputType.emailAddress,
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'email': (error) => 'Formato inválido',
+              'maxLength': (error) => 'Máximo 80 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          CustomReactiveTextField<String>(
+            formControlName: 'password',
+            labelText: user == null ? 'Contraseña *' : 'Contraseña (Opcional)',
+            obscureText: true,
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'minLength': (error) => 'Mínimo 6 caracteres',
+            },
+          ),
+          const SizedBox(height: 12),
+          ReactiveSwitchListTile(
+            formControlName: 'isActive',
+            title: const Text('Activo'),
+          ),
+          const SizedBox(height: 12),
+          const Text('Roles *', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          ReactiveFormArray<String>(
+            formArrayName: 'roles',
+            builder: (context, formArray, child) {
+              return Column(
+                children: roles.map((role) {
+                  final isSelected = formArray.controls.any(
+                    (c) => c.value == role.name,
+                  );
+                  return CheckboxListTile(
+                    title: Text(role.name ?? ''),
+                    value: isSelected,
+                    onChanged: (bool? checked) {
+                      if (checked == true) {
+                        formArray.add(FormControl<String>(value: role.name));
+                      } else {
+                        final index = formArray.controls.indexWhere(
+                          (c) => c.value == role.name,
+                        );
+                        if (index != -1) {
+                          formArray.removeAt(index);
+                        }
                       }
-
-                      // Transform FormArray to Set/List
-                      final rolesData =
-                          formGroup.control('roles').value as List?;
-                      data['roles'] =
-                          rolesData?.whereType<String>().toList() ?? [];
-
-                      Get.back();
-                      onSubmit(data);
-                    }
-                  : null,
-              child: const Text('Guardar'),
-            );
-          },
-        ),
-      ],
-    ),
-   );
+                      formArray.markAsTouched();
+                    },
+                  );
+                }).toList(),
+              );
+            },
+          ),
+          ReactiveFormConsumer(
+            builder: (context, formGroup, child) {
+              if (formGroup.control('roles').touched &&
+                  formGroup.control('roles').invalid) {
+                return const Padding(
+                  padding: EdgeInsets.only(top: 8.0),
+                  child: Text(
+                    'Debe seleccionar al menos un rol',
+                    style: TextStyle(color: Colors.red, fontSize: 12),
+                  ),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

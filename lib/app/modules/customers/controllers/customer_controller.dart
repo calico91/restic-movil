@@ -8,6 +8,8 @@ import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
+import 'package:restic_movil/app/modules/customers/views/customer_form_dialog.dart';
+
 class CustomerController extends GetxController {
   final CustomerRepository _repository = Get.find();
 
@@ -60,14 +62,28 @@ class CustomerController extends GetxController {
     isEditing.value = false;
     _editingId = null;
     form.reset();
-    Get.toNamed('/customers/form');
+    Get.dialog(
+      CustomerFormDialog(
+        isEditing: isEditing.value,
+        form: form,
+        onSubmit: submit,
+      ),
+      barrierDismissible: false,
+    );
   }
 
   void openEditForm(CustomerModel customer) {
     isEditing.value = true;
     _editingId = customer.id;
     form.patchValue(customer.toJson());
-    Get.toNamed('/customers/form');
+    Get.dialog(
+      CustomerFormDialog(
+        isEditing: isEditing.value,
+        form: form,
+        onSubmit: submit,
+      ),
+      barrierDismissible: false,
+    );
   }
 
   Future<void> submit() async {

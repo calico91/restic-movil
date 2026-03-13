@@ -13,7 +13,6 @@ import '../modules/cash_register/bindings/expenses/expenses_binding.dart';
 import '../modules/cash_register/views/expenses/expenses_view.dart';
 import '../modules/customers/bindings/customer_binding.dart';
 import '../modules/customers/views/customer_view.dart';
-import '../modules/customers/views/customer_form_view.dart';
 import '../modules/menu/bindings/menu_binding.dart';
 import '../modules/menu/views/menu_view.dart';
 import '../modules/users/bindings/users_binding.dart';
@@ -67,11 +66,6 @@ class AppPages {
     GetPage(
       name: Routes.CUSTOMERS,
       page: () => const CustomerView(),
-      binding: CustomerBinding(),
-    ),
-    GetPage(
-      name: Routes.CUSTOMER_FORM,
-      page: () => const CustomerFormView(),
       binding: CustomerBinding(),
     ),
   ];

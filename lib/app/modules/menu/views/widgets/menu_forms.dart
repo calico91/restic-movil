@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
+import 'package:restic_movil/core/utils/modals/custom_form_dialog.dart';
 import 'package:intl/intl.dart';
 
 class CategoryFormDialog extends StatelessWidget {
@@ -24,14 +24,14 @@ class CategoryFormDialog extends StatelessWidget {
       ),
     });
 
-    return AlertDialog(
-      title: Text(category == null ? 'Nueva Categoría' : 'Editar Categoría'),
-      content: ReactiveForm(
-        formGroup: form,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ReactiveTextField<String>(
+    return CustomFormDialog(
+      title: category == null ? 'Nueva Categoría' : 'Editar Categoría',
+      formGroup: form,
+      onSave: () => onSubmit(form.value as Map<String, dynamic>),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ReactiveTextField<String>(
               formControlName: 'name',
               decoration: const InputDecoration(
                 labelText: 'Nombre de la Categoría',
@@ -50,27 +50,7 @@ class CategoryFormDialog extends StatelessWidget {
               validationMessages: {'required': (error) => 'Requerido'},
             ),
           ],
-        ),
       ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-        ReactiveForm(
-          formGroup: form,
-          child: ReactiveFormConsumer(
-            builder: (context, formGroup, child) {
-              return ElevatedButton(
-                onPressed: formGroup.valid
-                    ? () {
-                        Get.back();
-                        onSubmit(formGroup.value as Map<String, dynamic>);
-                      }
-                    : null,
-                child: const Text('Guardar'),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }
@@ -99,16 +79,18 @@ class SubcategoryFormDialog extends StatelessWidget {
       ), // ❌ no es requerido
     });
 
-    return AlertDialog(
-      title: Text(
-        subcategory == null ? 'Nueva Subcategoría' : 'Editar Subcategoría',
-      ),
-      content: ReactiveForm(
-        formGroup: form,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ReactiveTextField<String>(
+    return CustomFormDialog(
+      title: subcategory == null ? 'Nueva Subcategoría' : 'Editar Subcategoría',
+      formGroup: form,
+      onSave: () {
+        final data = Map<String, dynamic>.from(form.value);
+        data['categoryId'] = categoryId; // Siempre enviar categoryId
+        onSubmit(data);
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ReactiveTextField<String>(
               formControlName: 'name',
               decoration: const InputDecoration(
                 labelText: 'Nombre',
@@ -126,30 +108,7 @@ class SubcategoryFormDialog extends StatelessWidget {
               maxLines: 2,
             ),
           ],
-        ),
       ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-        ReactiveForm(
-          formGroup: form,
-          child: ReactiveFormConsumer(
-            builder: (context, formGroup, child) {
-              return ElevatedButton(
-                onPressed: formGroup.valid
-                    ? () {
-                        Get.back();
-                        final data = Map<String, dynamic>.from(formGroup.value);
-                        data['categoryId'] =
-                            categoryId; // Siempre enviar categoryId
-                        onSubmit(data);
-                      }
-                    : null,
-                child: const Text('Guardar'),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }
@@ -190,15 +149,41 @@ class ProductFormDialog extends StatelessWidget {
       ),
     });
 
-    return AlertDialog(
-      title: Text(product == null ? 'Nuevo Producto' : 'Editar Producto'),
-      content: SingleChildScrollView(
-        child: ReactiveForm(
-          formGroup: form,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ReactiveTextField<String>(
+    return CustomFormDialog(
+      title: product == null ? 'Nuevo Producto' : 'Editar Producto',
+      formGroup: form,
+      onSave: () {
+        final data = Map<String, dynamic>.from(form.value);
+
+        // Ajustar el objeto de salida según requirements de la API
+        final priceValue = data['price'] as String;
+        final double amount = double.tryParse(priceValue.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0.0;
+        data.remove('price');
+
+        final formattedResult = {
+          "name": data['name'],
+          "description": data['description'],
+          "productType": "SIMPLE",
+          "category_id": categoryId,
+          "subcategory_id": subcategoryId,
+          "prices": [
+            {
+              "amount": amount,
+              "start_date": DateFormat(
+                "yyyy-MM-dd'T'HH:mm:ss",
+              ).format(DateTime.now()), // Vigente desde ya
+              "end_date": null,
+            },
+          ],
+          "combo_groups": null,
+        };
+
+        onSubmit(formattedResult);
+      },
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ReactiveTextField<String>(
                 formControlName: 'name',
                 decoration: const InputDecoration(
                   labelText: 'Nombre del Producto',
@@ -231,53 +216,7 @@ class ProductFormDialog extends StatelessWidget {
                 inputFormatters: [ThousandsSeparatorInputFormatter()],
               ),
             ],
-          ),
         ),
-      ),
-      actions: [
-        TextButton(onPressed: () => Get.back(), child: const Text('Cancelar')),
-        ReactiveForm(
-          formGroup: form,
-          child: ReactiveFormConsumer(
-            builder: (context, formGroup, child) {
-              return ElevatedButton(
-                onPressed: formGroup.valid
-                    ? () {
-                        Get.back();
-                        final data = Map<String, dynamic>.from(formGroup.value);
-
-                        // Ajustar el objeto de salida según requirements de la API
-                        final priceValue = data['price'] as String;
-                        final double amount = double.tryParse(priceValue.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0.0;
-                        data.remove('price');
-
-                        final formattedResult = {
-                          "name": data['name'],
-                          "description": data['description'],
-                          "productType": "SIMPLE",
-                          "category_id": categoryId,
-                          "subcategory_id": subcategoryId,
-                          "prices": [
-                            {
-                              "amount": amount,
-                              "start_date": DateFormat(
-                                "yyyy-MM-dd'T'HH:mm:ss",
-                              ).format(DateTime.now()), // Vigente desde ya
-                              "end_date": null,
-                            },
-                          ],
-                          "combo_groups": null,
-                        };
-
-                        onSubmit(formattedResult);
-                      }
-                    : null,
-                child: const Text('Guardar'),
-              );
-            },
-          ),
-        ),
-      ],
     );
   }
 }
