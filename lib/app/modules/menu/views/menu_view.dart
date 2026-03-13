@@ -52,8 +52,11 @@ class MenuView extends GetView<MenuController> {
                         // Acciones principales de la Categoría
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            spacing: 8.0,
+                            runSpacing: 8.0,
                             children: [
                               CustomEditButton(
                                 onPressed: () => controller.showCategoryForm(category: category),
@@ -92,12 +95,15 @@ class MenuView extends GetView<MenuController> {
                                             // Acciones de la subcategoría
                                             Padding(
                                               padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-                                              child: Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              child: Wrap(
+                                                alignment: WrapAlignment.spaceBetween,
+                                                crossAxisAlignment: WrapCrossAlignment.center,
+                                                spacing: 8.0,
+                                                runSpacing: 8.0,
                                                 children: [
                                                   CustomEditButton(
                                                     onPressed: () => controller.showSubcategoryForm(
-                                                      categoryId: category.id ?? '', 
+                                                      categoryId: category.id ?? '',
                                                       subcategory: subcategory,
                                                     ),
                                                     label: 'Editar Sub',
