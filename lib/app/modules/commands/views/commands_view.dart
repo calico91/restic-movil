@@ -43,7 +43,12 @@ class CommandsView extends GetView<CommandsController> {
                       ],
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: 100, // Espacio extra para la barra de navegación
+                      ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: ordersList.length,
                       itemBuilder: (context, index) {

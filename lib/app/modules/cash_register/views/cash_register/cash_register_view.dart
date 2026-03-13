@@ -51,7 +51,12 @@ class CashRegisterView extends GetView<CashRegisterController> {
                       ],
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.only(
+                        left: 16,
+                        right: 16,
+                        top: 16,
+                        bottom: 100, // Espacio para la barra de navegación
+                      ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: orders.length,
                       itemBuilder: (context, index) {

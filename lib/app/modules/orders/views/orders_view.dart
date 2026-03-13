@@ -125,15 +125,15 @@ class OrdersView extends GetView<OrdersController> {
 
   /*build boton crear pedido*/
   Widget _buildCreateOrderButton() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 40.0),
-        child: CustomSubmitButton(
-          text: 'Crear pedido',
-          onPressed: () {
-            Get.toNamed(Routes.TAKE_ORDER);
-          },
-          backgroundColor: Colors.green[600],
-        ),
-      );
+    padding: const EdgeInsets.symmetric(horizontal: 40.0),
+    child: CustomSubmitButton(
+      text: 'Crear pedido',
+      onPressed: () {
+        Get.toNamed(Routes.TAKE_ORDER);
+      },
+      backgroundColor: Colors.green[600],
+    ),
+  );
 
   /*build lista de pedidos*/
   Widget _buildOrdersList() => Expanded(
@@ -148,7 +148,12 @@ class OrdersView extends GetView<OrdersController> {
             : await controller.loadFinalizedOrders(withOverlay: false),
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 80),
+          padding: const EdgeInsets.only(
+            left: 16,
+            right: 16,
+            top: 16,
+            bottom: 100, // Espacio extra para la barra de navegación
+          ),
           itemCount: ordersList.length,
           itemBuilder: (context, index) {
             final order = ordersList[index];
@@ -163,8 +168,6 @@ class OrdersView extends GetView<OrdersController> {
   Widget _buildOrderCard(BuildContext context, OrderModel order) {
     String statusText = order.status ?? '';
 
-  
-
     final currencyFormat = NumberFormat.currency(
       locale: 'es_CO',
       symbol: '\$',
@@ -175,7 +178,8 @@ class OrdersView extends GetView<OrdersController> {
     String dateText = '';
 
     // Si tiene fecha de cierre mostrarla tambien o en lugar de
-    if (order.closingDate != null && (statusText == 'Finalizada' || statusText == 'FINALIZED')) {
+    if (order.closingDate != null &&
+        (statusText == 'Finalizada' || statusText == 'FINALIZED')) {
       try {
         final date = DateTime.parse(order.closingDate!);
         dateText = DateFormat('dd/MM, HH:mm').format(date);
@@ -275,7 +279,8 @@ class OrdersView extends GetView<OrdersController> {
                   ),
                   OrderStatusChip(
                     status: statusText,
-                    label: statusText, // O controller.getStatusDescription(statusText) si existe
+                    label:
+                        statusText, // O controller.getStatusDescription(statusText) si existe
                   ),
                 ],
               ),
