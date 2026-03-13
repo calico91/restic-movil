@@ -363,7 +363,6 @@ class TakeOrderController extends GetxController {
               secondaryButtonText: 'Imprimir Orden',
               onSecondaryAction: () {
                 // Aqu� ir�a la l�gica de impresi�n
-                print('Imprimiendo orden...');
                 Get.showSnackbar(const InfoSnackbar('Enviando a imprimir...'));
               },
             ),

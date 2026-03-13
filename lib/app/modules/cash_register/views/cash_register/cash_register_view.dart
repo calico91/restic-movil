@@ -58,8 +58,11 @@ class CashRegisterView extends GetView<CashRegisterController> {
                         final order = orders[index];
                         return OrderPaymentCard(
                           order: order,
+                          showPaymentButton: controller.currentTab.value == 0,
                           onTap: () {
-                            controller.showTransactionModal(order);
+                            if (controller.currentTab.value == 0) {
+                              controller.showTransactionModal(order);
+                            }
                           },
                         );
                       },

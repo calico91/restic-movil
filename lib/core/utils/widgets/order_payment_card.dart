@@ -9,8 +9,14 @@ import 'package:intl/intl.dart';
 class OrderPaymentCard extends StatelessWidget {
   final OrderModel order;
   final VoidCallback onTap;
+  final bool showPaymentButton;
 
-  const OrderPaymentCard({super.key, required this.order, required this.onTap});
+  const OrderPaymentCard({
+    super.key,
+    required this.order,
+    required this.onTap,
+    this.showPaymentButton = true,
+  });
 
   /*muestra el modal de detalle del pedido con sus productos y precios*/
   void _showOrderDetail(BuildContext context) {
@@ -114,7 +120,9 @@ class OrderPaymentCard extends StatelessWidget {
                                 Expanded(
                                   flex: 3,
                                   child: Text(
-                                    CurrencyFormatter.toCurrency(detail.subtotal ?? 0),
+                                    CurrencyFormatter.toCurrency(
+                                      detail.subtotal ?? 0,
+                                    ),
                                     textAlign: TextAlign.right,
                                     style: const TextStyle(fontSize: 13),
                                   ),
@@ -289,10 +297,12 @@ class OrderPaymentCard extends StatelessWidget {
                     onPressed: () => _showOrderDetail(context),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: CardOutlinedButton(text: 'Pagar', onPressed: onTap),
-                ),
+                if (showPaymentButton) ...[
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: CardOutlinedButton(text: 'Pagar', onPressed: onTap),
+                  ),
+                ],
               ],
             ),
           ],
