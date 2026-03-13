@@ -158,74 +158,87 @@ class CommandsView extends GetView<CommandsController> {
       }
     }
 
-    return Card(
-      elevation: 4,
+    return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: InkWell(
-        onTap: controller.currentTab.value == 0
-            ? () => _showOrderDetails(context, order)
-            : null,
-        borderRadius: BorderRadius.circular(12),
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      child: Text(
-                        '#${order.orderNumber ?? "N/A"} - $title',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 18,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.05),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: controller.currentTab.value == 0
+              ? () => _showOrderDetails(context, order)
+              : null,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Expanded(
+                      child: SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Text(
+                          '#${order.orderNumber ?? "N/A"} - $title',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  _buildStatusChip(order.status),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  const Icon(Icons.storefront, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text('Origen: ${order.originType ?? "N/A"}'),
-                ],
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  const Icon(Icons.access_time, size: 16, color: Colors.grey),
-                  const SizedBox(width: 4),
-                  Text('Fecha: $formattedDate'),
-                ],
-              ),
-              if (order.observations != null && order.observations!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Icon(Icons.comment, size: 16, color: Colors.grey),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'Obs: ${order.observations}',
-                          style: const TextStyle(fontStyle: FontStyle.italic),
-                        ),
-                      ),
-                    ],
-                  ),
+                    const SizedBox(width: 8),
+                    _buildStatusChip(order.status),
+                  ],
                 ),
-              const SizedBox(height: 8),
-            ],
+                const SizedBox(height: 8),
+                Row(
+                  children: [
+                    const Icon(Icons.storefront, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text('Origen: ${order.originType ?? "N/A"}'),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Row(
+                  children: [
+                    const Icon(Icons.access_time, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text('Fecha: $formattedDate'),
+                  ],
+                ),
+                if (order.observations != null &&
+                    order.observations!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(Icons.comment, size: 16, color: Colors.grey),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Obs: ${order.observations}',
+                            style: const TextStyle(fontStyle: FontStyle.italic),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                const SizedBox(height: 8),
+              ],
+            ),
           ),
         ),
       ),
