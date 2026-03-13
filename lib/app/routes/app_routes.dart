@@ -8,4 +8,5 @@ abstract class Routes {
   static const CLOSE_SHIFT = '/cash-register/close-shift';
   static const EXPENSES = '/cash-register/expenses';
   static const CUSTOMERS = '/customers';
+  static const PRINTER_SETTINGS = '/settings/printer';
 }

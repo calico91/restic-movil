@@ -17,6 +17,8 @@ import '../modules/menu/bindings/menu_binding.dart';
 import '../modules/menu/views/menu_view.dart';
 import '../modules/users/bindings/users_binding.dart';
 import '../modules/users/views/users_view.dart';
+import '../modules/printer_settings/bindings/printer_settings_binding.dart';
+import '../modules/printer_settings/views/printer_settings_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -67,6 +69,11 @@ class AppPages {
       name: Routes.CUSTOMERS,
       page: () => const CustomerView(),
       binding: CustomerBinding(),
+    ),
+    GetPage(
+      name: Routes.PRINTER_SETTINGS,
+      page: () => const PrinterSettingsView(),
+      binding: PrinterSettingsBinding(),
     ),
   ];
 }

@@ -54,10 +54,18 @@ class CustomDrawer extends GetView<HomeController> {
                   title: 'Clientes',
                   onTap: () => Get.toNamed(Routes.CUSTOMERS),
                 ),
-                _buildDrawerItem(
+                _buildExpansionTile(
                   icon: Icons.settings_outlined,
                   title: 'Configuración',
-                  onTap: () {},
+                  children: [
+                    _buildDrawerSubItem(
+                      title: 'Impresora',
+                      onTap: () {
+                        Get.back(); // Cerrar drawer
+                        Get.toNamed(Routes.PRINTER_SETTINGS);
+                      },
+                    ),
+                  ],
                 ),
               ],
             ),
