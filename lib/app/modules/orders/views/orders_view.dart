@@ -8,6 +8,10 @@ import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
+import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/core/utils/printers/tickets/order_ticket.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class OrdersView extends GetView<OrdersController> {
   const OrdersView({super.key});
@@ -249,17 +253,33 @@ class OrdersView extends GetView<OrdersController> {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Row(
-                  children: [
-                    Icon(
-                      Icons.print_outlined,
-                      color: Colors.blue[300],
-                      size: 20,
+                Obx(() {
+                  final printerService = Get.find<PrinterService>();
+                  final isConnected = printerService.isConnected.value;
+                  return IconButton(
+                    icon: Icon(
+                      Icons.print,
+                      color: isConnected ? Colors.green : Colors.red,
+                      size: 24,
                     ),
-                    const SizedBox(width: 8),
-                    Icon(Icons.money, color: Colors.red[300], size: 20),
-                  ],
-                ),
+                    onPressed: isConnected
+                        ? () {
+                            Get.showSnackbar(
+                              const InfoSnackbar('Enviando a imprimir...'),
+                            );
+                            printerService.printTicket(
+                              OrderTicket(order: order),
+                            );
+                          }
+                        : () {
+                            Get.showSnackbar(
+                              const ErrorSnackbar('Impresora no conectada'),
+                            );
+                          },
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                  );
+                }),
               ],
             ),
             const SizedBox(height: 10),
