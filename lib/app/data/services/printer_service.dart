@@ -1,10 +1,11 @@
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:logger/logger.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
-class PrinterService extends GetxService {
+class PrinterService extends GetxService with WidgetsBindingObserver {
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   final Logger _logger = Logger();
   final StorageService _storageService = Get.find<StorageService>();
@@ -12,17 +13,43 @@ class PrinterService extends GetxService {
   RxList<BluetoothDevice> devices = <BluetoothDevice>[].obs;
   Rx<BluetoothDevice?> selectedDevice = Rx<BluetoothDevice?>(null);
   RxBool isConnected = false.obs;
+  RxBool isBluetoothOn = false.obs;
 
   @override
   void onInit() {
     super.onInit();
+    WidgetsBinding.instance.addObserver(this);
     initBluetooth();
+  }
+
+  @override
+  void onClose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.onClose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _checkBluetoothState();
+    }
+  }
+
+  /* verifica el estado actual del bluetooth al volver a la app */
+  Future<void> _checkBluetoothState() async {
+    bool? isOn = await bluetooth.isOn;
+    isBluetoothOn.value = isOn == true;
+    if (isOn == true && devices.isEmpty) {
+      await getDevices();
+    }
   }
 
   /* inicializar bluetooth y escuchar estado */
   Future<void> initBluetooth() async {
     try {
       bool? isOn = await bluetooth.isOn;
+      isBluetoothOn.value = isOn == true;
+
       if (isOn == true) {
         await getDevices();
 
@@ -54,11 +81,14 @@ class PrinterService extends GetxService {
             break;
           case BlueThermalPrinter.STATE_TURNING_OFF:
             isConnected.value = false;
+            isBluetoothOn.value = false;
             break;
           case BlueThermalPrinter.STATE_OFF:
             isConnected.value = false;
+            isBluetoothOn.value = false;
             break;
           case BlueThermalPrinter.STATE_ON:
+            isBluetoothOn.value = true;
             getDevices();
             break;
           default:

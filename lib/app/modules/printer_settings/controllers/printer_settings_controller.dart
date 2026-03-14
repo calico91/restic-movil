@@ -12,6 +12,7 @@ class PrinterSettingsController extends GetxController {
 
   // State
   RxBool get isConnected => printerService.isConnected;
+  RxBool get isBluetoothOn => printerService.isBluetoothOn;
   RxList<BluetoothDevice> get devices => printerService.devices;
   Rx<BluetoothDevice?> get selectedDevice => printerService.selectedDevice;
 

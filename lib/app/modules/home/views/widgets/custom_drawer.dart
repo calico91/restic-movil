@@ -31,6 +31,11 @@ class CustomDrawer extends GetView<HomeController> {
                   title: 'Menú',
                   onTap: () => Get.toNamed(Routes.MENU),
                 ),
+                _buildDrawerItem(
+                  icon: Icons.people_outline,
+                  title: 'Clientes',
+                  onTap: () => Get.toNamed(Routes.CUSTOMERS),
+                ),
                 _buildExpansionTile(
                   icon: Icons.point_of_sale,
                   title: 'Opciones de Caja',
@@ -49,11 +54,7 @@ class CustomDrawer extends GetView<HomeController> {
                     ),
                   ],
                 ),
-                _buildDrawerItem(
-                  icon: Icons.people_outline,
-                  title: 'Clientes',
-                  onTap: () => Get.toNamed(Routes.CUSTOMERS),
-                ),
+
                 _buildExpansionTile(
                   icon: Icons.settings_outlined,
                   title: 'Configuración',
