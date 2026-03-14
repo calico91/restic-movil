@@ -23,71 +23,106 @@ class ComboSelectionDialog extends StatelessWidget {
       tag: 'combo_${product.id}',
       builder: (controller) {
         return AlertDialog(
-          title: Text(product.name ?? 'Arma tu Combo'),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                if (product.description != null)
-                  Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: Text(
-                      product.description!,
-                      style: TextStyle(color: Colors.grey[600]),
+          backgroundColor: const Color(0xFFF5F6FA),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          title: Text(
+            product.name ?? 'Arma tu Combo',
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF0D47A1), // Deep Blue del tema
+            ),
+          ),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (product.description != null)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 16.0),
+                      child: Text(
+                        product.description!,
+                        style: TextStyle(color: Colors.grey[600]),
+                      ),
+                    ),
+
+                  // Selector de Cantidad Global
+                  _buildQuantitySelector(controller),
+                  const Divider(),
+
+                  ...?product.comboGroups?.map(
+                    (group) => _buildGroupSection(group, controller),
+                  ),
+
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: controller.commentController,
+                    decoration: InputDecoration(
+                      labelText: 'Comentarios adicionales',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: Obx(
+                      () => Text(
+                        'Total: \$${controller.totalPrice.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0D47A1),
+                        ),
+                      ),
                     ),
                   ),
-
-                // Selector de Cantidad Global
-                _buildQuantitySelector(controller),
-                const Divider(),
-
-                ...?product.comboGroups?.map(
-                  (group) => _buildGroupSection(group, controller),
-                ),
-
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: controller.commentController,
-                  decoration: const InputDecoration(
-                    labelText: 'Comentarios adicionales',
-                    border: OutlineInputBorder(),
-                  ),
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Obx(
-                    () => Text(
-                      'Total: \$${controller.totalPrice.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: () => Get.back(),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red[800],
+                      side: BorderSide(color: Colors.red[800]!),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
                       ),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                    child: const Text('Cancelar'),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Obx(
+                    () => ElevatedButton(
+                      onPressed: controller.isValid ? controller.submit : null,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF0D47A1),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        disabledBackgroundColor: Colors.grey[300],
+                      ),
+                      child: const Text('Agregar'),
                     ),
                   ),
                 ),
               ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Get.back(),
-              child: const Text('Cancelar'),
-            ),
-            Obx(
-              () => ElevatedButton(
-                onPressed: controller.isValid ? controller.submit : null,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: controller.isValid
-                      ? Colors.blue[900]
-                      : Colors.grey,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('Agregar'),
-              ),
             ),
           ],
         );
@@ -111,7 +146,7 @@ class ComboSelectionDialog extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(Icons.remove, color: Colors.blue),
+                icon: const Icon(Icons.remove, color: Color(0xFF0D47A1)),
                 onPressed: () => controller.updateQuantity(-1),
               ),
               Obx(
@@ -124,7 +159,7 @@ class ComboSelectionDialog extends StatelessWidget {
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.add, color: Colors.blue),
+                icon: const Icon(Icons.add, color: Color(0xFF0D47A1)),
                 onPressed: () => controller.updateQuantity(1),
               ),
             ],
