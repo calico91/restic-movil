@@ -1,9 +1,7 @@
-import 'package:get/get.dart';
+﻿import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:logger/logger.dart';
-import 'package:restic_movil/app/data/models/order_model.dart';
-import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
-import 'package:intl/intl.dart';
+import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
 class PrinterService extends GetxService {
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
@@ -68,7 +66,7 @@ class PrinterService extends GetxService {
     }
   }
 
-  /* conectar a un dispositivo específico */
+  /* conectar a un dispositivo especÃ­fico */
   Future<bool> connect(BluetoothDevice device) async {
     try {
       if (await bluetooth.isConnected == true) {
@@ -97,70 +95,15 @@ class PrinterService extends GetxService {
     }
   }
 
-  /* imprimir ticket de la orden */
-  Future<void> printReceipt(OrderModel order) async {
+  /* imprimir cualquier tipo de ticket */
+  Future<void> printTicket(PrintableTicket ticket) async {
     if (await bluetooth.isConnected != true) {
       _logger.w("La impresora no está conectada");
       return;
     }
 
     try {
-      final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
-      final String date = order.openingDate != null
-          ? dateFormat.format(DateTime.parse(order.openingDate!))
-          : dateFormat.format(DateTime.now());
-
-      // ENCABEZADO
-      bluetooth.printNewLine();
-      bluetooth.printCustom("RESTIC MOVIL", 3, 1);
-      bluetooth.printNewLine();
-      bluetooth.printCustom("Comprobante de Venta", 1, 1);
-      bluetooth.printNewLine();
-
-      // INFO DE LA ORDEN
-      bluetooth.printLeftRight("Orden: #${order.orderNumber}", "Fecha: $date", 1);
-      
-      String originLabel = "Origen: ${order.originType ?? 'N/A'}";
-      if (order.originType == 'SALON' || order.originType == 'MESA') {
-        final tables = order.tables?.map((e) => e.name).join(', ') ?? 'N/A';
-        originLabel = "Mesa: $tables";
-      } else if (order.customerName != null) {
-        originLabel = "Cliente: ${order.customerName}";
-      }
-      
-      bluetooth.printCustom(originLabel, 1, 0);
-      bluetooth.printCustom("--------------------------------", 1, 1);
-
-      // PRODUCTOS
-      bluetooth.printLeftRight("Producto", "Subtotal", 1, format: "%-20s %10s %n");
-      bluetooth.printCustom("--------------------------------", 1, 1);
-
-      final details = order.details ?? [];
-      for (var item in details) {
-        String itemName = "${item.quantity}x ${item.productName ?? 'P.'}";
-        if (itemName.length > 20) {
-          itemName = itemName.substring(0, 19);
-        }
-        String itemTotal = CurrencyFormatter.toCurrency(item.subtotal ?? 0);
-        
-        bluetooth.printLeftRight(itemName, itemTotal, 1);
-      }
-      
-      bluetooth.printCustom("--------------------------------", 1, 1);
-
-      // TOTALES
-      final totalStr = CurrencyFormatter.toCurrency(order.total ?? 0);
-      bluetooth.printLeftRight("TOTAL:", totalStr, 2);
-      bluetooth.printNewLine();
-      
-      // PIE DE PÁGINA
-      bluetooth.printCustom("¡Gracias por su compra!", 1, 1);
-      bluetooth.printNewLine();
-      bluetooth.printNewLine();
-      bluetooth.printNewLine();
-      
-      // CORTAR PAPEL Y ABRIR CAJA (Dependiendo de la impresora)
-      bluetooth.paperCut();
+      await ticket.printReceipt(bluetooth);
     } catch (e) {
       _logger.e("Error imprimiendo: $e");
     }

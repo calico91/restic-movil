@@ -13,8 +13,9 @@ class OrdersRepository {
     return (response as List).map((e) => OriginType.fromJson(e)).toList();
   }
 
-  Future<void> createOrder(Map<String, dynamic> data) async {
-    await _client.post(UrlPaths.createOrder, body: data);
+  Future<OrderModel> createOrder(Map<String, dynamic> data) async {
+    final response = await _client.post(UrlPaths.createOrder, body: data);
+    return OrderModel.fromJson(response as Map<String, dynamic>);
   }
 
   Future<void> addOrderItems(

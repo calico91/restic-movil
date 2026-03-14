@@ -10,6 +10,8 @@ import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/customer_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
+import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/core/utils/printers/tickets/order_ticket.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -339,7 +341,7 @@ class TakeOrderController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          await ordersRepository.createOrder(orderData);
+          final newOrder = await ordersRepository.createOrder(orderData);
           _clearForm();
           // Cerrar el resumen
           if (Get.isBottomSheetOpen ?? false) {
@@ -362,8 +364,13 @@ class TakeOrderController extends GetxController {
               },
               secondaryButtonText: 'Imprimir Orden',
               onSecondaryAction: () {
-                // Aqu� ir�a la l�gica de impresi�n
-                Get.showSnackbar(const InfoSnackbar('Enviando a imprimir...'));
+                final printerService = Get.find<PrinterService>();
+                if (printerService.isConnected.value) {
+                  Get.showSnackbar(const InfoSnackbar('Enviando a imprimir...'));
+                  printerService.printTicket(OrderTicket(order: newOrder));
+                } else {
+                  Get.showSnackbar(const ErrorSnackbar('Impresora no conectada'));
+                }
               },
             ),
             barrierDismissible: false,
