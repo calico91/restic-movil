@@ -37,10 +37,25 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   /* verifica el estado actual del bluetooth al volver a la app */
   Future<void> _checkBluetoothState() async {
-    bool? isOn = await bluetooth.isOn;
-    isBluetoothOn.value = isOn == true;
-    if (isOn == true && devices.isEmpty) {
-      await getDevices();
+    try {
+      bool? isOn = await bluetooth.isOn;
+      isBluetoothOn.value = isOn == true;
+
+      if (isOn != true) {
+        isConnected.value = false;
+        try {
+          await bluetooth.disconnect();
+        } catch (_) {}
+      } else {
+        bool? isConn = await bluetooth.isConnected;
+        isConnected.value = isConn == true;
+
+        if (devices.isEmpty) {
+          await getDevices();
+        }
+      }
+    } catch (e) {
+      _logger.e("Error revisando estado Bluetooth: $e");
     }
   }
 
@@ -82,13 +97,23 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
           case BlueThermalPrinter.STATE_TURNING_OFF:
             isConnected.value = false;
             isBluetoothOn.value = false;
+            try {
+              bluetooth.disconnect();
+            } catch (_) {}
             break;
           case BlueThermalPrinter.STATE_OFF:
             isConnected.value = false;
             isBluetoothOn.value = false;
+            try {
+              bluetooth.disconnect();
+            } catch (_) {}
             break;
           case BlueThermalPrinter.STATE_ON:
             isBluetoothOn.value = true;
+            isConnected.value = false;
+            try {
+              bluetooth.disconnect();
+            } catch (_) {}
             getDevices();
             break;
           default:
@@ -133,10 +158,12 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   /* desconectar impresora */
   Future<void> disconnect() async {
+    // Actualización inmediata para asegurar que la UI refleje el nuevo estado
+    isConnected.value = false;
+    selectedDevice.value = null;
+
     try {
       await bluetooth.disconnect();
-      selectedDevice.value = null;
-      isConnected.value = false;
     } catch (e) {
       _logger.e("Error desconectando impresora: $e");
     }
@@ -146,6 +173,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   Future<void> printTicket(PrintableTicket ticket) async {
     if (await bluetooth.isConnected != true) {
       _logger.w("La impresora no está conectada");
+      isConnected.value = false;
       return;
     }
 
@@ -153,6 +181,11 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       await ticket.printReceipt(bluetooth);
     } catch (e) {
       _logger.e("Error imprimiendo: $e");
+      // Forzar reset de estado si falla, ya que la conexión real probablemente se rompió
+      isConnected.value = false;
+      try {
+        await bluetooth.disconnect();
+      } catch (_) {}
     }
   }
 }

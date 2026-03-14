@@ -350,6 +350,8 @@ class TakeOrderController extends GetxController {
             Get.find<OrdersController>().loadOrders(withOverlay: false);
           }
 
+          final printerService = Get.find<PrinterService>();
+
           Get.dialog(
             ModalInfo(
               title: 'Pedido Creado!',
@@ -360,19 +362,15 @@ class TakeOrderController extends GetxController {
                 Get.until((route) => route.settings.name == Routes.HOME);
               },
               secondaryButtonText: 'Imprimir Orden',
-              onSecondaryAction: () {
-                final printerService = Get.find<PrinterService>();
-                if (printerService.isConnected.value) {
-                  Get.showSnackbar(
-                    const InfoSnackbar('Enviando a imprimir...'),
-                  );
-                  printerService.printTicket(OrderTicket(order: newOrder));
-                } else {
-                  Get.showSnackbar(
-                    const ErrorSnackbar('Impresora no conectada'),
-                  );
-                }
-              },
+              onSecondaryAction: printerService.isConnected.value
+                  ? () {
+                      Get.showSnackbar(
+                        const InfoSnackbar('Enviando a imprimir...'),
+                      );
+                      printerService.printTicket(OrderTicket(order: newOrder));
+                      Get.until((route) => route.settings.name == Routes.HOME);
+                    }
+                  : null,
             ),
             barrierDismissible: false,
           );

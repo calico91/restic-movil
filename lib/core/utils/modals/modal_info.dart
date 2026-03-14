@@ -44,7 +44,7 @@ class ModalInfo extends StatelessWidget {
             style: const TextStyle(fontSize: 16),
           ),
           const SizedBox(height: 20),
-          if (onSecondaryAction != null && secondaryButtonText != null) ...[
+          if (secondaryButtonText != null) ...[
             SizedBox(
               width: double.infinity,
               child: ElevatedButton.icon(
@@ -68,7 +68,7 @@ class ModalInfo extends StatelessWidget {
           ],
           SizedBox(
             width: double.infinity,
-            child: (onSecondaryAction != null)
+            child: (secondaryButtonText != null)
                 ? OutlinedButton(
                     onPressed: onClose ?? () => Get.back(),
                     style: OutlinedButton.styleFrom(
