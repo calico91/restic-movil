@@ -2,10 +2,7 @@ class CashWithdrawalReason {
   final String name;
   final String description;
 
-  CashWithdrawalReason({
-    required this.name,
-    required this.description,
-  });
+  CashWithdrawalReason({required this.name, required this.description});
 
   factory CashWithdrawalReason.fromJson(Map<String, dynamic> json) {
     return CashWithdrawalReason(
@@ -15,10 +12,7 @@ class CashWithdrawalReason {
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      'description': description,
-    };
+    return {'name': name, 'description': description};
   }
 
   @override

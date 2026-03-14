@@ -46,7 +46,8 @@ class CustomScaffold extends StatelessWidget {
           Column(
             children: [
               SizedBox(
-                height: kToolbarHeight + MediaQuery.of(context).padding.top + 10,
+                height:
+                    kToolbarHeight + MediaQuery.of(context).padding.top + 10,
               ),
               Expanded(
                 child: Container(

@@ -14,12 +14,14 @@ class TakeOrderBinding extends Bindings {
     Get.lazyPut(() => TablesRepository(Get.find<BaseHttpClient>()));
     Get.lazyPut(() => CategoriesRepository(Get.find<BaseHttpClient>()));
     Get.lazyPut(() => CustomerRepository(Get.find<BaseHttpClient>()));
-    Get.lazyPut(() => TakeOrderController(
-      ordersRepository: Get.find(),
-      tablesRepository: Get.find(),
-      categoriesRepository: Get.find(),
-      customerRepository: Get.find(),
-      storageService: Get.find(),
-    ));
+    Get.lazyPut(
+      () => TakeOrderController(
+        ordersRepository: Get.find(),
+        tablesRepository: Get.find(),
+        categoriesRepository: Get.find(),
+        customerRepository: Get.find(),
+        storageService: Get.find(),
+      ),
+    );
   }
 }

@@ -29,8 +29,8 @@ class ComboGroupModel {
       required: json['required'],
       options: json['options'] != null
           ? (json['options'] as List)
-              .map((e) => ComboOptionModel.fromJson(e))
-              .toList()
+                .map((e) => ComboOptionModel.fromJson(e))
+                .toList()
           : null,
     );
   }

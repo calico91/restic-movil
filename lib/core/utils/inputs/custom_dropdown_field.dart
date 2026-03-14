@@ -17,8 +17,10 @@ class CustomReactiveDropdownField<T> extends StatelessWidget {
     required this.items,
     this.validationMessages,
     this.prefixIcon,
-  }) : assert(formControlName != null || formControl != null,
-            'Must provide generic formControlName or formControl');
+  }) : assert(
+         formControlName != null || formControl != null,
+         'Must provide generic formControlName or formControl',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -59,8 +61,10 @@ class CustomReactiveDropdownField<T> extends StatelessWidget {
         ),
       ),
       items: items,
-      icon: Icon(Icons.keyboard_arrow_down_rounded,
-          color: Colors.blue.shade900), // Flecha personalizada
+      icon: Icon(
+        Icons.keyboard_arrow_down_rounded,
+        color: Colors.blue.shade900,
+      ), // Flecha personalizada
       dropdownColor: Colors.white,
       borderRadius: BorderRadius.circular(12),
     );

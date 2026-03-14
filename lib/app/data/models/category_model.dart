@@ -20,8 +20,8 @@ class CategoryModel {
       description: json['description'],
       subcategories: json['subcategories'] != null
           ? (json['subcategories'] as List)
-              .map((e) => SubcategoryModel.fromJson(e))
-              .toList()
+                .map((e) => SubcategoryModel.fromJson(e))
+                .toList()
           : null,
     );
   }

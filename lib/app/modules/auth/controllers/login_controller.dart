@@ -51,7 +51,7 @@ class LoginController extends GetxController {
               e,
               attribute: 'recommendation',
             );
-            
+
             Get.showSnackbar(ErrorSnackbar(errorMessage + recomendations));
           }
         },

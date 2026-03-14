@@ -196,12 +196,16 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     Get.dialog(
       ComboSelectionDialog(
         product: product,
-        onConfirm: (product, quantity, comment, comboSelections,
-            additionalPrice) {
-          controller.addToOrder(product, quantity, comment,
-              comboSelections: comboSelections,
-              additionalPrice: additionalPrice);
-        },
+        onConfirm:
+            (product, quantity, comment, comboSelections, additionalPrice) {
+              controller.addToOrder(
+                product,
+                quantity,
+                comment,
+                comboSelections: comboSelections,
+                additionalPrice: additionalPrice,
+              );
+            },
       ),
     );
   }
@@ -270,14 +274,16 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                   'Resumen del Pedido',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-                Obx(() => Text(
-                      'Total: \$${controller.totalOrderAmount.toStringAsFixed(0)}',
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    )),
+                Obx(
+                  () => Text(
+                    'Total: \$${controller.totalOrderAmount.toStringAsFixed(0)}',
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.green,
+                    ),
+                  ),
+                ),
               ],
             ),
             const Divider(),
@@ -295,7 +301,6 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
             ),
             Flexible(
               child: Obx(() {
-
                 return ListView.builder(
                   shrinkWrap: true,
                   itemCount: controller.currentOrder.length,
@@ -308,7 +313,8 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                         '${item.product.name} (x${item.quantity})',
                         style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
-                      subtitle: (comboDetails.isNotEmpty ||
+                      subtitle:
+                          (comboDetails.isNotEmpty ||
                               (item.comment != null &&
                                   item.comment!.isNotEmpty))
                           ? Column(

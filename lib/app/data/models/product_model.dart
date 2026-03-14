@@ -33,8 +33,8 @@ class ProductModel {
       productType: json['productType'],
       comboGroups: json['combo_groups'] != null
           ? (json['combo_groups'] as List)
-              .map((e) => ComboGroupModel.fromJson(e))
-              .toList()
+                .map((e) => ComboGroupModel.fromJson(e))
+                .toList()
           : null,
     );
   }

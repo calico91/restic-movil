@@ -120,7 +120,9 @@ class OrdersController extends GetxController {
   Future<void> loadFinalizedOrders({bool withOverlay = true}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses(['FINALIZED']);
+        final result = await ordersRepository.getOrdersByStatuses([
+          'FINALIZED',
+        ]);
         _allFinalizedOrders.assignAll(result);
         _filterOrders();
       } catch (e) {
@@ -250,11 +252,11 @@ class OrdersController extends GetxController {
         sourceList.where((order) {
           final tableNames =
               order.tables?.map((t) => t.name?.toLowerCase() ?? '').toList() ??
-                  [];
+              [];
           // Busca si alguna mesa contiene el texto buscado
           // Tambien buscar por numero de orden
           final orderNumber = order.orderNumber?.toString() ?? '';
-          
+
           // Buscar por nombre de cliente
           final customerName = order.customerName?.toLowerCase() ?? '';
 
@@ -289,10 +291,7 @@ class OrdersController extends GetxController {
   }
 
   void _showAddProductsSheet(OrderModel order) {
-    Get.bottomSheet(
-      AddProductsSheet(order: order),
-      isScrollControlled: true,
-    );
+    Get.bottomSheet(AddProductsSheet(order: order), isScrollControlled: true);
   }
 
   /* Manipulación de items temporales */
@@ -306,12 +305,12 @@ class OrdersController extends GetxController {
     final normalizedComment = (comment == null || comment.trim().isEmpty)
         ? null
         : comment.trim();
-    
+
     // Check duplication logic:
     // If it's a combo, we might want to check if the combo selections are identical.
-    // For simplicity, for combos we can just add a new item or implement deep comparison. 
+    // For simplicity, for combos we can just add a new item or implement deep comparison.
     // Here I'll mimic take_order logic: separate combos if needed.
-    
+
     int index = -1;
     if (comboSelections == null || comboSelections.isEmpty) {
       index = tempAdditionalOrderItems.indexWhere(
@@ -392,8 +391,8 @@ class OrdersController extends GetxController {
         try {
           await ordersRepository.addOrderItems(order.id!, itemsToAdd);
 
-          Get.back(); 
-          Get.back(); 
+          Get.back();
+          Get.back();
 
           Get.showSnackbar(
             const InfoSnackbar('Productos agregados correctamente'),

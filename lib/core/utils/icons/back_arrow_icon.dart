@@ -5,11 +5,7 @@ class BackArrowIcon extends StatelessWidget {
   final VoidCallback? onPressed;
   final Color color;
 
-  const BackArrowIcon({
-    super.key, 
-    this.onPressed,
-    this.color = Colors.white,
-  });
+  const BackArrowIcon({super.key, this.onPressed, this.color = Colors.white});
 
   @override
   Widget build(BuildContext context) {

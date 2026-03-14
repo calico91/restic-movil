@@ -9,9 +9,7 @@ class ErrorSnackbar extends GetSnackBar {
     return SelectableText(
       textAlign: TextAlign.center,
       message!,
-      style: const TextStyle(
-        color: Colors.white,
-      ),
+      style: const TextStyle(color: Colors.white),
     );
   }
 

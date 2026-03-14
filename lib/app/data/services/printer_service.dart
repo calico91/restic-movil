@@ -1,11 +1,13 @@
-﻿import 'package:get/get.dart';
+import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:logger/logger.dart';
+import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
 class PrinterService extends GetxService {
   final BlueThermalPrinter bluetooth = BlueThermalPrinter.instance;
   final Logger _logger = Logger();
+  final StorageService _storageService = Get.find<StorageService>();
 
   RxList<BluetoothDevice> devices = <BluetoothDevice>[].obs;
   Rx<BluetoothDevice?> selectedDevice = Rx<BluetoothDevice?>(null);
@@ -23,6 +25,18 @@ class PrinterService extends GetxService {
       bool? isOn = await bluetooth.isOn;
       if (isOn == true) {
         await getDevices();
+
+        // Intentar conectar con la impresora guardada
+        final savedPrinter = await _storageService.getPrinterDevice();
+        if (savedPrinter != null && savedPrinter['address'] != null) {
+          final savedAddress = savedPrinter['address']!;
+          final device = devices.firstWhereOrNull(
+            (d) => d.address == savedAddress,
+          );
+          if (device != null) {
+            await connect(device);
+          }
+        }
       }
 
       bluetooth.onStateChanged().listen((state) {
@@ -76,6 +90,9 @@ class PrinterService extends GetxService {
       await bluetooth.connect(device);
       selectedDevice.value = device;
       isConnected.value = true;
+      if (device.name != null && device.address != null) {
+        await _storageService.savePrinterDevice(device.name!, device.address!);
+      }
       return true;
     } catch (e) {
       _logger.e("Error conectando a impresora: $e");

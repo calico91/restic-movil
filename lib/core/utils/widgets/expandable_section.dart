@@ -36,9 +36,7 @@ class ExpandableSection extends StatelessWidget {
           shape: const Border(), // Removes the border when expanded
           tilePadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
           childrenPadding: EdgeInsets.zero,
-          leading: icon != null 
-              ? Icon(icon, color: Colors.blue) 
-              : null,
+          leading: icon != null ? Icon(icon, color: Colors.blue) : null,
           title: Text(
             title,
             style: const TextStyle(

@@ -220,7 +220,7 @@ class CashRegisterController extends GetxController {
           'cardLastFour': FormControl<String>(),
           'cardBrand': FormControl<String>(),
           'authorizationCode': FormControl<String>(),
-          'referenceNumber': FormControl<String>(), 
+          'referenceNumber': FormControl<String>(),
         }),
       ]),
     });
@@ -247,8 +247,9 @@ class CashRegisterController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          final response =
-              await transactionsRepository.createTransaction(request);
+          final response = await transactionsRepository.createTransaction(
+            request,
+          );
 
           // 4. Success handling
           Get.back(); // Close TransactionModal

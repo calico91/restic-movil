@@ -17,9 +17,7 @@ class CardPrimaryButton extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         backgroundColor: Colors.blue[900],
         foregroundColor: Colors.white,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(vertical: 10),
       ),
       child: Text(text),
@@ -44,9 +42,7 @@ class CardOutlinedButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         side: BorderSide(color: Colors.blue[900]!),
         foregroundColor: Colors.blue[900],
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
         padding: const EdgeInsets.symmetric(vertical: 10),
       ),
       child: Text(text),

@@ -125,4 +125,21 @@ class StorageService extends GetxService {
     }
     return null;
   }
+
+  Future<void> savePrinterDevice(String name, String address) async {
+    final device = {'name': name, 'address': address};
+    await _storage.write(key: 'printer_device', value: jsonEncode(device));
+  }
+
+  Future<Map<String, String>?> getPrinterDevice() async {
+    final str = await _storage.read(key: 'printer_device');
+    if (str != null) {
+      final decoded = jsonDecode(str) as Map<String, dynamic>;
+      return {
+        'name': decoded['name'].toString(),
+        'address': decoded['address'].toString(),
+      };
+    }
+    return null;
+  }
 }

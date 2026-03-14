@@ -5,16 +5,10 @@ class OriginType {
   OriginType({this.code, this.description});
 
   factory OriginType.fromJson(Map<String, dynamic> json) {
-    return OriginType(
-      code: json['code'],
-      description: json['description'],
-    );
+    return OriginType(code: json['code'], description: json['description']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'code': code,
-      'description': description,
-    };
+    return {'code': code, 'description': description};
   }
 }

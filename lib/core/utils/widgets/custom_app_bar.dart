@@ -8,8 +8,8 @@ class CustomAppBar extends StatelessWidget implements PreferredSizeWidget {
   final VoidCallback? onBack;
 
   const CustomAppBar({
-    super.key, 
-    required this.title, 
+    super.key,
+    required this.title,
     this.icons,
     this.showBackButton = false,
     this.onBack,

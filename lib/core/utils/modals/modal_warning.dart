@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class ModalInfo extends StatelessWidget {
+class ModalWarning extends StatelessWidget {
   final String title;
   final String message;
   final VoidCallback? onClose;
@@ -11,7 +11,7 @@ class ModalInfo extends StatelessWidget {
   final IconData icon;
   final Color iconColor;
 
-  const ModalInfo({
+  const ModalWarning({
     super.key,
     required this.title,
     required this.message,
@@ -19,8 +19,8 @@ class ModalInfo extends StatelessWidget {
     this.buttonText = 'Cerrar',
     this.onSecondaryAction,
     this.secondaryButtonText,
-    this.icon = Icons.check_circle_outline,
-    this.iconColor = Colors.green,
+    this.icon = Icons.warning_amber_rounded,
+    this.iconColor = Colors.orange,
   });
 
   @override
@@ -50,14 +50,12 @@ class ModalInfo extends StatelessWidget {
               child: ElevatedButton.icon(
                 onPressed: onSecondaryAction,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(
-                    0xFF0D47A1,
-                  ), // Deep Blue del tema
+                  backgroundColor: Colors.orange,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                icon: const Icon(Icons.print, color: Colors.white, size: 20),
+                icon: const Icon(Icons.settings, color: Colors.white, size: 20),
                 label: Text(
                   secondaryButtonText!,
                   style: const TextStyle(color: Colors.white),
@@ -72,8 +70,8 @@ class ModalInfo extends StatelessWidget {
                 ? OutlinedButton(
                     onPressed: onClose ?? () => Get.back(),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: const Color(0xFF0D47A1),
-                      side: const BorderSide(color: Color(0xFF0D47A1)),
+                      foregroundColor: Colors.orange,
+                      side: const BorderSide(color: Colors.orange),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -83,7 +81,7 @@ class ModalInfo extends StatelessWidget {
                 : ElevatedButton(
                     onPressed: onClose ?? () => Get.back(),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[900],
+                      backgroundColor: Colors.orange,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),

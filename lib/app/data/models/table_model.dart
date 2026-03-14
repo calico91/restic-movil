@@ -5,13 +5,7 @@ class TableModel {
   final String? location;
   final String? branchId;
 
-  TableModel({
-    this.id,
-    this.name,
-    this.status,
-    this.location,
-    this.branchId,
-  });
+  TableModel({this.id, this.name, this.status, this.location, this.branchId});
 
   factory TableModel.fromJson(Map<String, dynamic> json) {
     return TableModel(

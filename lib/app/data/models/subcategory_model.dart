@@ -6,12 +6,7 @@ class SubcategoryModel {
   final String? description;
   final List<ProductModel>? products;
 
-  SubcategoryModel({
-    this.id,
-    this.name,
-    this.description,
-    this.products,
-  });
+  SubcategoryModel({this.id, this.name, this.description, this.products});
 
   factory SubcategoryModel.fromJson(Map<String, dynamic> json) {
     return SubcategoryModel(
@@ -20,8 +15,8 @@ class SubcategoryModel {
       description: json['description'],
       products: json['products'] != null
           ? (json['products'] as List)
-              .map((e) => ProductModel.fromJson(e))
-              .toList()
+                .map((e) => ProductModel.fromJson(e))
+                .toList()
           : null,
     );
   }

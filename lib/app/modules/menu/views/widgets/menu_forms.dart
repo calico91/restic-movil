@@ -32,24 +32,24 @@ class CategoryFormDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           ReactiveTextField<String>(
-              formControlName: 'name',
-              decoration: const InputDecoration(
-                labelText: 'Nombre de la Categoría',
-                border: OutlineInputBorder(),
-              ),
-              validationMessages: {'required': (error) => 'Requerido'},
+            formControlName: 'name',
+            decoration: const InputDecoration(
+              labelText: 'Nombre de la Categoría',
+              border: OutlineInputBorder(),
             ),
-            const SizedBox(height: 16),
-            ReactiveTextField<String>(
-              formControlName: 'description',
-              decoration: const InputDecoration(
-                labelText: 'Descripción',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-              validationMessages: {'required': (error) => 'Requerido'},
+            validationMessages: {'required': (error) => 'Requerido'},
+          ),
+          const SizedBox(height: 16),
+          ReactiveTextField<String>(
+            formControlName: 'description',
+            decoration: const InputDecoration(
+              labelText: 'Descripción',
+              border: OutlineInputBorder(),
             ),
-          ],
+            maxLines: 2,
+            validationMessages: {'required': (error) => 'Requerido'},
+          ),
+        ],
       ),
     );
   }
@@ -91,23 +91,23 @@ class SubcategoryFormDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           ReactiveTextField<String>(
-              formControlName: 'name',
-              decoration: const InputDecoration(
-                labelText: 'Nombre',
-                border: OutlineInputBorder(),
-              ),
-              validationMessages: {'required': (error) => 'Requerido'},
+            formControlName: 'name',
+            decoration: const InputDecoration(
+              labelText: 'Nombre',
+              border: OutlineInputBorder(),
             ),
-            const SizedBox(height: 16),
-            ReactiveTextField<String>(
-              formControlName: 'description',
-              decoration: const InputDecoration(
-                labelText: 'Descripción',
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
+            validationMessages: {'required': (error) => 'Requerido'},
+          ),
+          const SizedBox(height: 16),
+          ReactiveTextField<String>(
+            formControlName: 'description',
+            decoration: const InputDecoration(
+              labelText: 'Descripción',
+              border: OutlineInputBorder(),
             ),
-          ],
+            maxLines: 2,
+          ),
+        ],
       ),
     );
   }
@@ -130,7 +130,7 @@ class ProductFormDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final currentPrice = product?.price?.amount;
-    final String? priceStr = currentPrice != null 
+    final String? priceStr = currentPrice != null
         ? NumberFormat.decimalPattern('es_CO').format(currentPrice)
         : null;
 
@@ -157,7 +157,9 @@ class ProductFormDialog extends StatelessWidget {
 
         // Ajustar el objeto de salida según requirements de la API
         final priceValue = data['price'] as String;
-        final double amount = double.tryParse(priceValue.replaceAll(RegExp(r'[^0-9]'), '')) ?? 0.0;
+        final double amount =
+            double.tryParse(priceValue.replaceAll(RegExp(r'[^0-9]'), '')) ??
+            0.0;
         data.remove('price');
 
         final formattedResult = {
@@ -184,39 +186,39 @@ class ProductFormDialog extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           ReactiveTextField<String>(
-                formControlName: 'name',
-                decoration: const InputDecoration(
-                  labelText: 'Nombre del Producto',
-                  border: OutlineInputBorder(),
-                ),
-                validationMessages: {'required': (error) => 'Requerido'},
-              ),
-              const SizedBox(height: 16),
-              ReactiveTextField<String>(
-                formControlName: 'description',
-                decoration: const InputDecoration(
-                  labelText: 'Descripción',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 2,
-              ),
-              const SizedBox(height: 16),
-              ReactiveTextField<String>(
-                formControlName: 'price',
-                validationMessages: {
-                  'required': (error) => 'Requerido',
-                  'pattern': (error) => 'Solo se permiten números',
-                },
-                decoration: const InputDecoration(
-                  labelText: 'Precio',
-                  border: OutlineInputBorder(),
-                  prefixText: '\$ ',
-                ),
-                keyboardType: TextInputType.number,
-                inputFormatters: [ThousandsSeparatorInputFormatter()],
-              ),
-            ],
-        ),
+            formControlName: 'name',
+            decoration: const InputDecoration(
+              labelText: 'Nombre del Producto',
+              border: OutlineInputBorder(),
+            ),
+            validationMessages: {'required': (error) => 'Requerido'},
+          ),
+          const SizedBox(height: 16),
+          ReactiveTextField<String>(
+            formControlName: 'description',
+            decoration: const InputDecoration(
+              labelText: 'Descripción',
+              border: OutlineInputBorder(),
+            ),
+            maxLines: 2,
+          ),
+          const SizedBox(height: 16),
+          ReactiveTextField<String>(
+            formControlName: 'price',
+            validationMessages: {
+              'required': (error) => 'Requerido',
+              'pattern': (error) => 'Solo se permiten números',
+            },
+            decoration: const InputDecoration(
+              labelText: 'Precio',
+              border: OutlineInputBorder(),
+              prefixText: '\$ ',
+            ),
+            keyboardType: TextInputType.number,
+            inputFormatters: [ThousandsSeparatorInputFormatter()],
+          ),
+        ],
+      ),
     );
   }
 }

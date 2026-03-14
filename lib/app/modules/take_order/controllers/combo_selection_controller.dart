@@ -103,8 +103,9 @@ class ComboSelectionController extends GetxController {
     final max = quantity.value;
 
     if (currentGroupTotal < max) {
-      final Map<String, int> groupMap =
-          Map<String, int>.from(selections[group.id] ?? {});
+      final Map<String, int> groupMap = Map<String, int>.from(
+        selections[group.id] ?? {},
+      );
       groupMap[option.id!] = (groupMap[option.id!] ?? 0) + 1;
       selections[group.id!] = groupMap;
     }
@@ -115,8 +116,9 @@ class ComboSelectionController extends GetxController {
 
     final count = getOptionCount(group.id, option.id);
     if (count > 0) {
-      final Map<String, int> groupMap =
-          Map<String, int>.from(selections[group.id] ?? {});
+      final Map<String, int> groupMap = Map<String, int>.from(
+        selections[group.id] ?? {},
+      );
       groupMap[option.id!] = count - 1;
       if (groupMap[option.id!] == 0) {
         groupMap.remove(option.id);

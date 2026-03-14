@@ -311,22 +311,19 @@ class TakeOrderController extends GetxController {
     }
 
     final Map<String, dynamic> orderData = {
-      "details": currentOrder.map(
-        (item) {
-          final detail = {
-            "productId": item.product.id,
-            "quantity": item.quantity,
-            "observations": item.comment ?? "",
-          };
+      "details": currentOrder.map((item) {
+        final detail = {
+          "productId": item.product.id,
+          "quantity": item.quantity,
+          "observations": item.comment ?? "",
+        };
 
-          if (item.comboSelections != null &&
-              item.comboSelections!.isNotEmpty) {
-            detail["comboSelections"] = item.comboSelections;
-          }
+        if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
+          detail["comboSelections"] = item.comboSelections;
+        }
 
-          return detail;
-        },
-      ).toList(),
+        return detail;
+      }).toList(),
       "originType": origin,
       "observations": form.control('observations').value ?? "",
     };
@@ -366,10 +363,14 @@ class TakeOrderController extends GetxController {
               onSecondaryAction: () {
                 final printerService = Get.find<PrinterService>();
                 if (printerService.isConnected.value) {
-                  Get.showSnackbar(const InfoSnackbar('Enviando a imprimir...'));
+                  Get.showSnackbar(
+                    const InfoSnackbar('Enviando a imprimir...'),
+                  );
                   printerService.printTicket(OrderTicket(order: newOrder));
                 } else {
-                  Get.showSnackbar(const ErrorSnackbar('Impresora no conectada'));
+                  Get.showSnackbar(
+                    const ErrorSnackbar('Impresora no conectada'),
+                  );
                 }
               },
             ),

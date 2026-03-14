@@ -36,8 +36,10 @@ class CustomReactiveTextField<T> extends StatelessWidget {
     this.prefixIcon,
     this.suffixIcon,
     this.readOnly = false,
-  }) : assert(formControlName != null || formControl != null,
-            'Must provide generic formControlName or formControl');
+  }) : assert(
+         formControlName != null || formControl != null,
+         'Must provide generic formControlName or formControl',
+       );
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +53,7 @@ class CustomReactiveTextField<T> extends StatelessWidget {
       maxLength: maxLength,
       validationMessages: validationMessages,
       readOnly: readOnly,
-      style: const TextStyle(fontSize: 14), 
+      style: const TextStyle(fontSize: 14),
       decoration: InputDecoration(
         labelText: labelText,
         hintText: hintText,
@@ -67,7 +69,7 @@ class CustomReactiveTextField<T> extends StatelessWidget {
         filled: true,
         fillColor: Colors.grey[50],
         contentPadding: const EdgeInsets.symmetric(
-          horizontal: 16, 
+          horizontal: 16,
           vertical: 16,
         ),
         border: OutlineInputBorder(

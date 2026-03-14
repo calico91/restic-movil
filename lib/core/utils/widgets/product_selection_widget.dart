@@ -49,19 +49,23 @@ class ProductSelectionWidget extends StatelessWidget {
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       childrenPadding: const EdgeInsets.only(left: 16),
-      children: category.subcategories?.map((subcategory) {
-        return ExpansionTile(
-          title: Text(
-            subcategory.name ?? '',
-            style: const TextStyle(fontWeight: FontWeight.w600),
-          ),
-          subtitle: Text(subcategory.description ?? ''),
-          childrenPadding: const EdgeInsets.only(left: 16),
-          children: subcategory.products?.map((product) {
-            return _buildProductRow(product);
-          }).toList() ?? [],
-        );
-      }).toList() ?? [],
+      children:
+          category.subcategories?.map((subcategory) {
+            return ExpansionTile(
+              title: Text(
+                subcategory.name ?? '',
+                style: const TextStyle(fontWeight: FontWeight.w600),
+              ),
+              subtitle: Text(subcategory.description ?? ''),
+              childrenPadding: const EdgeInsets.only(left: 16),
+              children:
+                  subcategory.products?.map((product) {
+                    return _buildProductRow(product);
+                  }).toList() ??
+                  [],
+            );
+          }).toList() ??
+          [],
     );
   }
 
@@ -72,12 +76,7 @@ class ProductSelectionWidget extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(
-            color: Colors.grey[200]!,
-            width: 1,
-          ),
-        ),
+        border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1)),
       ),
       child: Padding(
         padding: const EdgeInsets.all(8.0),
@@ -98,10 +97,7 @@ class ProductSelectionWidget extends StatelessWidget {
                   if (product.description != null)
                     Text(
                       product.description!,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey[600],
-                      ),
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                     ),
                   const SizedBox(height: 4),
                   Text(
@@ -115,10 +111,10 @@ class ProductSelectionWidget extends StatelessWidget {
                 ],
               ),
             ),
-             if (isCombo)
-               _buildComboActions(product, quantity)
-             else
-               _buildStandardActions(product),
+            if (isCombo)
+              _buildComboActions(product, quantity)
+            else
+              _buildStandardActions(product),
           ],
         ),
       ),
@@ -126,33 +122,35 @@ class ProductSelectionWidget extends StatelessWidget {
   }
 
   Widget _buildComboActions(ProductModel product, int quantity) {
-     return Column(
-       crossAxisAlignment: CrossAxisAlignment.end,
-       children: [
-         ElevatedButton(
-           onPressed: () => onIncrement(product), // Usamos onIncrement para activar el diálogo
-           style: ElevatedButton.styleFrom(
-             backgroundColor: Colors.blue[900],
-             foregroundColor: Colors.white,
-             minimumSize: const Size(80, 36),
-             padding: const EdgeInsets.symmetric(horizontal: 12),
-           ),
-           child: const Text('Configurar'),
-         ),
-         if (quantity > 0)
-           Padding(
-             padding: const EdgeInsets.only(top: 4),
-             child: Text(
-               '$quantity en pedido',
-               style: const TextStyle(
-                 fontSize: 12,
-                 color: Colors.blue, 
-                 fontWeight: FontWeight.bold
-               ),
-             ),
-           ),
-       ],
-     );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        ElevatedButton(
+          onPressed: () => onIncrement(
+            product,
+          ), // Usamos onIncrement para activar el diálogo
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.blue[900],
+            foregroundColor: Colors.white,
+            minimumSize: const Size(80, 36),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+          ),
+          child: const Text('Configurar'),
+        ),
+        if (quantity > 0)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              '$quantity en pedido',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+      ],
+    );
   }
 
   Widget _buildStandardActions(ProductModel product) {
@@ -160,10 +158,7 @@ class ProductSelectionWidget extends StatelessWidget {
       children: [
         IconButton(
           onPressed: () => onEdit(product),
-          icon: const Icon(
-            Icons.edit_note,
-            color: Colors.orange,
-          ),
+          icon: const Icon(Icons.edit_note, color: Colors.orange),
           tooltip: 'Agregar con notas',
         ),
         Container(
@@ -174,36 +169,24 @@ class ProductSelectionWidget extends StatelessWidget {
           child: Row(
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.remove,
-                  color: Colors.red,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.remove, color: Colors.red, size: 20),
                 onPressed: () => onDecrement(product),
-                constraints: const BoxConstraints(
-                  minWidth: 36,
-                  minHeight: 36,
-                ),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
               ),
-              Obx(() => Text(
-                '${getQuantity(product)}',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+              Obx(
+                () => Text(
+                  '${getQuantity(product)}',
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              )),
+              ),
               IconButton(
-                icon: const Icon(
-                  Icons.add,
-                  color: Colors.green,
-                  size: 20,
-                ),
+                icon: const Icon(Icons.add, color: Colors.green, size: 20),
                 onPressed: () => onIncrement(product),
-                constraints: const BoxConstraints(
-                  minWidth: 36,
-                  minHeight: 36,
-                ),
+                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
               ),
             ],

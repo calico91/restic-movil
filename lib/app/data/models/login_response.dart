@@ -49,17 +49,11 @@ class Branch {
   Branch({this.id, this.name});
 
   factory Branch.fromJson(Map<String, dynamic> json) {
-    return Branch(
-      id: json['id'],
-      name: json['name'],
-    );
+    return Branch(id: json['id'], name: json['name']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
+    return {'id': id, 'name': name};
   }
 }
 
@@ -70,16 +64,10 @@ class UserRole {
   UserRole({this.id, this.name});
 
   factory UserRole.fromJson(Map<String, dynamic> json) {
-    return UserRole(
-      id: json['id'],
-      name: json['name'],
-    );
+    return UserRole(id: json['id'], name: json['name']);
   }
 
   Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'name': name,
-    };
+    return {'id': id, 'name': name};
   }
 }

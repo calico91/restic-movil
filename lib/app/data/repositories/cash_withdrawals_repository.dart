@@ -24,8 +24,9 @@ class CashWithdrawalsRepository {
   /// Obtiene las fuentes de pago
   Future<List<CashWithdrawalPaymentSource>> getPaymentSources() async {
     try {
-      final response =
-          await _client.get(UrlPaths.getCashWithdrawalPaymentSources);
+      final response = await _client.get(
+        UrlPaths.getCashWithdrawalPaymentSources,
+      );
       return (response as List)
           .map((e) => CashWithdrawalPaymentSource.fromJson(e))
           .toList();
@@ -37,10 +38,7 @@ class CashWithdrawalsRepository {
   /// Registra un nuevo retiro de caja (Egreso)
   Future<void> createWithdrawal(CreateCashWithdrawalRequest request) async {
     try {
-      await _client.post(
-        UrlPaths.createCashWithdrawal,
-        body: request.toJson(),
-      );
+      await _client.post(UrlPaths.createCashWithdrawal, body: request.toJson());
     } catch (e) {
       rethrow;
     }

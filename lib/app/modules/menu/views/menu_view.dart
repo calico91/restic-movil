@@ -51,7 +51,10 @@ class MenuView extends GetView<MenuController> {
                       children: [
                         // Acciones principales de la Categoría
                         Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 16.0,
+                            vertical: 8.0,
+                          ),
                           child: Wrap(
                             alignment: WrapAlignment.spaceBetween,
                             crossAxisAlignment: WrapCrossAlignment.center,
@@ -59,11 +62,15 @@ class MenuView extends GetView<MenuController> {
                             runSpacing: 8.0,
                             children: [
                               CustomEditButton(
-                                onPressed: () => controller.showCategoryForm(category: category),
+                                onPressed: () => controller.showCategoryForm(
+                                  category: category,
+                                ),
                                 label: 'Editar Categoría',
                               ),
                               ElevatedButton.icon(
-                                onPressed: () => controller.showSubcategoryForm(categoryId: category.id ?? ''),
+                                onPressed: () => controller.showSubcategoryForm(
+                                  categoryId: category.id ?? '',
+                                ),
                                 icon: const Icon(Icons.add, size: 20),
                                 label: const Text('Subcategoría'),
                                 style: ElevatedButton.styleFrom(
@@ -74,19 +81,25 @@ class MenuView extends GetView<MenuController> {
                             ],
                           ),
                         ),
-                        
+
                         Expanded(
                           child: subcategories.isEmpty
-                              ? const Center(child: Text('No hay subcategorías'))
+                              ? const Center(
+                                  child: Text('No hay subcategorías'),
+                                )
                               : ListView.builder(
-                                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
                                   itemCount: subcategories.length,
                                   itemBuilder: (context, index) {
                                     final subcategory = subcategories[index];
                                     final products = subcategory.products ?? [];
 
                                     return Padding(
-                                      padding: const EdgeInsets.only(bottom: 16.0),
+                                      padding: const EdgeInsets.only(
+                                        bottom: 16.0,
+                                      ),
                                       child: ExpandableSection(
                                         title: subcategory.name ?? 'Sin nombre',
                                         initiallyExpanded: true,
@@ -94,85 +107,143 @@ class MenuView extends GetView<MenuController> {
                                           children: [
                                             // Acciones de la subcategoría
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 16.0,
+                                                    vertical: 8.0,
+                                                  ),
                                               child: Wrap(
-                                                alignment: WrapAlignment.spaceBetween,
-                                                crossAxisAlignment: WrapCrossAlignment.center,
+                                                alignment:
+                                                    WrapAlignment.spaceBetween,
+                                                crossAxisAlignment:
+                                                    WrapCrossAlignment.center,
                                                 spacing: 8.0,
                                                 runSpacing: 8.0,
                                                 children: [
                                                   CustomEditButton(
-                                                    onPressed: () => controller.showSubcategoryForm(
-                                                      categoryId: category.id ?? '',
-                                                      subcategory: subcategory,
-                                                    ),
+                                                    onPressed: () => controller
+                                                        .showSubcategoryForm(
+                                                          categoryId:
+                                                              category.id ?? '',
+                                                          subcategory:
+                                                              subcategory,
+                                                        ),
                                                     label: 'Editar Sub',
                                                     iconSize: 16,
                                                   ),
                                                   TextButton.icon(
-                                                    onPressed: () => controller.showProductForm(
-                                                      categoryId: category.id ?? '',
-                                                      subcategoryId: subcategory.id ?? ''
+                                                    onPressed: () => controller
+                                                        .showProductForm(
+                                                          categoryId:
+                                                              category.id ?? '',
+                                                          subcategoryId:
+                                                              subcategory.id ??
+                                                              '',
+                                                        ),
+                                                    icon: const Icon(
+                                                      Icons.add,
+                                                      size: 16,
                                                     ),
-                                                    icon: const Icon(Icons.add, size: 16),
-                                                    label: const Text('Añadir Producto'),
+                                                    label: const Text(
+                                                      'Añadir Producto',
+                                                    ),
                                                     style: TextButton.styleFrom(
-                                                      foregroundColor: const Color(0xFF0D47A1),
+                                                      foregroundColor:
+                                                          const Color(
+                                                            0xFF0D47A1,
+                                                          ),
                                                     ),
                                                   ),
                                                 ],
                                               ),
                                             ),
-                                            
+
                                             if (products.isEmpty)
                                               const Padding(
                                                 padding: EdgeInsets.all(16.0),
-                                                child: Center(child: Text('No hay productos')),
+                                                child: Center(
+                                                  child: Text(
+                                                    'No hay productos',
+                                                  ),
+                                                ),
                                               )
                                             else
                                               ListView.separated(
                                                 shrinkWrap: true,
                                                 padding: EdgeInsets.zero,
-                                                physics: const NeverScrollableScrollPhysics(),
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
                                                 itemCount: products.length,
-                                                separatorBuilder: (context, index) =>
-                                                    const Divider(height: 1),
+                                                separatorBuilder:
+                                                    (context, index) =>
+                                                        const Divider(
+                                                          height: 1,
+                                                        ),
                                                 itemBuilder: (context, productIndex) {
-                                                  final product = products[productIndex];
-                                                  final price = product.price?.amount ?? 0;
+                                                  final product =
+                                                      products[productIndex];
+                                                  final price =
+                                                      product.price?.amount ??
+                                                      0;
                                                   return ListTile(
-                                                    contentPadding: const EdgeInsets.symmetric(
-                                                      horizontal: 16,
-                                                      vertical: 0,
-                                                    ),
+                                                    contentPadding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 16,
+                                                          vertical: 0,
+                                                        ),
                                                     title: Text(
-                                                      product.name ?? 'Sin nombre',
+                                                      product.name ??
+                                                          'Sin nombre',
                                                       style: const TextStyle(
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
-                                                    subtitle: product.description != null
-                                                        ? Text(product.description!)
+                                                    subtitle:
+                                                        product.description !=
+                                                            null
+                                                        ? Text(
+                                                            product
+                                                                .description!,
+                                                          )
                                                         : null,
                                                     trailing: Row(
-                                                      mainAxisSize: MainAxisSize.min,
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
                                                       children: [
                                                         Text(
-                                                          CurrencyFormatter.toCurrency(price),
-                                                          style: const TextStyle(
-                                                            fontWeight: FontWeight.bold,
-                                                            color: Color(0xFF0D47A1),
-                                                            fontSize: 16,
+                                                          CurrencyFormatter.toCurrency(
+                                                            price,
                                                           ),
+                                                          style:
+                                                              const TextStyle(
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                                color: Color(
+                                                                  0xFF0D47A1,
+                                                                ),
+                                                                fontSize: 16,
+                                                              ),
                                                         ),
-                                                        const SizedBox(width: 8),
+                                                        const SizedBox(
+                                                          width: 8,
+                                                        ),
                                                         CustomEditButton(
                                                           iconSize: 20,
-                                                          onPressed: () => controller.showProductForm(
-                                                            categoryId: category.id ?? '',
-                                                            subcategoryId: subcategory.id ?? '', 
-                                                            product: product,
-                                                          ),
+                                                          onPressed: () => controller
+                                                              .showProductForm(
+                                                                categoryId:
+                                                                    category
+                                                                        .id ??
+                                                                    '',
+                                                                subcategoryId:
+                                                                    subcategory
+                                                                        .id ??
+                                                                    '',
+                                                                product:
+                                                                    product,
+                                                              ),
                                                         ),
                                                       ],
                                                     ),

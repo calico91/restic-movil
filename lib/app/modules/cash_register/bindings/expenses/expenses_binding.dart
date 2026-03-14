@@ -7,7 +7,8 @@ class ExpensesBinding extends Bindings {
   @override
   void dependencies() {
     Get.lazyPut<CashWithdrawalsRepository>(
-        () => CashWithdrawalsRepository(BaseHttpClient()));
+      () => CashWithdrawalsRepository(BaseHttpClient()),
+    );
     Get.lazyPut<ExpensesController>(() => ExpensesController());
   }
 }

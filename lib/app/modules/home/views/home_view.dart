@@ -25,7 +25,7 @@ class HomeView extends GetView<HomeController> {
           controller.currentIndex.value < controller.navigationItems.length
           ? controller.currentIndex.value
           : 0;
-          
+
       final currentItem = controller.navigationItems[currentIndex];
 
       return CustomScaffold(

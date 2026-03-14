@@ -47,8 +47,8 @@ class OrderDetailModel {
       servedAt: json['servedAt'],
       comboSelections: json['comboSelections'] != null
           ? (json['comboSelections'] as List)
-              .map((i) => OrderComboSelectionModel.fromJson(i))
-              .toList()
+                .map((i) => OrderComboSelectionModel.fromJson(i))
+                .toList()
           : null,
     );
   }

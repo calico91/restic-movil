@@ -47,7 +47,8 @@ class CommandsView extends GetView<CommandsController> {
                         left: 16,
                         right: 16,
                         top: 16,
-                        bottom: 100, // Espacio extra para la barra de navegación
+                        bottom:
+                            100, // Espacio extra para la barra de navegación
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: ordersList.length,

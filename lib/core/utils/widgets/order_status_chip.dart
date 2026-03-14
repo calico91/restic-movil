@@ -4,11 +4,7 @@ class OrderStatusChip extends StatelessWidget {
   final String? status;
   final String? label;
 
-  const OrderStatusChip({
-    super.key,
-    required this.status,
-    this.label,
-  });
+  const OrderStatusChip({super.key, required this.status, this.label});
 
   @override
   Widget build(BuildContext context) {
@@ -18,11 +14,15 @@ class OrderStatusChip extends StatelessWidget {
 
     if (statusUpper == 'ABIERTA' || statusUpper == 'OPEN') {
       color = Colors.orange;
-    } else if (statusUpper == 'PAGADA' || statusUpper == 'PAID' || statusUpper == 'CERRADA') {
+    } else if (statusUpper == 'PAGADA' ||
+        statusUpper == 'PAID' ||
+        statusUpper == 'CERRADA') {
       color = Colors.blue;
     } else if (statusUpper == 'FINALIZADA' || statusUpper == 'FINALIZED') {
       color = Colors.green;
-    } else if (statusUpper == 'ANULADA' || statusUpper == 'CANCELED' || statusUpper == 'CANCELADA') {
+    } else if (statusUpper == 'ANULADA' ||
+        statusUpper == 'CANCELED' ||
+        statusUpper == 'CANCELADA') {
       color = Colors.red;
     } else {
       // Intento de compatibilidad con nombres capitalizados del switch original

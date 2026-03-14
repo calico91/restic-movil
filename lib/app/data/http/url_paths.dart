@@ -46,7 +46,8 @@ class UrlPaths {
   static const String updateProduct = 'products/update'; // /:id
 
   // Cashier
-  static const String getAdminAndCashierUsers = 'users/admin-and-cashier';  static const String getUsers = 'users/all';
+  static const String getAdminAndCashierUsers = 'users/admin-and-cashier';
+  static const String getUsers = 'users/all';
   static const String createUser = 'users/create';
   static const String updateUser = 'users/update';
   static const String getUserById = 'users/get-by-id';
@@ -59,6 +60,7 @@ class UrlPaths {
 
   // Cash Withdrawals
   static const String getCashWithdrawalReasons = 'cash-withdrawals/reasons';
-  static const String getCashWithdrawalPaymentSources = 'cash-withdrawals/payment-sources';
+  static const String getCashWithdrawalPaymentSources =
+      'cash-withdrawals/payment-sources';
   static const String createCashWithdrawal = 'cash-withdrawals';
 }

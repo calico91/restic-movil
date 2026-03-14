@@ -1,8 +1,8 @@
 import 'package:flutter/widgets.dart';
 
-/// Un IndexedStack que inicializa (renderiza) a sus hijos solo hasta 
-/// el momento en que son visibles por primera vez. Esto optimiza 
-/// la memoria y el rendimiento de la aplicación, ya que los controladores 
+/// Un IndexedStack que inicializa (renderiza) a sus hijos solo hasta
+/// el momento en que son visibles por primera vez. Esto optimiza
+/// la memoria y el rendimiento de la aplicación, ya que los controladores
 /// y widgets de las pestañas ocultas no se cargan automáticamente al inicio.
 class LazyIndexedStack extends StatefulWidget {
   final int index;

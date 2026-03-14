@@ -56,10 +56,12 @@ class ExpensesView extends GetView<ExpensesController> {
                   formControlName: 'reason',
                   labelText: 'Motivo *',
                   items: controller.reasons
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.description),
-                          ))
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e.description),
+                        ),
+                      )
                       .toList(),
                   validationMessages: {
                     ValidationMessage.required: (error) =>
@@ -73,10 +75,12 @@ class ExpensesView extends GetView<ExpensesController> {
                   formControlName: 'paymentSource',
                   labelText: 'Medio de Pago *',
                   items: controller.paymentSources
-                      .map((e) => DropdownMenuItem(
-                            value: e,
-                            child: Text(e.description),
-                          ))
+                      .map(
+                        (e) => DropdownMenuItem(
+                          value: e,
+                          child: Text(e.description),
+                        ),
+                      )
                       .toList(),
                   validationMessages: {
                     ValidationMessage.required: (error) =>

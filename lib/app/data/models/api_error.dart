@@ -4,12 +4,7 @@ class ApiError {
   final String? recommendation;
   final int? status;
 
-  ApiError({
-    this.code,
-    this.error,
-    this.recommendation,
-    this.status,
-  });
+  ApiError({this.code, this.error, this.recommendation, this.status});
 
   factory ApiError.fromJson(Map<String, dynamic> json) {
     return ApiError(

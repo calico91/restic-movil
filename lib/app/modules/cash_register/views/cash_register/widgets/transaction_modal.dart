@@ -159,9 +159,7 @@ class TransactionModal extends StatelessWidget {
     );
   }
 
-  Widget _buildPaymentMethodsSection(
-    FormGroup form,
-  ) {
+  Widget _buildPaymentMethodsSection(FormGroup form) {
     // Access the FormArray called 'payments'
     final paymentsArray =
         form.control('payments') as FormArray<Map<String, dynamic>>;
@@ -201,7 +199,9 @@ class TransactionModal extends StatelessWidget {
                       validators: [Validators.required],
                     ),
                     'amount': FormControl<String>(
-                      value: CurrencyFormatter.toCurrency(remaining).replaceAll('\$', '').trim(),
+                      value: CurrencyFormatter.toCurrency(
+                        remaining,
+                      ).replaceAll('\$', '').trim(),
                       validators: [Validators.required],
                     ),
                     'cardLastFour': FormControl<String>(),
@@ -380,23 +380,11 @@ class TransactionModal extends StatelessWidget {
             _summaryRow('Total Pedido:', orderTotal),
             _summaryRow('Propina:', tip),
             const Divider(),
-            _summaryRow(
-              'Total a Pagar:',
-              orderTotal + tip,
-              isBold: true,
-            ),
+            _summaryRow('Total a Pagar:', orderTotal + tip, isBold: true),
             const SizedBox(height: 10),
-            _summaryRow(
-              'Total Cubierto:',
-              totalPaid,
-              color: Colors.blue,
-            ),
+            _summaryRow('Total Cubierto:', totalPaid, color: Colors.blue),
             if (difference < 0)
-              _summaryRow(
-                'Faltante:',
-                difference.abs(),
-                color: Colors.red,
-              )
+              _summaryRow('Faltante:', difference.abs(), color: Colors.red)
             else
               _summaryRow(
                 'Cambio / Devolución:',

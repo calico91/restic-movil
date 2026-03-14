@@ -54,7 +54,12 @@ class UserModel {
   }
 
   String get fullName {
-    final parts = [name, secondName, lastName, secondLastName].where((e) => e != null && e.isNotEmpty);
+    final parts = [
+      name,
+      secondName,
+      lastName,
+      secondLastName,
+    ].where((e) => e != null && e.isNotEmpty);
     return parts.join(' ');
   }
 }

@@ -8,7 +8,7 @@ import 'package:restic_movil/app/modules/take_order/controllers/combo_selection_
 class ComboSelectionDialog extends StatelessWidget {
   final ProductModel product;
   final Function(ProductModel, int, String, List<Map<String, String>>, double)
-      onConfirm;
+  onConfirm;
 
   const ComboSelectionDialog({
     super.key,
@@ -58,30 +58,37 @@ class ComboSelectionDialog extends StatelessWidget {
                 const SizedBox(height: 16),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: Obx(() => Text(
-                        'Total: \$${controller.totalPrice.toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      )),
+                  child: Obx(
+                    () => Text(
+                      'Total: \$${controller.totalPrice.toStringAsFixed(0)}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                      ),
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
           actions: [
             TextButton(
-                onPressed: () => Get.back(), child: const Text('Cancelar')),
-            Obx(() => ElevatedButton(
-                  onPressed: controller.isValid ? controller.submit : null,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor:
-                        controller.isValid ? Colors.blue[900] : Colors.grey,
-                    foregroundColor: Colors.white,
-                  ),
-                  child: const Text('Agregar'),
-                )),
+              onPressed: () => Get.back(),
+              child: const Text('Cancelar'),
+            ),
+            Obx(
+              () => ElevatedButton(
+                onPressed: controller.isValid ? controller.submit : null,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: controller.isValid
+                      ? Colors.blue[900]
+                      : Colors.grey,
+                  foregroundColor: Colors.white,
+                ),
+                child: const Text('Agregar'),
+              ),
+            ),
           ],
         );
       },
@@ -107,13 +114,15 @@ class ComboSelectionDialog extends StatelessWidget {
                 icon: const Icon(Icons.remove, color: Colors.blue),
                 onPressed: () => controller.updateQuantity(-1),
               ),
-              Obx(() => Text(
-                    '${controller.quantity.value}',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
-                  )),
+              Obx(
+                () => Text(
+                  '${controller.quantity.value}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
+                ),
+              ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.blue),
                 onPressed: () => controller.updateQuantity(1),
@@ -126,7 +135,9 @@ class ComboSelectionDialog extends StatelessWidget {
   }
 
   Widget _buildGroupSection(
-      ComboGroupModel group, ComboSelectionController controller) {
+    ComboGroupModel group,
+    ComboSelectionController controller,
+  ) {
     final options = group.options ?? [];
     options.sort(
       (a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0),

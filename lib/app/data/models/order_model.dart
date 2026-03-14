@@ -47,8 +47,8 @@ class OrderModel {
       total: (json['total'] as num?)?.toDouble(),
       details: json['details'] != null
           ? (json['details'] as List)
-              .map((i) => OrderDetailModel.fromJson(i))
-              .toList()
+                .map((i) => OrderDetailModel.fromJson(i))
+                .toList()
           : null,
     );
   }

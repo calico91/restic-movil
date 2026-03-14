@@ -7,9 +7,7 @@ import '../../cash_register/bindings/cash_register_binding.dart';
 class HomeBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<HomeController>(
-      () => HomeController(),
-    );
+    Get.lazyPut<HomeController>(() => HomeController());
     OrdersBinding().dependencies();
     CashRegisterBinding().dependencies();
     CommandsBinding().dependencies();

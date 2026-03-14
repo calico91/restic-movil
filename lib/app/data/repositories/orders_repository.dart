@@ -50,7 +50,6 @@ class OrdersRepository {
     List<Map<String, dynamic>> items,
     String status,
   ) async {
-    
     final data = {'details': items, 'status': status};
     await _client.put(UrlPaths.updateOrderDetailStatus, body: data);
   }

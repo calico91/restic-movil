@@ -1,7 +1,6 @@
-import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+﻿import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
-import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
 class OrderTicket implements PrintableTicket {
@@ -16,84 +15,77 @@ class OrderTicket implements PrintableTicket {
         ? dateFormat.format(DateTime.parse(order.openingDate!))
         : dateFormat.format(DateTime.now());
 
-    // ENCABEZADO
+    // TICKET DE COCINA
     printer.printNewLine();
-    printer.printCustom("RESTIC MOVIL", 3, 1);
-    printer.printNewLine();
-    printer.printCustom("Comprobante de Venta", 1, 1);
+    printer.printCustom("TICKET DE COCINA", 3, 1);
     printer.printNewLine();
 
     // INFO DE LA ORDEN
-    printer.printLeftRight(
-      "Orden: #${order.orderNumber}",
-      "Fecha: $date",
-      1,
-    );
+    printer.printCustom("Orden: #${order.orderNumber}", 1, 0);
+    printer.printCustom("Fecha: $date", 1, 0);
+    printer.printCustom("Origen: ${order.originType ?? 'N/A'}", 1, 0);
 
-    String originLabel = "Origen: ${order.originType ?? 'N/A'}";
-    if (order.originType == 'SALON' || order.originType == 'MESA') {
+    String extraInfo = "";
+    if (order.originType == 'SALON') {
       final tables = order.tables?.map((e) => e.name).join(', ') ?? 'N/A';
-      originLabel = "Mesa: $tables";
+      extraInfo = "Mesas: $tables";
+    } else if (order.originType == 'DELIVERY' ||
+        order.originType == 'TAKE_AWAY') {
+      extraInfo = "Cliente: ${order.customerName ?? 'N/A'}";
     } else if (order.customerName != null) {
-      originLabel = "Cliente: ${order.customerName}";
+      extraInfo = "Cliente: ${order.customerName}";
     }
 
-    printer.printCustom(originLabel, 1, 0);
+    if (extraInfo.isNotEmpty) {
+      printer.printCustom(extraInfo, 1, 0);
+    }
 
     if (order.observations != null && order.observations!.trim().isNotEmpty) {
-      printer.printCustom("Notas: ${order.observations}", 1, 0);
+      printer.printNewLine();
+      printer.printCustom("OBSERVACION GENERAL:", 1, 1);
+      printer.printCustom(order.observations!, 1, 1);
+      printer.printNewLine();
     }
 
     printer.printCustom("--------------------------------", 1, 1);
 
-    // PRODUCTOS
-    printer.printLeftRight(
-      "Producto",
-      "Subtotal",
-      1,
-      format: "%-20s %10s %n",
-    );
+    // PRODUCTOS A PREPARAR
+    printer.printCustom("CANT.   PRODUCTO", 2, 0);
     printer.printCustom("--------------------------------", 1, 1);
 
     final details = order.details ?? [];
     for (var item in details) {
-      String itemName = "${item.quantity}x ${item.productName ?? 'P.'}";
-      if (itemName.length > 20) {
-        itemName = itemName.substring(0, 19);
-      }
-      String itemTotal = CurrencyFormatter.toCurrency(item.subtotal ?? 0);
+      // Nombre y cantidad resaltados
+      String itemName = "${item.quantity}x  ${item.productName ?? 'Producto'}";
+      printer.printCustom(
+        itemName,
+        2,
+        0,
+      ); // Texto más grande para productos en cocina
 
-      printer.printLeftRight(itemName, itemTotal, 1);
-
-      // Imprimir observaciones del producto si existen
-      if (item.observations != null && item.observations!.trim().isNotEmpty) {
-        printer.printCustom("  * Nota: ${item.observations}", 1, 0);
-      }
-
-      // Imprimir selecciones del combo si existen
+      // Imprimir selecciones del combo si existen (Opciones del menú)
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
         for (var combo in item.comboSelections!) {
           String comboName =
-              "  > ${combo.quantity ?? 1}x ${combo.selectedProductName ?? 'Extra'}";
+              "    > ${combo.quantity ?? 1}x ${combo.selectedProductName ?? 'Extra'}";
           printer.printCustom(comboName, 1, 0);
         }
       }
+
+      // Imprimir observaciones específicas del producto debajo de las selecciones
+      if (item.observations != null && item.observations!.trim().isNotEmpty) {
+        printer.printCustom("    [Nota: ${item.observations}]", 1, 0);
+      }
+
+      printer.printNewLine();
     }
 
     printer.printCustom("--------------------------------", 1, 1);
-
-    // TOTALES
-    final totalStr = CurrencyFormatter.toCurrency(order.total ?? 0);
-    printer.printLeftRight("TOTAL:", totalStr, 2);
-    printer.printNewLine();
-
-    // PIE DE PÁGINA
-    printer.printCustom("¡Gracias por su compra!", 1, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();
 
-    // CORTAR PAPEL Y ABRIR CAJA (Dependiendo de la impresora)
+    // CORTAR PAPEL
     printer.paperCut();
   }
 }
