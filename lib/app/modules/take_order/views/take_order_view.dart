@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
+import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/salon/table_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/take_away_delivery/customer_card_widget.dart';
@@ -26,6 +28,19 @@ class TakeOrderView extends GetView<TakeOrderController> {
       title: 'Tomar Pedido',
       showBackButton: true,
       onBack: controller.goBack,
+      actions: [
+        Obx(() {
+          final printerService = Get.find<PrinterService>();
+          final isConnected = printerService.isConnected.value;
+          return IconButton(
+            icon: Icon(
+              Icons.print,
+              color: isConnected ? Colors.greenAccent : Colors.redAccent,
+            ),
+            onPressed: () => Get.toNamed(Routes.PRINTER_SETTINGS),
+          );
+        }),
+      ],
       floatingActionButton: _buildFloatingActionButton(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24.0),

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
+import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/lazy_indexed_stack.dart';
 
@@ -27,10 +29,29 @@ class HomeView extends GetView<HomeController> {
           : 0;
 
       final currentItem = controller.navigationItems[currentIndex];
+      final showPrinterIcon =
+          currentItem.title == 'Pedidos' || currentItem.title == 'Caja';
 
       return CustomScaffold(
         title: currentItem.title,
         drawer: const CustomDrawer(),
+        actions: showPrinterIcon
+            ? [
+                Obx(() {
+                  final printerService = Get.find<PrinterService>();
+                  final isConnected = printerService.isConnected.value;
+                  return IconButton(
+                    icon: Icon(
+                      Icons.print,
+                      color: isConnected
+                          ? Colors.greenAccent
+                          : Colors.redAccent,
+                    ),
+                    onPressed: () => Get.toNamed(Routes.PRINTER_SETTINGS),
+                  );
+                }),
+              ]
+            : null,
         body: LazyIndexedStack(
           index: currentIndex,
           children: controller.navigationItems.map((e) => e.view).toList(),
