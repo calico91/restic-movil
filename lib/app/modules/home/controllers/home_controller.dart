@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_register_view.dart';
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
-import 'package:restic_movil/app/routes/app_routes.dart';
-import 'package:restic_movil/core/utils/modals/modal_warning.dart';
 
 class NavigationItem {
   final String title;
@@ -31,39 +28,6 @@ class HomeController extends GetxController {
   void onInit() {
     super.onInit();
     _loadNavigationItems();
-  }
-
-  @override
-  void onReady() {
-    super.onReady();
-    _checkPrinterConfig();
-  }
-
-  /*metodo para verificar si hay una impresora configurada */
-  Future<void> _checkPrinterConfig() async {
-    // Agregamos un pequeño delay para asegurar que la vista ya se renderizó y
-    // dar algo de tiempo por si la conexión auto a la impresora está en proceso
-    await Future.delayed(const Duration(milliseconds: 1500));
-    final printer = await _storageService.getPrinterDevice();
-    final printerService = Get.find<PrinterService>();
-
-    if (printer == null || !printerService.isConnected.value) {
-      if (Get.isDialogOpen == false) {
-        Get.dialog(
-          ModalWarning(
-            title: 'Impresora no conectada',
-            message:
-                'No tienes una impresora conectada. Se recomienda configurarla antes de tomar pedidos.',
-            buttonText: 'Cerrar',
-            secondaryButtonText: 'Configurar',
-            onSecondaryAction: () {
-              Get.back();
-              Get.toNamed(Routes.PRINTER_SETTINGS);
-            },
-          ),
-        );
-      }
-    }
   }
 
   /*metodo para validar roles y cargar items de navegación */
