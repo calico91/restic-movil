@@ -2,6 +2,7 @@
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
+import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
 
 class OrderTicket implements PrintableTicket {
   final OrderModel order;
@@ -21,9 +22,9 @@ class OrderTicket implements PrintableTicket {
     printer.printNewLine();
 
     // INFO DE LA ORDEN
-    printer.printCustom("Orden: #${order.orderNumber}", 1, 0);
-    printer.printCustom("Fecha: $date", 1, 0);
-    printer.printCustom("Origen: ${order.originType ?? 'N/A'}", 1, 0);
+    printer.printCustom("Orden: #${order.orderNumber}".withoutDiacritics, 1, 0);
+    printer.printCustom("Fecha: $date".withoutDiacritics, 1, 0);
+    printer.printCustom("Origen: ${order.originType ?? 'N/A'}".withoutDiacritics, 1, 0);
 
     String extraInfo = "";
     if (order.originType == 'SALON') {
@@ -37,13 +38,13 @@ class OrderTicket implements PrintableTicket {
     }
 
     if (extraInfo.isNotEmpty) {
-      printer.printCustom(extraInfo, 1, 0);
+      printer.printCustom(extraInfo.withoutDiacritics, 1, 0);
     }
 
     if (order.observations != null && order.observations!.trim().isNotEmpty) {
       printer.printNewLine();
       printer.printCustom("OBSERVACION GENERAL:", 1, 1);
-      printer.printCustom(order.observations!, 1, 1);
+      printer.printCustom(order.observations!.withoutDiacritics, 1, 1);
       printer.printNewLine();
     }
 
@@ -58,7 +59,7 @@ class OrderTicket implements PrintableTicket {
       // Nombre y cantidad resaltados
       String itemName = "${item.quantity}x  ${item.productName ?? 'Producto'}";
       printer.printCustom(
-        itemName,
+        itemName.withoutDiacritics,
         2,
         0,
       ); // Texto más grande para productos en cocina
@@ -68,13 +69,13 @@ class OrderTicket implements PrintableTicket {
         for (var combo in item.comboSelections!) {
           String comboName =
               "    > ${combo.quantity ?? 1}x ${combo.selectedProductName ?? 'Extra'}";
-          printer.printCustom(comboName, 1, 0);
+          printer.printCustom(comboName.withoutDiacritics, 1, 0);
         }
       }
 
       // Imprimir observaciones específicas del producto debajo de las selecciones
       if (item.observations != null && item.observations!.trim().isNotEmpty) {
-        printer.printCustom("    [Nota: ${item.observations}]", 1, 0);
+        printer.printCustom("    [Nota: ${item.observations}]".withoutDiacritics, 1, 0);
       }
 
       printer.printNewLine();
