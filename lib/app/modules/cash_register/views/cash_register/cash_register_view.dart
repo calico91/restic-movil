@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
-import 'package:restic_movil/core/utils/widgets/order_payment_card.dart';
+import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
+import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
 
 class CashRegisterView extends GetView<CashRegisterController> {
   const CashRegisterView({super.key});
@@ -61,14 +62,18 @@ class CashRegisterView extends GetView<CashRegisterController> {
                       itemCount: orders.length,
                       itemBuilder: (context, index) {
                         final order = orders[index];
-                        return OrderPaymentCard(
+                        return GlobalOrderCard(
                           order: order,
-                          showPaymentButton: controller.currentTab.value == 0,
-                          onTap: () {
-                            if (controller.currentTab.value == 0) {
-                              controller.showTransactionModal(order);
-                            }
-                          },
+                          detailsText: 'Detalle Pedido',
+                          onDetailsPressed: () => GlobalOrderDetailsModal.show(
+                            context: context,
+                            order: order,
+                            isReadOnly: true,
+                          ),
+                          actionText: 'Pagar',
+                          onActionPressed: controller.currentTab.value == 0
+                              ? () => controller.showTransactionModal(order)
+                              : null,
                         );
                       },
                     ),
