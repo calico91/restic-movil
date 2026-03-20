@@ -260,18 +260,14 @@ class CashRegisterController extends GetxController {
           // 4. Success handling
           Get.back(); // Close TransactionModal
 
-          final format = NumberFormat.currency(
-            locale: 'es_CO',
-            symbol: '\$',
-            decimalDigits: 0,
-          );
+          final format = NumberFormat.decimalPattern('es_CO');
 
           final change = modelResponse.change ?? 0.0;
 
           Get.dialog(
             ModalInfo(
               title: 'Pago realizado correctamente',
-              message: 'Valor a devolver: ${format.format(change)}\nFactura N°: ${modelResponse.transactionNumber ?? ''}',
+              message: 'Valor a devolver: \$${format.format(change)}\nFactura N°: ${modelResponse.transactionNumber ?? ''}',
               buttonText: 'Cerrar',
               secondaryButtonText: 'Imprimir Factura',
               onSecondaryAction: () {
