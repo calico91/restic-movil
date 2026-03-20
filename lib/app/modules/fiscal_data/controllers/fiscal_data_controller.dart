@@ -41,24 +41,22 @@ class FiscalDataController extends GetxController {
       ),
       'taxId': FormControl<String>(
         validators: [
-          Validators.required,
           Validators.maxLength(15),
-          Validators.minLength(6),
           Validators.pattern(RegExp(r'^[0-9]+$')),
         ],
       ),
       'taxIdDigit': FormControl<String>(validators: [Validators.maxLength(2)]),
       'address': FormControl<String>(
-        validators: [Validators.required, Validators.maxLength(300)],
+        validators: [Validators.maxLength(300)],
       ),
       'city': FormControl<String>(
-        validators: [Validators.required, Validators.maxLength(100)],
+        validators: [Validators.maxLength(100)],
       ),
       'department': FormControl<String>(
         validators: [Validators.maxLength(100)],
       ),
       'dianResolution': FormControl<String>(
-        validators: [Validators.required, Validators.maxLength(100)],
+        validators: [Validators.maxLength(100)],
       ),
       'resolutionStartDate': FormControl<String>(),
       'resolutionEndDate': FormControl<String>(),
@@ -67,15 +65,16 @@ class FiscalDataController extends GetxController {
       ),
       'resolutionNumberFrom': FormControl<int>(),
       'resolutionNumberTo': FormControl<int>(),
-      'taxRegime': FormControl<String>(validators: [Validators.required]),
+      'taxRegime': FormControl<String>(),
       'email': FormControl<String>(
         validators: [
-          Validators.required,
           Validators.email,
           Validators.maxLength(100),
         ],
       ),
-      'phone': FormControl<String>(validators: [Validators.maxLength(20)]),
+      'phone': FormControl<String>(
+        validators: [Validators.required, Validators.maxLength(20)],
+      ),
       'website': FormControl<String>(validators: [Validators.maxLength(200)]),
     });
   }

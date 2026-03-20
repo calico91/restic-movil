@@ -47,11 +47,9 @@ class FiscalDataView extends GetView<FiscalDataController> {
                     flex: 3,
                     child: CustomReactiveTextField<String>(
                       formControlName: 'taxId',
-                      labelText: 'NIT (Sin dígito) *',
+                      labelText: 'NIT (Sin dígito)',
                       keyboardType: TextInputType.number,
                       validationMessages: {
-                        ValidationMessage.required: (error) =>
-                            'El NIT es obligatorio',
                         ValidationMessage.pattern: (error) =>
                             'Solo debe contener números',
                         ValidationMessage.minLength: (error) =>
@@ -73,11 +71,7 @@ class FiscalDataView extends GetView<FiscalDataController> {
               const SizedBox(height: 16),
               CustomReactiveTextField<String>(
                 formControlName: 'dianResolution',
-                labelText: 'Resolución DIAN *',
-                validationMessages: {
-                  ValidationMessage.required: (error) =>
-                      'La resolución es obligatoria',
-                },
+                labelText: 'Resolución DIAN',
               ),
               const SizedBox(height: 16),
               Row(
@@ -109,17 +103,13 @@ class FiscalDataView extends GetView<FiscalDataController> {
               const SizedBox(height: 16),
               CustomReactiveDropdownField<String>(
                 formControlName: 'taxRegime',
-                labelText: 'Régimen Tributario *',
+                labelText: 'Régimen Tributario',
                 items: controller.taxRegimes.map((regime) {
                   return DropdownMenuItem(
                     value: regime,
                     child: Text(regime.replaceAll('_', ' ')),
                   );
                 }).toList(),
-                validationMessages: {
-                  ValidationMessage.required: (error) =>
-                      'El régimen es obligatorio',
-                },
               ),
               const SizedBox(height: 16),
               const Divider(),
@@ -135,11 +125,9 @@ class FiscalDataView extends GetView<FiscalDataController> {
               const SizedBox(height: 16),
               CustomReactiveTextField<String>(
                 formControlName: 'email',
-                labelText: 'Correo Electrónico *',
+                labelText: 'Correo Electrónico',
                 keyboardType: TextInputType.emailAddress,
                 validationMessages: {
-                  ValidationMessage.required: (error) =>
-                      'El correo es obligatorio',
                   ValidationMessage.email: (error) =>
                       'Ingrese un correo válido',
                 },
@@ -147,17 +135,17 @@ class FiscalDataView extends GetView<FiscalDataController> {
               const SizedBox(height: 16),
               CustomReactiveTextField<String>(
                 formControlName: 'phone',
-                labelText: 'Teléfono',
+                labelText: 'Teléfono *',
                 keyboardType: TextInputType.phone,
+                validationMessages: {
+                  ValidationMessage.required: (error) =>
+                      'El teléfono es obligatorio',
+                },
               ),
               const SizedBox(height: 16),
               CustomReactiveTextField<String>(
                 formControlName: 'address',
-                labelText: 'Dirección Fiscal *',
-                validationMessages: {
-                  ValidationMessage.required: (error) =>
-                      'La dirección es obligatoria',
-                },
+                labelText: 'Dirección Fiscal',
               ),
               const SizedBox(height: 16),
               Row(
@@ -165,11 +153,7 @@ class FiscalDataView extends GetView<FiscalDataController> {
                   Expanded(
                     child: CustomReactiveTextField<String>(
                       formControlName: 'city',
-                      labelText: 'Ciudad *',
-                      validationMessages: {
-                        ValidationMessage.required: (error) =>
-                            'La ciudad es obligatoria',
-                      },
+                      labelText: 'Ciudad',
                     ),
                   ),
                   const SizedBox(width: 16),

@@ -27,37 +27,50 @@ class TransactionTicket implements PrintableTicket {
     // DATOS FISCALES
     if (transaction.fiscalData != null) {
       final fiscal = transaction.fiscalData!;
-      if (fiscal.businessName != null) {
+      if (fiscal.businessName != null && fiscal.businessName!.trim().isNotEmpty) {
         printer.printCustom(fiscal.businessName!.withoutDiacritics, 3, 1);
       }
       
-      if (fiscal.taxId != null) {
-        printer.printCustom("NIT: ${fiscal.taxId}-${fiscal.taxIdDigit ?? ''}".withoutDiacritics, 1, 1);
+      if (fiscal.taxId != null && fiscal.taxId!.trim().isNotEmpty) {
+        String digit = (fiscal.taxIdDigit != null && fiscal.taxIdDigit!.trim().isNotEmpty) ? "-${fiscal.taxIdDigit}" : "";
+        printer.printCustom("NIT: ${fiscal.taxId}$digit".withoutDiacritics, 1, 1);
       }
       
-      if (fiscal.address != null) {
+      if (fiscal.address != null && fiscal.address!.trim().isNotEmpty) {
         printer.printCustom(fiscal.address!.withoutDiacritics, 1, 1);
       }
       
-      if (fiscal.city != null || fiscal.department != null) {
-        printer.printCustom("${fiscal.city ?? ''} - ${fiscal.department ?? ''}".withoutDiacritics, 1, 1);
+      String cityDept = '';
+      if (fiscal.city != null && fiscal.city!.trim().isNotEmpty) {
+        cityDept = fiscal.city!;
+      }
+      if (fiscal.department != null && fiscal.department!.trim().isNotEmpty) {
+        cityDept += cityDept.isEmpty ? fiscal.department! : " - ${fiscal.department}";
+      }
+      if (cityDept.isNotEmpty) {
+        printer.printCustom(cityDept.withoutDiacritics, 1, 1);
       }
       
-      if (fiscal.phone != null) {
+      if (fiscal.phone != null && fiscal.phone!.trim().isNotEmpty) {
         printer.printCustom("Tel: ${fiscal.phone}".withoutDiacritics, 1, 1);
       }
 
       printer.printNewLine();
 
-      if (fiscal.dianResolution != null) {
+      if (fiscal.dianResolution != null && fiscal.dianResolution!.trim().isNotEmpty) {
         printer.printCustom("Resolucion DIAN: ${fiscal.dianResolution}".withoutDiacritics, 1, 1);
-        printer.printCustom("Autorizacion del ${fiscal.resolutionNumberFrom ?? ''} al ${fiscal.resolutionNumberTo ?? ''}".withoutDiacritics, 1, 1);
-        if (fiscal.resolutionStartDate != null && fiscal.resolutionEndDate != null) {
+        
+        if (fiscal.resolutionNumberFrom != null && fiscal.resolutionNumberTo != null) {
+          printer.printCustom("Autorizacion del ${fiscal.resolutionNumberFrom} al ${fiscal.resolutionNumberTo}".withoutDiacritics, 1, 1);
+        }
+        
+        if (fiscal.resolutionStartDate != null && fiscal.resolutionEndDate != null && 
+            fiscal.resolutionStartDate!.trim().isNotEmpty && fiscal.resolutionEndDate!.trim().isNotEmpty) {
           printer.printCustom("Vigencia: ${fiscal.resolutionStartDate} al ${fiscal.resolutionEndDate}".withoutDiacritics, 1, 1);
         }
       }
 
-      if (fiscal.taxRegime != null) {
+      if (fiscal.taxRegime != null && fiscal.taxRegime!.trim().isNotEmpty) {
         printer.printCustom("Regimen: ${fiscal.taxRegime}".withoutDiacritics, 1, 1);
       }
     } else {
@@ -69,7 +82,6 @@ class TransactionTicket implements PrintableTicket {
     // INFO DE LA TRANSACCION
     printer.printCustom("FACTURA DE VENTA: ${transaction.transactionNumber ?? ''}".withoutDiacritics, 1, 0);
     printer.printCustom("Fecha: $date".withoutDiacritics, 1, 0);
-    printer.printCustom("Cajero: ${transaction.cashierId ?? 'N/A'}".withoutDiacritics, 1, 0); // Idealmente cambiar por nombre si viene
     
     if (transaction.waiterName != null) {
       printer.printCustom("Mesero: ${transaction.waiterName}".withoutDiacritics, 1, 0);
