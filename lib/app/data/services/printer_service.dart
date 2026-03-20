@@ -81,7 +81,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         }
       }
 
-      bluetooth.onStateChanged().listen((state) {
+      bluetooth.onStateChanged().listen((state) async {
         switch (state) {
           case BlueThermalPrinter.CONNECTED:
             isConnected.value = true;
@@ -98,21 +98,21 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
             isConnected.value = false;
             isBluetoothOn.value = false;
             try {
-              bluetooth.disconnect();
+              await bluetooth.disconnect();
             } catch (_) {}
             break;
           case BlueThermalPrinter.STATE_OFF:
             isConnected.value = false;
             isBluetoothOn.value = false;
             try {
-              bluetooth.disconnect();
+              await bluetooth.disconnect();
             } catch (_) {}
             break;
           case BlueThermalPrinter.STATE_ON:
             isBluetoothOn.value = true;
             isConnected.value = false;
             try {
-              bluetooth.disconnect();
+              await bluetooth.disconnect();
             } catch (_) {}
             getDevices();
             break;

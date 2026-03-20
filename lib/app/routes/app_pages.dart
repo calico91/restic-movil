@@ -19,6 +19,8 @@ import '../modules/users/bindings/users_binding.dart';
 import '../modules/users/views/users_view.dart';
 import '../modules/printer_settings/bindings/printer_settings_binding.dart';
 import '../modules/printer_settings/views/printer_settings_view.dart';
+import '../modules/fiscal_data/bindings/fiscal_data_binding.dart';
+import '../modules/fiscal_data/views/fiscal_data_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -74,6 +76,11 @@ class AppPages {
       name: Routes.PRINTER_SETTINGS,
       page: () => const PrinterSettingsView(),
       binding: PrinterSettingsBinding(),
+    ),
+    GetPage(
+      name: Routes.FISCAL_DATA,
+      page: () => const FiscalDataView(),
+      binding: FiscalDataBinding(),
     ),
   ];
 }

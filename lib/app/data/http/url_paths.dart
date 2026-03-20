@@ -63,4 +63,12 @@ class UrlPaths {
   static const String getCashWithdrawalPaymentSources =
       'cash-withdrawals/payment-sources';
   static const String createCashWithdrawal = 'cash-withdrawals';
+
+  // Fiscal Data
+  static const String fiscalDataCreate = 'fiscal-data/create';
+  static const String fiscalDataUpdate = 'fiscal-data'; // put /id
+  static const String fiscalDataActive = 'fiscal-data/active'; // ?branchId=
+  static const String fiscalDataGet = 'fiscal-data'; // get /id
+  static const String fiscalDataAll = 'fiscal-data/all'; // ?branchId=
+  static const String fiscalDataDeactivate = 'fiscal-data'; // patch /id/deactivate
 }

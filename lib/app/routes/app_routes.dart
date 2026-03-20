@@ -9,4 +9,5 @@ abstract class Routes {
   static const EXPENSES = '/cash-register/expenses';
   static const CUSTOMERS = '/customers';
   static const PRINTER_SETTINGS = '/settings/printer';
+  static const FISCAL_DATA = '/settings/fiscal-data';
 }

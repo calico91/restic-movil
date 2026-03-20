@@ -11,6 +11,7 @@ class CustomScaffold extends StatelessWidget {
   final Widget? drawer;
   final Widget? floatingActionButton;
   final Color backgroundColor;
+  final bool resizeToAvoidBottomInset;
 
   const CustomScaffold({
     super.key,
@@ -23,6 +24,7 @@ class CustomScaffold extends StatelessWidget {
     this.drawer,
     this.floatingActionButton,
     this.backgroundColor = const Color(0xFFF5F6FA),
+    this.resizeToAvoidBottomInset = false,
   });
 
   @override
@@ -31,7 +33,7 @@ class CustomScaffold extends StatelessWidget {
       extendBodyBehindAppBar: true,
       extendBody: true,
       backgroundColor: backgroundColor,
-      resizeToAvoidBottomInset: false, // Prevents resizing when keyboard opens
+      resizeToAvoidBottomInset: resizeToAvoidBottomInset,
       appBar: CustomAppBar(
         title: title,
         showBackButton: showBackButton,
