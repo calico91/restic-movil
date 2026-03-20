@@ -139,6 +139,13 @@ class BaseHttpClient {
     final jsonResponse = _decodeBody(response.body);
     final url = response.request?.url.toString() ?? '';
 
+    debugPrint('=== API RESPONSE ===');
+    debugPrint('URL: $url');
+    debugPrint('Method: ${response.request?.method}');
+    debugPrint('Status Code: $statusCode');
+    debugPrint('Response Body: $jsonResponse');
+    debugPrint('====================');
+
     if (statusCode >= 200 && statusCode < 300) {
       return jsonResponse;
     } else {

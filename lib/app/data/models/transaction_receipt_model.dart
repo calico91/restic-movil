@@ -184,12 +184,14 @@ class TransactionItemModel {
 class PaymentDetailModel {
   final String? id;
   final String? paymentMethod;
+  final String? paymentMethodDescription;
   final double? amount;
   final String? currency;
 
   PaymentDetailModel({
     this.id,
     this.paymentMethod,
+    this.paymentMethodDescription,
     this.amount,
     this.currency,
   });
@@ -198,6 +200,7 @@ class PaymentDetailModel {
     return PaymentDetailModel(
       id: json['id'],
       paymentMethod: json['paymentMethod'],
+      paymentMethodDescription: json['paymentMethodDescription'],
       amount: json['amount']?.toDouble(),
       currency: json['currency'],
     );
