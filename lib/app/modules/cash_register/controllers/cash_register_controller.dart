@@ -16,6 +16,9 @@ import 'package:restic_movil/app/modules/cash_register/views/cash_register/widge
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
+import 'package:restic_movil/core/utils/printers/tickets/transaction_ticket.dart';
+import 'package:restic_movil/app/data/services/printer_service.dart';
 
 class CashRegisterController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -23,6 +26,7 @@ class CashRegisterController extends GetxController {
   final TransactionsRepository transactionsRepository;
   final StorageService _storageService = Get.find<StorageService>();
   final WebSocketService _webSocketService = Get.find<WebSocketService>();
+  final PrinterService _printerService = Get.find<PrinterService>();
 
   CashRegisterController({
     required this.ordersRepository,
@@ -251,6 +255,8 @@ class CashRegisterController extends GetxController {
             request,
           );
 
+          final modelResponse = TransactionReceiptModel.fromJson(response);
+
           // 4. Success handling
           Get.back(); // Close TransactionModal
 
@@ -260,12 +266,18 @@ class CashRegisterController extends GetxController {
             decimalDigits: 0,
           );
 
-          final change = response['change'] ?? 0.0;
+          final change = modelResponse.change ?? 0.0;
 
           Get.dialog(
             ModalInfo(
               title: 'Pago realizado correctamente',
-              message: 'Valor a devolver: ${format.format(change)}',
+              message: 'Valor a devolver: ${format.format(change)}\nFactura N°: ${modelResponse.transactionNumber ?? ''}',
+              buttonText: 'Cerrar',
+              secondaryButtonText: 'Imprimir Factura',
+              onSecondaryAction: () {
+                 final ticket = TransactionTicket(transaction: modelResponse);
+                 _printerService.printTicket(ticket);
+              },
               onClose: () {
                 Get.back(); // Close ModalInfo
                 loadPendingOrders();
