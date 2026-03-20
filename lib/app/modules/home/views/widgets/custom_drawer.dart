@@ -64,7 +64,7 @@ class CustomDrawer extends GetView<HomeController> {
                       onTap: () => Get.toNamed(Routes.PRINTER_SETTINGS),
                     ),
                     _buildDrawerSubItem(
-                      title: 'Factura',
+                      title: 'Datos Fiscales',
                       onTap: () => Get.toNamed(Routes.FISCAL_DATA),
                     ),
                   ],

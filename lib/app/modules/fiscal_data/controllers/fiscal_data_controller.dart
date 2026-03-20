@@ -148,10 +148,7 @@ class FiscalDataController extends GetxController {
             isEditing.value = true;
             _showSuccessModal('Datos fiscales creados correctamente');
           }
-        } catch (e, t) {
-          print(e);
-          print(t);
-          print(" Error en submit fiscal data");
+        } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(message));
         }
