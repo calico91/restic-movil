@@ -145,14 +145,39 @@ class TransactionModal extends StatelessWidget {
 
         const SizedBox(height: 15),
         const Text(
-          'Propina (Opcional)',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          'Configuración de Pago y Propina',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            const Expanded(
+              flex: 1,
+              child: CustomReactiveTextField(
+                formControlName: 'tipPercentage',
+                keyboardType: TextInputType.number,
+                labelText: '% Propina',
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              flex: 2,
+              child: CustomReactiveTextField(
+                formControlName: 'tipAmount',
+                keyboardType: TextInputType.number,
+                inputFormatters: [ThousandsSeparatorInputFormatter()],
+                labelText: 'Monto Propina',
+                prefixText: '\$ ',
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
         CustomReactiveTextField(
-          formControlName: 'tipAmount',
+          formControlName: 'totalToPay',
           keyboardType: TextInputType.number,
           inputFormatters: [ThousandsSeparatorInputFormatter()],
+          labelText: 'Total a Pagar',
           prefixText: '\$ ',
         ),
       ],
@@ -373,7 +398,7 @@ class TransactionModal extends StatelessWidget {
 
         final difference =
             totalPaid -
-            orderTotal; // If positive -> change, negative -> remaining
+            (orderTotal + tip); // If positive -> change, negative -> remaining
 
         return Column(
           children: [
@@ -383,7 +408,7 @@ class TransactionModal extends StatelessWidget {
             _summaryRow('Total a Pagar:', orderTotal + tip, isBold: true),
             const SizedBox(height: 10),
             _summaryRow('Total Cubierto:', totalPaid, color: Colors.blue),
-            if (difference < 0)
+            if (difference < -0.01)
               _summaryRow('Faltante:', difference.abs(), color: Colors.red)
             else
               _summaryRow(
