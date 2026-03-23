@@ -25,16 +25,16 @@ class LoginView extends GetView<LoginController> {
   }
 
   Widget _buildBackgroundGradient() {
-    return Align(
-      alignment: Alignment.bottomCenter,
-      child: Container(
-        height: 150,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.red, Colors.blue],
-            begin: Alignment.centerLeft,
-            end: Alignment.centerRight,
-          ),
+    return Container(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            Color(0xFFe3f2fd), // Hielo - azul muy claro
+            Color(0xFFffebee), // Fuego suave - rojo/rosado muy claro
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          stops: [0.3, 0.9],
         ),
       ),
     );
@@ -50,23 +50,28 @@ class LoginView extends GetView<LoginController> {
           child: Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Container(
-                padding: const EdgeInsets.all(24),
-                decoration: _buildCardDecoration(),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildLogo(),
-                    const SizedBox(height: 30),
-                    _buildTitle(),
-                    const SizedBox(height: 30),
-                    _buildForm(),
-                    const SizedBox(height: 20),
-                    _buildLoginButton(),
-                    const SizedBox(height: 20),
-                    _buildRegisterLink(),
-                  ],
-                ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _buildLogo(),
+                  const SizedBox(height: 32),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: _buildCardDecoration(),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        _buildTitle(),
+                        const SizedBox(height: 30),
+                        _buildForm(),
+                        const SizedBox(height: 20),
+                        _buildLoginButton(),
+                        const SizedBox(height: 20),
+                        _buildRegisterLink(),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
@@ -77,29 +82,43 @@ class LoginView extends GetView<LoginController> {
 
   BoxDecoration _buildCardDecoration() {
     return BoxDecoration(
-      color: Colors.white,
-      borderRadius: BorderRadius.circular(20),
+      color: Colors.white.withValues(alpha: 0.85), // Efecto translúcido Material M3
+      borderRadius: BorderRadius.circular(32), // Curvatura más moderna
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.1),
-          blurRadius: 10,
-          offset: const Offset(0, 5),
+          color: const Color(0xFF0D47A1).withValues(alpha: 0.05), // Sombra azul sutil
+          blurRadius: 20,
+          spreadRadius: 5,
+          offset: const Offset(0, 8),
         ),
       ],
+      border: Border.all(
+        color: Colors.white.withValues(alpha: 0.5), // Borde claro para efecto cristal
+        width: 1.5,
+      ),
     );
   }
 
   Widget _buildLogo() {
-    return ShaderMask(
-      shaderCallback: (bounds) => const LinearGradient(
-        colors: [Colors.purple, Colors.blue],
-      ).createShader(bounds),
-      child: Text(
-        'LOGO',
-        style: GoogleFonts.poppins(
-          fontSize: 48,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFFB71C1C).withValues(alpha: 0.1), // Sombra cálida
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      padding: const EdgeInsets.all(4),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/icons/icono_app.png',
+          height: 120, 
+          width: 120, 
+          fit: BoxFit.cover,
         ),
       ),
     );
@@ -109,16 +128,21 @@ class LoginView extends GetView<LoginController> {
     return Column(
       children: [
         Text(
-          'Iniciar sesión',
+          '¡Bienvenido!',
           style: GoogleFonts.poppins(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.red[700],
+            fontSize: 26,
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF0D47A1), // Deep blue theme
           ),
         ),
+        const SizedBox(height: 8),
         Text(
-          'Para continuar con tu cuenta!',
-          style: GoogleFonts.poppins(fontSize: 14, color: Colors.black54),
+          'Gestiona tu negocio fácilmente',
+          style: GoogleFonts.poppins(
+            fontSize: 14, 
+            color: Colors.black87,
+            fontWeight: FontWeight.w500,
+          ),
         ),
       ],
     );
@@ -145,10 +169,14 @@ class LoginView extends GetView<LoginController> {
   }
 
   Widget _buildLoginButton() {
-    return CustomSubmitButton(
-      text: 'Ingresar',
-      onPressed: controller.login,
-      backgroundColor: Colors.red[800],
+    return SizedBox(
+      width: double.infinity,
+      height: 56, // Altura moderna tactil
+      child: CustomSubmitButton(
+        text: 'Ingresar',
+        onPressed: controller.login,
+        backgroundColor: const Color(0xFFB71C1C), // Fuego/Rojo profundo
+      ),
     );
   }
 
@@ -176,12 +204,16 @@ class LoginView extends GetView<LoginController> {
 
   Widget _buildVersionText() {
     return Align(
-      alignment: Alignment.bottomRight,
+      alignment: Alignment.bottomCenter, // Centrado para equilibrar diseño
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Text(
           'Versión 1.0',
-          style: GoogleFonts.poppins(color: Colors.white),
+          style: GoogleFonts.poppins(
+            color: Colors.black54,
+            fontWeight: FontWeight.w500,
+            fontSize: 12,
+          ),
         ),
       ),
     );
