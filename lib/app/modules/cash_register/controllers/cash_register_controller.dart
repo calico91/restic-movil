@@ -19,6 +19,7 @@ import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
 import 'package:restic_movil/core/utils/printers/tickets/transaction_ticket.dart';
+import 'package:restic_movil/core/utils/printers/tickets/precount_ticket.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 
 class CashRegisterController extends GetxController {
@@ -355,6 +356,18 @@ class CashRegisterController extends GetxController {
     );
   }
 
+  Future<void> printPrecount(OrderModel order) async {
+    final tipValStr = defaultTipPercentage.value;
+    final tipPercentage = double.tryParse(tipValStr) ?? 0.0;
+    
+    final ticket = PrecountTicket(
+      order: order, 
+      tipPercentage: tipPercentage,
+    );
+    
+    _printerService.printTicket(ticket);
+  }
+
   /*crear consumo de API para crear transacción a partir de formulario*/
   Future<void> createTransaction(CreateTransactionRequest request) async {
     // 1. Get current user ID for cashierId
@@ -398,6 +411,7 @@ class CashRegisterController extends GetxController {
               onSecondaryAction: () {
                  final ticket = TransactionTicket(transaction: modelResponse);
                  _printerService.printTicket(ticket);
+                 Get.back(); 
               },
               onClose: () {
                 Get.back(); // Close ModalInfo
@@ -406,6 +420,7 @@ class CashRegisterController extends GetxController {
             ),
             barrierDismissible: false,
           );
+          
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));

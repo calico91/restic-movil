@@ -16,6 +16,7 @@ class GlobalOrderCard extends StatelessWidget {
   final String detailsText;
   final VoidCallback? onActionPressed;
   final String? actionText;
+  final VoidCallback? onPrintCustomAction;
 
   const GlobalOrderCard({
     super.key,
@@ -24,6 +25,7 @@ class GlobalOrderCard extends StatelessWidget {
     this.detailsText = 'Ver Detalles',
     this.onActionPressed,
     this.actionText,
+    this.onPrintCustomAction,
   });
 
   @override
@@ -118,9 +120,13 @@ class GlobalOrderCard extends StatelessWidget {
                             Get.showSnackbar(
                               const InfoSnackbar('Enviando a imprimir...'),
                             );
-                            printerService.printTicket(
-                              OrderTicket(order: order),
-                            );
+                            if (onPrintCustomAction != null) {
+                               onPrintCustomAction!();
+                            } else {
+                               printerService.printTicket(
+                                 OrderTicket(order: order),
+                               );
+                            }
                           }
                         : () {
                             Get.showSnackbar(

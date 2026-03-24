@@ -56,7 +56,7 @@ class CashRegisterView extends GetView<CashRegisterController> {
                         left: 16,
                         right: 16,
                         top: 16,
-                        bottom: 100, // Espacio para la barra de navegación
+                        bottom: 100, 
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: orders.length,
@@ -73,6 +73,11 @@ class CashRegisterView extends GetView<CashRegisterController> {
                           actionText: 'Pagar',
                           onActionPressed: controller.currentTab.value == 0
                               ? () => controller.showTransactionModal(order)
+                              : null,
+                          onPrintCustomAction: controller.currentTab.value == 0
+                              ? () {
+                                  controller.printPrecount(order);
+                                }
                               : null,
                         );
                       },

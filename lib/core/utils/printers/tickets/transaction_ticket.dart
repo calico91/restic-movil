@@ -148,7 +148,7 @@ class TransactionTicket implements PrintableTicket {
     }
 
     printer.printNewLine();
-    printer.printCustom("¡GRACIAS POR SU COMPRA!", 1, 1);
+    printer.printCustom("GRACIAS POR SU COMPRA!", 1, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();
