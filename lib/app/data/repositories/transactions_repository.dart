@@ -27,4 +27,11 @@ class TransactionsRepository {
     );
     return response as Map<String, dynamic>;
   }
+
+  Future<Map<String, dynamic>> getTransactionInvoice(String transactionId) async {
+    final response = await _client.get(
+      '${UrlPaths.getTransactionInvoice}/$transactionId/invoice',
+    );
+    return response as Map<String, dynamic>;
+  }
 }

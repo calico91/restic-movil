@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class CashRegisterView extends GetView<CashRegisterController> {
   const CashRegisterView({super.key});
@@ -56,7 +57,7 @@ class CashRegisterView extends GetView<CashRegisterController> {
                         left: 16,
                         right: 16,
                         top: 16,
-                        bottom: 100, 
+                        bottom: 100,
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: orders.length,
@@ -78,7 +79,19 @@ class CashRegisterView extends GetView<CashRegisterController> {
                               ? () {
                                   controller.printPrecount(order);
                                 }
-                              : null,
+                              : () {
+                                  if (order.transactionId != null) {
+                                    controller.reprintInvoice(
+                                      order.transactionId!,
+                                    );
+                                  } else {
+                                    Get.showSnackbar(
+                                      const ErrorSnackbar(
+                                        'No hay factura asociada a este pedido.',
+                                      ),
+                                    );
+                                  }
+                                },
                         );
                       },
                     ),

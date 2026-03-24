@@ -368,6 +368,32 @@ class CashRegisterController extends GetxController {
     _printerService.printTicket(ticket);
   }
 
+// Reimprimir factura: si el pedido tiene transactionId, se puede reimprimir la factura, si no, mostrar error
+  Future<void> reprintInvoice(String transactionId) async {
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final response = await transactionsRepository.getTransactionInvoice(
+            transactionId,
+          );
+
+          final modelResponse = TransactionReceiptModel.fromJson(response);
+
+          final ticket = TransactionTicket(transaction: modelResponse);
+          await _printerService.printTicket(ticket);
+
+          Get.showSnackbar(
+            const InfoSnackbar('Factura reimpresa correctamente'),
+          );
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
   /*crear consumo de API para crear transacción a partir de formulario*/
   Future<void> createTransaction(CreateTransactionRequest request) async {
     // 1. Get current user ID for cashierId

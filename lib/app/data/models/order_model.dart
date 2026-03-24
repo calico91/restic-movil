@@ -14,6 +14,7 @@ class OrderModel {
   final String? observations;
   final double? total;
   final List<OrderDetailModel>? details;
+  final String? transactionId;
 
   OrderModel({
     this.id,
@@ -28,6 +29,7 @@ class OrderModel {
     this.observations,
     this.total,
     this.details,
+    this.transactionId,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -50,6 +52,7 @@ class OrderModel {
                 .map((i) => OrderDetailModel.fromJson(i))
                 .toList()
           : null,
+      transactionId: json['transactionId'],
     );
   }
 
@@ -67,6 +70,7 @@ class OrderModel {
       'observations': observations,
       'total': total,
       'details': details?.map((i) => i.toJson()).toList(),
+      'transactionId': transactionId,
     };
   }
 }
