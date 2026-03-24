@@ -486,9 +486,19 @@ class TransactionModal extends StatelessWidget {
     final values = form.value;
 
     final tipAmount = _parseAmount(values['tipAmount']);
+    final totalToPayInput = _parseAmount(values['totalToPay']);
     final paymentsRaw = values['payments'] as List<dynamic>?;
 
     if (paymentsRaw == null || paymentsRaw.isEmpty) return;
+
+    // Validar que el total a pagar no sea inferior al total del pedido.
+    final orderTotal = order.total ?? 0.0;
+    if (totalToPayInput < orderTotal) {
+      Get.showSnackbar(
+        const ErrorSnackbar('El total a pagar no puede ser menor al total del pedido'),
+      );
+      return;
+    }
 
     // Validate duplicate payment methods
     final paymentMethods = paymentsRaw
