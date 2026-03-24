@@ -207,6 +207,7 @@ class CashRegisterController extends GetxController {
   /*crear formulario para crear transacción a partir de un pedido*/
   FormGroup createTransactionForm(OrderModel order) {
     final currencyFormat = NumberFormat.decimalPattern('es_CO');
+
     final form = FormGroup({
       'transactionType': FormControl<String>(value: 'SALE'),
       'tipPercentage': FormControl<String>(value: '10'), 
@@ -234,53 +235,87 @@ class CashRegisterController extends GetxController {
     // Calcular montos iniciales basados en 10%
     final orderTotal = order.total ?? 0.0;
     final initialTip = orderTotal * 0.10;
-    form.control('tipAmount').value = currencyFormat.format(initialTip);
-    form.control('totalToPay').value = currencyFormat.format(orderTotal + initialTip);
+    form.control('tipAmount').value = currencyFormat.format(initialTip.round());
+    form.control('totalToPay').value = currencyFormat.format((orderTotal + initialTip).round());
     
+    String? expectedTipPercentage;
+    String? expectedTipAmount;
+    String? expectedTotalToPay;
+
+    void updateControl(String name, String val) {
+      if (form.control(name).value != val) {
+        form.control(name).value = val;
+      }
+    }
+
     // Suscripción al porcentaje de propina
     form.control('tipPercentage').valueChanges.listen((value) {
+      if (value != null && value.toString() == expectedTipPercentage) {
+        expectedTipPercentage = null;
+        return;
+      }
       if (value != null && value.toString().isNotEmpty) {
-        final percent = double.tryParse(value.toString()) ?? 0;
+        final percent = double.tryParse(value.toString()) ?? 0.0;
         final calcTip = orderTotal * (percent / 100);
-        form.control('tipAmount').value = currencyFormat.format(calcTip);
-        form.control('totalToPay').value = currencyFormat.format(orderTotal + calcTip);
+        
+        final newTipAmount = currencyFormat.format(calcTip.round());
+        final newTotalToPay = currencyFormat.format((orderTotal + calcTip).round());
+        
+        expectedTipAmount = newTipAmount;
+        expectedTotalToPay = newTotalToPay;
+        
+        updateControl('tipAmount', newTipAmount);
+        updateControl('totalToPay', newTotalToPay);
         updateInitialPayment(form, orderTotal + calcTip, currencyFormat);
       }
     });
 
     // Suscripción a la propina manual
     form.control('tipAmount').valueChanges.listen((value) {
+      if (value != null && value.toString() == expectedTipAmount) {
+        expectedTipAmount = null;
+        return;
+      }
       if (value != null) {
         final cleanValue = value.toString().replaceAll(RegExp(r'[^0-9]'), '');
-        final tipVal = double.tryParse(cleanValue) ?? 0.0;
+        final tipVal = double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
         
-        final expectedTip = orderTotal * ((double.tryParse(form.control('tipPercentage').value.toString()) ?? 0.0) / 100.0);
-        
-        // Solo actualizar el porcentaje si la propina cambió manualmente (no por el observable anterior)
-        if ((tipVal - expectedTip).abs() > 1.0) { 
-            final newPercent = orderTotal > 0 ? (tipVal / orderTotal) * 100 : 0.0;
-            form.control('tipPercentage').value = newPercent.toStringAsFixed(1).replaceAll('.0', '');
-        }
+        final newPercent = orderTotal > 0 ? (tipVal / orderTotal) * 100 : 0.0;
+        final newTipPercentage = newPercent.toStringAsFixed(1).replaceAll('.0', '');
+        final newTotalToPay = currencyFormat.format((orderTotal + tipVal).round());
 
-        form.control('totalToPay').value = currencyFormat.format(orderTotal + tipVal);
+        expectedTipPercentage = newTipPercentage;
+        expectedTotalToPay = newTotalToPay;
+
+        updateControl('tipPercentage', newTipPercentage);
+        updateControl('totalToPay', newTotalToPay);
         updateInitialPayment(form, orderTotal + tipVal, currencyFormat);
       }
     });
 
     // Suscripción al total manual
     form.control('totalToPay').valueChanges.listen((value) {
+      if (value != null && value.toString() == expectedTotalToPay) {
+        expectedTotalToPay = null;
+        return;
+      }
       if (value != null) {
         final cleanValue = value.toString().replaceAll(RegExp(r'[^0-9]'), '');
-        final totalVal = double.tryParse(cleanValue) ?? 0.0;
+        final totalVal = double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
 
         if (totalVal >= orderTotal) {
           final newTip = totalVal - orderTotal;
-          final currentTipRaw = form.control('tipAmount').value.toString().replaceAll(RegExp(r'[^0-9]'), '');
-          final currentTip = double.tryParse(currentTipRaw) ?? 0.0;
           
-          if ((newTip - currentTip).abs() > 1.0) {
-            form.control('tipAmount').value = currencyFormat.format(newTip);
-          }
+          final newTipAmount = currencyFormat.format(newTip.round());
+          final newPercent = orderTotal > 0 ? (newTip / orderTotal) * 100 : 0.0;
+          final newTipPercentage = newPercent.toStringAsFixed(1).replaceAll('.0', '');
+          
+          expectedTipAmount = newTipAmount;
+          expectedTipPercentage = newTipPercentage;
+          
+          updateControl('tipAmount', newTipAmount);
+          updateControl('tipPercentage', newTipPercentage);
+          updateInitialPayment(form, totalVal, currencyFormat);
         }
       }
     });
@@ -295,8 +330,12 @@ class CashRegisterController extends GetxController {
     final payments = form.control('payments') as FormArray;
     if (payments.controls.length == 1) {
       final firstPayment = payments.controls.first as FormGroup;
-      firstPayment.control('amount').value = currencyFormat.format(totalToPay);
-    }  }
+      final newAmount = currencyFormat.format(totalToPay);
+      if (firstPayment.control('amount').value != newAmount) {
+         firstPayment.control('amount').value = newAmount;
+      }
+    }  
+  }
 
   /*crear consumo de API para crear transacción a partir de formulario*/
   Future<void> createTransaction(CreateTransactionRequest request) async {
