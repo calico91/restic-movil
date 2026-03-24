@@ -142,4 +142,12 @@ class StorageService extends GetxService {
     }
     return null;
   }
+
+  Future<void> saveDefaultTipPercentage(String percentage) async {
+    await _storage.write(key: 'default_tip_percentage', value: percentage);
+  }
+
+  Future<String?> getDefaultTipPercentage() async {
+    return await _storage.read(key: 'default_tip_percentage');
+  }
 }

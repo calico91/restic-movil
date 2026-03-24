@@ -16,6 +16,7 @@ import 'package:restic_movil/app/modules/cash_register/views/cash_register/widge
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
 import 'package:restic_movil/core/utils/printers/tickets/transaction_ticket.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
@@ -42,6 +43,7 @@ class CashRegisterController extends GetxController {
   final RxList<PaymentMethodModel> paymentMethods = <PaymentMethodModel>[].obs;
   final RxList<TransactionTypeModel> transactionTypes =
       <TransactionTypeModel>[].obs;
+  final RxString defaultTipPercentage = '0'.obs;
 
   @override
   void onInit() {
@@ -83,6 +85,9 @@ class CashRegisterController extends GetxController {
   }
 
   Future<void> _loadInitialData() async {
+    final tipVal = await _storageService.getDefaultTipPercentage() ?? '0';
+    defaultTipPercentage.value = tipVal.isEmpty ? '0' : tipVal;
+
     await Future.wait([
       loadPendingOrders(withOverlay: true),
       _loadPaymentMethods(),
@@ -207,10 +212,13 @@ class CashRegisterController extends GetxController {
   /*crear formulario para crear transacción a partir de un pedido*/
   FormGroup createTransactionForm(OrderModel order) {
     final currencyFormat = NumberFormat.decimalPattern('es_CO');
+    
+    // Obtener porcentaje de propina por defecto, si está vacío o null, será 0
+    final defaultTip = defaultTipPercentage.value;
 
     final form = FormGroup({
       'transactionType': FormControl<String>(value: 'SALE'),
-      'tipPercentage': FormControl<String>(value: '10'), 
+      'tipPercentage': FormControl<String>(value: defaultTip), 
       'tipAmount': FormControl<String>(value: '0'),
       'totalToPay': FormControl<String>(value: '0'), 
       'originalTransactionId': FormControl<String>(),
@@ -232,9 +240,10 @@ class CashRegisterController extends GetxController {
       ]),
     });
 
-    // Calcular montos iniciales basados en 10%
+    // Calcular montos iniciales basados en el porcentaje por defecto
     final orderTotal = order.total ?? 0.0;
-    final initialTip = orderTotal * 0.10;
+    final initialPercent = double.tryParse(defaultTip) ?? 0.0;
+    final initialTip = orderTotal * (initialPercent / 100);
     form.control('tipAmount').value = currencyFormat.format(initialTip.round());
     form.control('totalToPay').value = currencyFormat.format((orderTotal + initialTip).round());
     
@@ -335,6 +344,15 @@ class CashRegisterController extends GetxController {
          firstPayment.control('amount').value = newAmount;
       }
     }  
+  }
+
+  Future<void> updateDefaultTipPreference(String value) async {
+    final cleanValue = value.isEmpty ? '0' : value;
+    await _storageService.saveDefaultTipPercentage(cleanValue);
+    defaultTipPercentage.value = cleanValue;
+    Get.showSnackbar(
+      const InfoSnackbar('Porcentaje de propina predeterminado actualizado'),
+    );
   }
 
   /*crear consumo de API para crear transacción a partir de formulario*/

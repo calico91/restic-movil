@@ -151,12 +151,20 @@ class TransactionModal extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            const Expanded(
+            Expanded(
               flex: 1,
               child: CustomReactiveTextField(
                 formControlName: 'tipPercentage',
                 keyboardType: TextInputType.number,
                 labelText: '% Propina',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.save_outlined, size: 20),
+                  tooltip: 'Guardar como predeterminado',
+                  onPressed: () {
+                    final val = form.control('tipPercentage').value?.toString() ?? '0';
+                    controller.updateDefaultTipPreference(val);
+                  },
+                ),
               ),
             ),
             const SizedBox(width: 10),
