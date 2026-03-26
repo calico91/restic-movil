@@ -79,7 +79,6 @@ class PrecountTicket implements PrintableTicket {
 
     final details = order.details ?? [];
     for (var item in details) {
-      print("status: ${item.status}");
       if (item.status == 'Anulado') continue;
 
       // Nombre y cantidad

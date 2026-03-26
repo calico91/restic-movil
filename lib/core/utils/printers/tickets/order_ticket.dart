@@ -18,7 +18,7 @@ class OrderTicket implements PrintableTicket {
 
     // TICKET DE COCINA
     printer.printNewLine();
-    printer.printCustom("TICKET DE COCINA", 3, 1);
+    printer.printCustom("PEDIDO", 3, 1);
     printer.printNewLine();
 
     // INFO DE LA ORDEN

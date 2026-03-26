@@ -236,6 +236,13 @@ class GlobalOrderDetailsModal extends StatelessWidget {
   }
 
   Widget _buildReadOnlyItem(OrderDetailModel item) {
+    final statusUpper = item.status?.toUpperCase() ?? '';
+    final isAnulado = statusUpper == 'ANULADO' || statusUpper == 'CANCELED';
+
+    final textColor = isAnulado ? Colors.grey[400] : null;
+    final valueColor = isAnulado ? Colors.grey[400] : Colors.grey;
+    final subtotal = isAnulado ? 0.0 : (item.subtotal ?? 0.0);
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -248,9 +255,11 @@ class GlobalOrderDetailsModal extends StatelessWidget {
               children: [
                 Text(
                   item.productName ?? '-',
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
+                    color: textColor,
+                    decoration: isAnulado ? TextDecoration.lineThrough : null,
                   ),
                 ),
                 if (item.comboSelections != null &&
@@ -268,8 +277,13 @@ class GlobalOrderDetailsModal extends StatelessWidget {
                         return Text(
                           '• ${selection.selectedProductName ?? 'Opción'} (${selection.comboGroupName ?? ''})$quantityText',
                           style: TextStyle(
-                            color: Colors.grey[700],
+                            color: isAnulado
+                                ? Colors.grey[400]
+                                : Colors.grey[700],
                             fontSize: 11,
+                            decoration: isAnulado
+                                ? TextDecoration.lineThrough
+                                : null,
                           ),
                         );
                       }).toList(),
@@ -280,10 +294,25 @@ class GlobalOrderDetailsModal extends StatelessWidget {
                     padding: const EdgeInsets.only(top: 2.0),
                     child: Text(
                       'Nota: ${item.observations}',
-                      style: const TextStyle(
-                        color: Colors.deepOrange,
+                      style: TextStyle(
+                        color: isAnulado ? Colors.grey[400] : Colors.deepOrange,
                         fontStyle: FontStyle.italic,
                         fontSize: 11,
+                        decoration: isAnulado
+                            ? TextDecoration.lineThrough
+                            : null,
+                      ),
+                    ),
+                  ),
+                if (isAnulado)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 2.0),
+                    child: Text(
+                      'ANULADO',
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontWeight: FontWeight.bold,
+                        fontSize: 10,
                       ),
                     ),
                   ),
@@ -295,15 +324,19 @@ class GlobalOrderDetailsModal extends StatelessWidget {
             child: Text(
               'x${item.quantity ?? 0}',
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 13, color: Colors.grey),
+              style: TextStyle(
+                fontSize: 13,
+                color: valueColor,
+                decoration: isAnulado ? TextDecoration.lineThrough : null,
+              ),
             ),
           ),
           Expanded(
             flex: 3,
             child: Text(
-              CurrencyFormatter.toCurrency(item.subtotal ?? 0),
+              CurrencyFormatter.toCurrency(subtotal),
               textAlign: TextAlign.right,
-              style: const TextStyle(fontSize: 13),
+              style: TextStyle(fontSize: 13, color: textColor),
             ),
           ),
         ],
@@ -340,6 +373,8 @@ class GlobalOrderDetailsModal extends StatelessWidget {
         quantityTextColor = Colors.green[900]!;
         break;
       case 'Anulado':
+      case 'CANCELED':
+      case 'ANULADO':
         statusColor = Colors.grey;
         quantityBgColor = Colors.grey[300]!;
         quantityTextColor = Colors.grey[800]!;
