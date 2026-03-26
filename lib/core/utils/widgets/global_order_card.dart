@@ -20,6 +20,7 @@ class GlobalOrderCard extends StatelessWidget {
   final VoidCallback? onPrintCustomAction;
   final String printTooltip;
   final VoidCallback? onCancelPressed;
+  final bool showPrintButton;
 
   const GlobalOrderCard({
     super.key,
@@ -31,6 +32,7 @@ class GlobalOrderCard extends StatelessWidget {
     this.onPrintCustomAction,
     this.printTooltip = 'Imprimir pedido',
     this.onCancelPressed,
+    this.showPrintButton = true,
   });
 
   @override
@@ -111,38 +113,39 @@ class GlobalOrderCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                Obx(() {
-                  final printerService = Get.find<PrinterService>();
-                  final isConnected = printerService.isConnected.value;
-                  return ActionIconButton(
-                    icon: Icons.print,
-                    color: isConnected ? Colors.green : Colors.red,
-                    size: 24,
-                    tooltip: isConnected
-                        ? printTooltip
-                        : 'Impresora no conectada',
-                    onPressed: isConnected
-                        ? () {
-                            Get.showSnackbar(
-                              const InfoSnackbar('Enviando a imprimir...'),
-                            );
-                            if (onPrintCustomAction != null) {
-                              onPrintCustomAction!();
-                            } else {
-                              printerService.printTicket(
-                                OrderTicket(order: order),
+                if (showPrintButton)
+                  Obx(() {
+                    final printerService = Get.find<PrinterService>();
+                    final isConnected = printerService.isConnected.value;
+                    return ActionIconButton(
+                      icon: Icons.print,
+                      color: isConnected ? Colors.green : Colors.red,
+                      size: 24,
+                      tooltip: isConnected
+                          ? printTooltip
+                          : 'Impresora no conectada',
+                      onPressed: isConnected
+                          ? () {
+                              Get.showSnackbar(
+                                const InfoSnackbar('Enviando a imprimir...'),
                               );
+                              if (onPrintCustomAction != null) {
+                                onPrintCustomAction!();
+                              } else {
+                                printerService.printTicket(
+                                  OrderTicket(order: order),
+                                );
+                              }
                             }
-                          }
-                        : () {
-                            Get.showSnackbar(
-                              const ErrorSnackbar('Impresora no conectada'),
-                            );
-                          },
-                    constraints: const BoxConstraints(),
-                    padding: EdgeInsets.zero,
-                  );
-                }),
+                          : () {
+                              Get.showSnackbar(
+                                const ErrorSnackbar('Impresora no conectada'),
+                              );
+                            },
+                      constraints: const BoxConstraints(),
+                      padding: EdgeInsets.zero,
+                    );
+                  }),
                 if (onCancelPressed != null) ...[
                   const SizedBox(width: 4),
                   ActionIconButton(

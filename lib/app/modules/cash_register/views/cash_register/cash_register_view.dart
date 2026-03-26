@@ -63,6 +63,9 @@ class CashRegisterView extends GetView<CashRegisterController> {
                       itemCount: orders.length,
                       itemBuilder: (context, index) {
                         final order = orders[index];
+                        final isCanceled =
+                            order.status == 'Anulada';
+
                         return GlobalOrderCard(
                           order: order,
                           detailsText: 'Detalle Pedido',
@@ -78,6 +81,8 @@ class CashRegisterView extends GetView<CashRegisterController> {
                           printTooltip: controller.currentTab.value == 0
                               ? 'Imprimir precuenta'
                               : 'Reimprimir factura',
+                          // Si está en historial y está anulada, ocultamos la opción de imprimir
+                          showPrintButton: !isCanceled,
                           onPrintCustomAction: controller.currentTab.value == 0
                               ? () {
                                   controller.printPrecount(order);
