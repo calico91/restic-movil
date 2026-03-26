@@ -38,7 +38,6 @@ class PrecountTicket implements PrintableTicket {
 
     printer.printNewLine();
 
-    printer.printCustom("PRECUENTA".withoutDiacritics, 3, 1);
     printer.printCustom(
       "Este documento NO es una factura valida".withoutDiacritics,
       1,
@@ -56,7 +55,11 @@ class PrecountTicket implements PrintableTicket {
     printer.printCustom("Fecha: $dateStr".withoutDiacritics, 1, 0);
 
     if (order.customerName != null && order.customerName!.isNotEmpty) {
-      printer.printCustom("Cliente: ${order.customerName}".withoutDiacritics, 1, 0);
+      printer.printCustom(
+        "Cliente: ${order.customerName}".withoutDiacritics,
+        1,
+        0,
+      );
     }
 
     if (order.tables != null && order.tables!.isNotEmpty) {
@@ -76,6 +79,9 @@ class PrecountTicket implements PrintableTicket {
 
     final details = order.details ?? [];
     for (var item in details) {
+      print("status: ${item.status}");
+      if (item.status == 'Anulado') continue;
+
       // Nombre y cantidad
       String itemName = item.productName ?? 'Producto';
       if (itemName.length > 20) {
@@ -100,7 +106,9 @@ class PrecountTicket implements PrintableTicket {
       String formattedAmount = currencyFormat
           .format(amount)
           .replaceAll(RegExp(r'[^\x20-\x7E]'), '')
-          .padLeft(12); // Pad fijo para evitar que el label se desplace si el monto cambia de longitud
+          .padLeft(
+            12,
+          ); // Pad fijo para evitar que el label se desplace si el monto cambia de longitud
       printer.printCustom("$label$formattedAmount".withoutDiacritics, size, 2);
     }
 

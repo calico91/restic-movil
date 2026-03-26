@@ -75,6 +75,9 @@ class CashRegisterView extends GetView<CashRegisterController> {
                           onActionPressed: controller.currentTab.value == 0
                               ? () => controller.showTransactionModal(order)
                               : null,
+                          printTooltip: controller.currentTab.value == 0
+                              ? 'Imprimir precuenta'
+                              : 'Reimprimir factura',
                           onPrintCustomAction: controller.currentTab.value == 0
                               ? () {
                                   controller.printPrecount(order);

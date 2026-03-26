@@ -6,6 +6,7 @@ import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/lazy_indexed_stack.dart';
+import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
 
 class HomeView extends GetView<HomeController> {
   const HomeView({super.key});
@@ -40,13 +41,10 @@ class HomeView extends GetView<HomeController> {
                 Obx(() {
                   final printerService = Get.find<PrinterService>();
                   final isConnected = printerService.isConnected.value;
-                  return IconButton(
-                    icon: Icon(
-                      Icons.print,
-                      color: isConnected
-                          ? Colors.greenAccent
-                          : Colors.redAccent,
-                    ),
+                  return ActionIconButton(
+                    icon: Icons.print,
+                    color: isConnected ? Colors.greenAccent : Colors.redAccent,
+                    tooltip: 'Configuración de impresora',
                     onPressed: () => Get.toNamed(Routes.PRINTER_SETTINGS),
                   );
                 }),

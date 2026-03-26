@@ -163,6 +163,7 @@ class OrdersView extends GetView<OrdersController> {
                   : null,
               actionText: 'Agregar',
               onActionPressed: () => controller.startAddProducts(order),
+              printTooltip: 'Imprimir pedido',
             );
           },
         ),

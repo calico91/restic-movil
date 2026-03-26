@@ -9,6 +9,7 @@ import 'package:restic_movil/core/utils/printers/tickets/order_ticket.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
+import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
 
 class GlobalOrderCard extends StatelessWidget {
   final OrderModel order;
@@ -17,6 +18,7 @@ class GlobalOrderCard extends StatelessWidget {
   final VoidCallback? onActionPressed;
   final String? actionText;
   final VoidCallback? onPrintCustomAction;
+  final String printTooltip;
   final VoidCallback? onCancelPressed;
 
   const GlobalOrderCard({
@@ -27,6 +29,7 @@ class GlobalOrderCard extends StatelessWidget {
     this.onActionPressed,
     this.actionText,
     this.onPrintCustomAction,
+    this.printTooltip = 'Imprimir pedido',
     this.onCancelPressed,
   });
 
@@ -111,23 +114,24 @@ class GlobalOrderCard extends StatelessWidget {
                 Obx(() {
                   final printerService = Get.find<PrinterService>();
                   final isConnected = printerService.isConnected.value;
-                  return IconButton(
-                    icon: Icon(
-                      Icons.print,
-                      color: isConnected ? Colors.green : Colors.red,
-                      size: 24,
-                    ),
+                  return ActionIconButton(
+                    icon: Icons.print,
+                    color: isConnected ? Colors.green : Colors.red,
+                    size: 24,
+                    tooltip: isConnected
+                        ? printTooltip
+                        : 'Impresora no conectada',
                     onPressed: isConnected
                         ? () {
                             Get.showSnackbar(
                               const InfoSnackbar('Enviando a imprimir...'),
                             );
                             if (onPrintCustomAction != null) {
-                               onPrintCustomAction!();
+                              onPrintCustomAction!();
                             } else {
-                               printerService.printTicket(
-                                 OrderTicket(order: order),
-                               );
+                              printerService.printTicket(
+                                OrderTicket(order: order),
+                              );
                             }
                           }
                         : () {
@@ -141,16 +145,14 @@ class GlobalOrderCard extends StatelessWidget {
                 }),
                 if (onCancelPressed != null) ...[
                   const SizedBox(width: 4),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.block,
-                      color: Colors.red,
-                      size: 24,
-                    ),
-                    onPressed: onCancelPressed,
+                  ActionIconButton(
+                    icon: Icons.block,
+                    color: Colors.red,
+                    size: 24,
+                    tooltip: 'Anular orden',
+                    onPressed: onCancelPressed!,
                     constraints: const BoxConstraints(),
                     padding: EdgeInsets.zero,
-                    tooltip: 'Anular orden',
                   ),
                 ],
               ],

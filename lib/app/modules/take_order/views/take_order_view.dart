@@ -13,6 +13,7 @@ import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
+import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
@@ -32,11 +33,10 @@ class TakeOrderView extends GetView<TakeOrderController> {
         Obx(() {
           final printerService = Get.find<PrinterService>();
           final isConnected = printerService.isConnected.value;
-          return IconButton(
-            icon: Icon(
-              Icons.print,
-              color: isConnected ? Colors.greenAccent : Colors.redAccent,
-            ),
+          return ActionIconButton(
+            icon: Icons.print,
+            color: isConnected ? Colors.greenAccent : Colors.redAccent,
+            tooltip: 'Configuración de impresora',
             onPressed: () => Get.toNamed(Routes.PRINTER_SETTINGS),
           );
         }),
