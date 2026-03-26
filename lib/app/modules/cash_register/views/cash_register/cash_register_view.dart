@@ -92,6 +92,9 @@ class CashRegisterView extends GetView<CashRegisterController> {
                                     );
                                   }
                                 },
+                          onCancelPressed: controller.currentTab.value == 0
+                              ? () => controller.confirmCancelOrder(order)
+                              : null,
                         );
                       },
                     ),

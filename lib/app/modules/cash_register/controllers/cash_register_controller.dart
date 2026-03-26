@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
+import 'package:restic_movil/core/utils/modals/modal_warning.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
@@ -213,15 +214,15 @@ class CashRegisterController extends GetxController {
   /*crear formulario para crear transacción a partir de un pedido*/
   FormGroup createTransactionForm(OrderModel order) {
     final currencyFormat = NumberFormat.decimalPattern('es_CO');
-    
+
     // Obtener porcentaje de propina por defecto, si está vacío o null, será 0
     final defaultTip = defaultTipPercentage.value;
 
     final form = FormGroup({
       'transactionType': FormControl<String>(value: 'SALE'),
-      'tipPercentage': FormControl<String>(value: defaultTip), 
+      'tipPercentage': FormControl<String>(value: defaultTip),
       'tipAmount': FormControl<String>(value: '0'),
-      'totalToPay': FormControl<String>(value: '0'), 
+      'totalToPay': FormControl<String>(value: '0'),
       'originalTransactionId': FormControl<String>(),
       'payments': FormArray<Map<String, dynamic>>([
         FormGroup({
@@ -246,8 +247,10 @@ class CashRegisterController extends GetxController {
     final initialPercent = double.tryParse(defaultTip) ?? 0.0;
     final initialTip = orderTotal * (initialPercent / 100);
     form.control('tipAmount').value = currencyFormat.format(initialTip.round());
-    form.control('totalToPay').value = currencyFormat.format((orderTotal + initialTip).round());
-    
+    form.control('totalToPay').value = currencyFormat.format(
+      (orderTotal + initialTip).round(),
+    );
+
     String? expectedTipPercentage;
     String? expectedTipAmount;
     String? expectedTotalToPay;
@@ -267,13 +270,15 @@ class CashRegisterController extends GetxController {
       if (value != null && value.toString().isNotEmpty) {
         final percent = double.tryParse(value.toString()) ?? 0.0;
         final calcTip = orderTotal * (percent / 100);
-        
+
         final newTipAmount = currencyFormat.format(calcTip.round());
-        final newTotalToPay = currencyFormat.format((orderTotal + calcTip).round());
-        
+        final newTotalToPay = currencyFormat.format(
+          (orderTotal + calcTip).round(),
+        );
+
         expectedTipAmount = newTipAmount;
         expectedTotalToPay = newTotalToPay;
-        
+
         updateControl('tipAmount', newTipAmount);
         updateControl('totalToPay', newTotalToPay);
         updateInitialPayment(form, orderTotal + calcTip, currencyFormat);
@@ -288,11 +293,16 @@ class CashRegisterController extends GetxController {
       }
       if (value != null) {
         final cleanValue = value.toString().replaceAll(RegExp(r'[^0-9]'), '');
-        final tipVal = double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
-        
+        final tipVal =
+            double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
+
         final newPercent = orderTotal > 0 ? (tipVal / orderTotal) * 100 : 0.0;
-        final newTipPercentage = newPercent.toStringAsFixed(1).replaceAll('.0', '');
-        final newTotalToPay = currencyFormat.format((orderTotal + tipVal).round());
+        final newTipPercentage = newPercent
+            .toStringAsFixed(1)
+            .replaceAll('.0', '');
+        final newTotalToPay = currencyFormat.format(
+          (orderTotal + tipVal).round(),
+        );
 
         expectedTipPercentage = newTipPercentage;
         expectedTotalToPay = newTotalToPay;
@@ -311,40 +321,47 @@ class CashRegisterController extends GetxController {
       }
       if (value != null) {
         final cleanValue = value.toString().replaceAll(RegExp(r'[^0-9]'), '');
-        final totalVal = double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
+        final totalVal =
+            double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
 
         if (totalVal >= orderTotal) {
           final newTip = totalVal - orderTotal;
-          
+
           final newTipAmount = currencyFormat.format(newTip.round());
           final newPercent = orderTotal > 0 ? (newTip / orderTotal) * 100 : 0.0;
-          final newTipPercentage = newPercent.toStringAsFixed(1).replaceAll('.0', '');
-          
+          final newTipPercentage = newPercent
+              .toStringAsFixed(1)
+              .replaceAll('.0', '');
+
           expectedTipAmount = newTipAmount;
           expectedTipPercentage = newTipPercentage;
-          
+
           updateControl('tipAmount', newTipAmount);
           updateControl('tipPercentage', newTipPercentage);
           updateInitialPayment(form, totalVal, currencyFormat);
         }
       }
     });
-    
+
     // Actualizar el monto del pago inicial
     updateInitialPayment(form, orderTotal + initialTip, currencyFormat);
 
     return form;
   }
 
-  void updateInitialPayment(FormGroup form, double totalToPay, NumberFormat currencyFormat) {
+  void updateInitialPayment(
+    FormGroup form,
+    double totalToPay,
+    NumberFormat currencyFormat,
+  ) {
     final payments = form.control('payments') as FormArray;
     if (payments.controls.length == 1) {
       final firstPayment = payments.controls.first as FormGroup;
       final newAmount = currencyFormat.format(totalToPay);
       if (firstPayment.control('amount').value != newAmount) {
-         firstPayment.control('amount').value = newAmount;
+        firstPayment.control('amount').value = newAmount;
       }
-    }  
+    }
   }
 
   Future<void> updateDefaultTipPreference(String value) async {
@@ -356,19 +373,65 @@ class CashRegisterController extends GetxController {
     );
   }
 
+  /*anular orden completa*/
+  void confirmCancelOrder(OrderModel order) {
+    Get.dialog(
+      ModalWarning(
+        title: 'Anular Orden',
+        message:
+            '¿Está seguro que desea anular la orden #${order.orderNumber}?',
+        buttonText: 'Cancelar',
+        secondaryButtonText: 'Sí, Anular',
+        onSecondaryAction: () {
+          Get.back(); // Cerrar modal
+          _cancelOrder(order);
+        },
+      ),
+    );
+  }
+
+  // Función para cancelar la orden
+  Future<void> _cancelOrder(OrderModel order) async {
+    if (order.id == null) return;
+
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await ordersRepository.updateOrderStatus(order.id!, 'CANCELED');
+
+          Get.dialog(
+            ModalInfo(
+              title: '¡Operación Exitosa!',
+              message:
+                  'La orden #${order.orderNumber} se canceló correctamente.',
+              onClose: () => Get.back(),
+            ),
+          );
+
+          if (currentTab.value == 0) {
+            await loadPendingOrders(withOverlay: false);
+          } else {
+            await loadHistoryOrders(withOverlay: false);
+          }
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
+
   Future<void> printPrecount(OrderModel order) async {
     final tipValStr = defaultTipPercentage.value;
     final tipPercentage = double.tryParse(tipValStr) ?? 0.0;
-    
-    final ticket = PrecountTicket(
-      order: order, 
-      tipPercentage: tipPercentage,
-    );
-    
+
+    final ticket = PrecountTicket(order: order, tipPercentage: tipPercentage);
+
     _printerService.printTicket(ticket);
   }
 
-// Reimprimir factura: si el pedido tiene transactionId, se puede reimprimir la factura, si no, mostrar error
+  // Reimprimir factura: si el pedido tiene transactionId, se puede reimprimir la factura, si no, mostrar error
   Future<void> reprintInvoice(String transactionId) async {
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
@@ -431,13 +494,14 @@ class CashRegisterController extends GetxController {
           Get.dialog(
             ModalInfo(
               title: 'Pago realizado correctamente',
-              message: 'Valor a devolver: \$${format.format(change)}\nFactura N°: ${modelResponse.transactionNumber ?? ''}',
+              message:
+                  'Valor a devolver: \$${format.format(change)}\nFactura N°: ${modelResponse.transactionNumber ?? ''}',
               buttonText: 'Cerrar',
               secondaryButtonText: 'Imprimir Factura',
               onSecondaryAction: () {
-                 final ticket = TransactionTicket(transaction: modelResponse);
-                 _printerService.printTicket(ticket);
-                 Get.back(); 
+                final ticket = TransactionTicket(transaction: modelResponse);
+                _printerService.printTicket(ticket);
+                Get.back();
               },
               onClose: () {
                 Get.back(); // Close ModalInfo
@@ -446,7 +510,6 @@ class CashRegisterController extends GetxController {
             ),
             barrierDismissible: false,
           );
-          
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));

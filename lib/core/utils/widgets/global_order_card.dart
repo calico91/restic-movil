@@ -17,6 +17,7 @@ class GlobalOrderCard extends StatelessWidget {
   final VoidCallback? onActionPressed;
   final String? actionText;
   final VoidCallback? onPrintCustomAction;
+  final VoidCallback? onCancelPressed;
 
   const GlobalOrderCard({
     super.key,
@@ -26,6 +27,7 @@ class GlobalOrderCard extends StatelessWidget {
     this.onActionPressed,
     this.actionText,
     this.onPrintCustomAction,
+    this.onCancelPressed,
   });
 
   @override
@@ -137,6 +139,20 @@ class GlobalOrderCard extends StatelessWidget {
                     padding: EdgeInsets.zero,
                   );
                 }),
+                if (onCancelPressed != null) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.block,
+                      color: Colors.red,
+                      size: 24,
+                    ),
+                    onPressed: onCancelPressed,
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                    tooltip: 'Anular orden',
+                  ),
+                ],
               ],
             ),
             const SizedBox(height: 10),
