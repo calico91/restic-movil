@@ -12,6 +12,7 @@ import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/core/utils/printers/tickets/order_ticket.dart';
+import 'package:restic_movil/core/utils/printers/tickets/delivery_ticket.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -368,7 +369,11 @@ class TakeOrderController extends GetxController {
                       Get.showSnackbar(
                         const InfoSnackbar('Enviando a imprimir...'),
                       );
-                      printerService.printTicket(OrderTicket(order: newOrder));
+                      if (newOrder.originType?.code == 'DELIVERY' || newOrder.originType?.code == 'TAKE_AWAY') {
+                        printerService.printTicket(DeliveryTicket(order: newOrder));
+                      } else {
+                        printerService.printTicket(OrderTicket(order: newOrder));
+                      }
                       Get.until((route) => route.settings.name == Routes.HOME);
                     }
                   : null,
