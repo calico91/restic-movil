@@ -113,7 +113,7 @@ class GlobalOrderCard extends StatelessWidget {
                               if (onPrintCustomAction != null) {
                                 onPrintCustomAction!();
                               } else {
-                                if (order.originType?.code == 'DELIVERY' || order.originType?.code == 'TAKE_AWAY') {
+                                if (order.originType?.code == 'DELIVERY') {
                                   printerService.printTicket(
                                     DeliveryTicket(order: order),
                                   );

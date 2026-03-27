@@ -369,7 +369,7 @@ class TakeOrderController extends GetxController {
                       Get.showSnackbar(
                         const InfoSnackbar('Enviando a imprimir...'),
                       );
-                      if (newOrder.originType?.code == 'DELIVERY' || newOrder.originType?.code == 'TAKE_AWAY') {
+                      if (newOrder.originType?.code == 'DELIVERY') {
                         printerService.printTicket(DeliveryTicket(order: newOrder));
                       } else {
                         printerService.printTicket(OrderTicket(order: newOrder));
