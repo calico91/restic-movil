@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
+import 'package:restic_movil/core/utils/printers/printer_utils.dart';
 
 class PrecountTicket implements PrintableTicket {
   final OrderModel order;
@@ -29,14 +30,6 @@ class PrecountTicket implements PrintableTicket {
     } else {
       dateStr = dateFormat.format(DateTime.now());
     }
-
-    final currencyFormat = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 0,
-    );
-
-    printer.printNewLine();
 
     printer.printCustom(
       "Este documento NO es una factura valida".withoutDiacritics,
@@ -89,10 +82,7 @@ class PrecountTicket implements PrintableTicket {
 
       String qty = item.quantity.toString().padRight(4);
       // Formatear precio y eliminar cualquier caracter extraño o diacrítico que la impresora falle en interpretar
-      String price = currencyFormat
-          .format(item.subtotal)
-          .replaceAll(RegExp(r'[^\x20-\x7E]'), '')
-          .padLeft(8);
+      String price = PrinterUtils.formatCurrency(item.subtotal ?? 0).padLeft(8);
 
       printer.printCustom("$qty $itemName".withoutDiacritics, 1, 0);
       printer.printCustom(price, 1, 2); // alinear a la derecha el precio
@@ -100,24 +90,13 @@ class PrecountTicket implements PrintableTicket {
 
     printer.printCustom("--------------------------------", 1, 1);
 
-    // Función auxiliar para imprimir texto con formato de moneda limpio
-    void printCurrencyRow(String label, double amount, int size) {
-      String formattedAmount = currencyFormat
-          .format(amount)
-          .replaceAll(RegExp(r'[^\x20-\x7E]'), '')
-          .padLeft(
-            12,
-          ); // Pad fijo para evitar que el label se desplace si el monto cambia de longitud
-      printer.printCustom("$label$formattedAmount".withoutDiacritics, size, 2);
-    }
-
     // CALCULOS
     final subtotal = order.total ?? 0.0;
     final tipAmount = subtotal * (tipPercentage / 100);
     final total = subtotal + tipAmount;
 
     // TOTALES
-    printCurrencyRow("Subtotal:       ", subtotal, 1);
+    PrinterUtils.printCurrencyRow(printer, "Subtotal:       ", subtotal, 1);
 
     // Mostrar porcentaje en la etiqueta de la propina si es aplicable
     String tipLabel = tipPercentage > 0
@@ -126,9 +105,9 @@ class PrecountTicket implements PrintableTicket {
 
     // Asegurar que la etiqueta se alinee correctamente
     tipLabel = tipLabel.padRight(16);
-    printCurrencyRow(tipLabel, tipAmount, 1);
+    PrinterUtils.printCurrencyRow(printer, tipLabel, tipAmount, 1);
 
-    printCurrencyRow("TOTAL A PAGAR:  ", total, 2);
+    PrinterUtils.printCurrencyRow(printer, "TOTAL A PAGAR:  ", total, 2);
 
     printer.printNewLine();
     printer.printCustom("Revise su consumo antes de pagar.", 1, 1);

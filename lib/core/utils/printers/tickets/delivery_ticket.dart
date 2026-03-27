@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
+import 'package:restic_movil/core/utils/printers/printer_utils.dart';
 
 class DeliveryTicket implements PrintableTicket {
   final OrderModel order;
@@ -66,23 +67,11 @@ class DeliveryTicket implements PrintableTicket {
 
     printer.printCustom("--------------------------------", 1, 1);
     
-    final currencyFormat = NumberFormat.currency(
-      locale: 'en_US',
-      symbol: '\$',
-      decimalDigits: 0,
-    );
-    
-    // Función auxiliar para imprimir texto con formato de moneda limpio
-    void printCurrencyRow(String label, double amount, int size) {
-      String formattedAmount = currencyFormat.format(amount).replaceAll(RegExp(r'[^\x20-\x7E]'), '');
-      printer.printCustom("$label$formattedAmount".withoutDiacritics, size, 2);
-    }
-    
     // Suma del total de la orden
     double subtotal = order.total ?? 0.0;
     
-    printCurrencyRow("Subtotal:       ", subtotal, 1);
-    printCurrencyRow("TOTAL A COBRAR: ", subtotal, 2);
+    PrinterUtils.printCurrencyRow(printer, "Subtotal:       ", subtotal, 1);
+    PrinterUtils.printCurrencyRow(printer, "TOTAL A COBRAR: ", subtotal, 2);
     
     printer.printNewLine();
     printer.printCustom("Gracias por su compra!", 1, 1);

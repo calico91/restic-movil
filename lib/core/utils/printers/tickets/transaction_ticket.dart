@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
+import 'package:restic_movil/core/utils/printers/printer_utils.dart';
 
 class TransactionTicket implements PrintableTicket {
   final TransactionReceiptModel transaction;
@@ -15,12 +16,6 @@ class TransactionTicket implements PrintableTicket {
     final String date = transaction.issuedAt != null
         ? dateFormat.format(DateTime.parse(transaction.issuedAt!))
         : dateFormat.format(DateTime.now());
-
-    final currencyFormat = NumberFormat.currency(
-      locale: 'en_US', // Cambiado a en_US para evitar caracteres extraños del locale colombiano en la impresora (e.g., espacios no separables)
-      symbol: '\$',
-      decimalDigits: 0,
-    );
 
     printer.printNewLine();
 
@@ -111,7 +106,7 @@ class TransactionTicket implements PrintableTicket {
       
       String qty = item.quantity.toString().padRight(4);
       // Formatear precio y eliminar cualquier caracter extraño o diacrítico que la impresora falle en interpretar
-      String price = currencyFormat.format(item.subtotal).replaceAll(RegExp(r'[^\x20-\x7E]'), '').padLeft(8);
+      String price = PrinterUtils.formatCurrency(item.subtotal ?? 0).padLeft(8);
 
       printer.printCustom("$qty $itemName".withoutDiacritics, 1, 0);
       printer.printCustom(price, 1, 2); // alinear a la derecha el precio
@@ -119,29 +114,23 @@ class TransactionTicket implements PrintableTicket {
 
     printer.printCustom("--------------------------------", 1, 1);
 
-    // Función auxiliar para imprimir texto con formato de moneda limpio
-    void printCurrencyRow(String label, double amount, int size) {
-      String formattedAmount = currencyFormat.format(amount).replaceAll(RegExp(r'[^\x20-\x7E]'), '');
-      printer.printCustom("$label$formattedAmount".withoutDiacritics, size, 2);
-    }
-
     // TOTALES
-    printCurrencyRow("Subtotal:       ", transaction.subtotal ?? 0, 1);
+    PrinterUtils.printCurrencyRow(printer, "Subtotal:       ", transaction.subtotal ?? 0, 1);
     if ((transaction.tipAmount ?? 0) > 0) {
-      printCurrencyRow("Propina:        ", transaction.tipAmount!, 1);
+      PrinterUtils.printCurrencyRow(printer, "Propina:        ", transaction.tipAmount!, 1);
     }
-    printCurrencyRow("TOTAL A PAGAR:  ", transaction.totalAmount ?? 0, 2);
+    PrinterUtils.printCurrencyRow(printer, "TOTAL A PAGAR:  ", transaction.totalAmount ?? 0, 2);
     
     printer.printNewLine();
     
-    printCurrencyRow("Total Pagado:   ", transaction.totalPaid ?? 0, 1);
-    printCurrencyRow("Cambio:         ", transaction.change ?? 0, 1);
+    PrinterUtils.printCurrencyRow(printer, "Total Pagado:   ", transaction.totalPaid ?? 0, 1);
+    PrinterUtils.printCurrencyRow(printer, "Cambio:         ", transaction.change ?? 0, 1);
 
     printer.printNewLine();
     if (transaction.paymentDetails != null && transaction.paymentDetails!.isNotEmpty) {
       printer.printCustom("Metodos de pago:", 1, 1);
       for (var pay in transaction.paymentDetails!) {
-        String payAmount = currencyFormat.format(pay.amount ?? 0).replaceAll(RegExp(r'[^\x20-\x7E]'), '');
+        String payAmount = PrinterUtils.formatCurrency(pay.amount ?? 0);
         String methodDesc = pay.paymentMethodDescription ?? pay.paymentMethod ?? 'Desconocido';
         printer.printCustom("$methodDesc: $payAmount".withoutDiacritics, 1, 1);
       }
