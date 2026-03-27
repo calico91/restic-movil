@@ -14,6 +14,7 @@ import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
+import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
@@ -110,12 +111,13 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 10,
-                          mainAxisSpacing: 10,
-                          childAspectRatio: 1.0,
-                        ),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 1.0,
+                            ),
                         itemCount: controller.tables.length,
                         itemBuilder: (context, index) {
                           final table = controller.tables[index];
@@ -277,6 +279,17 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
 
   /*muestra el resumen del pedido */
   void _showOrderSummary(BuildContext context) {
+    if (controller.selectedCustomer.value == null) {
+      Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar un cliente.'));
+      return;
+    }
+
+    if (controller.form.control('origin').value == 'SALON' &&
+        controller.selectedTableIds.isEmpty) {
+      Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar una mesa.'));
+      return;
+    }
+
     Get.bottomSheet(
       Container(
         padding: const EdgeInsets.all(20),
@@ -308,6 +321,56 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
               ],
             ),
             const Divider(),
+
+            // INFORMACIÓN DEL CLIENTE Y MESAS
+            Padding(
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.person, size: 18, color: Colors.grey),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Cliente: ${controller.selectedCustomer.value?.fullName ?? "No seleccionado"}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  if (controller.form.control('origin').value == 'SALON' &&
+                      controller.selectedTableIds.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.table_restaurant,
+                          size: 18,
+                          color: Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Mesa(s): ${controller.tables.where((t) => controller.selectedTableIds.contains(t.id)).map((t) => t.name).join(', ')}',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            const Divider(),
+
             Padding(
               padding: const EdgeInsets.symmetric(vertical: 10),
               child: ReactiveForm(
