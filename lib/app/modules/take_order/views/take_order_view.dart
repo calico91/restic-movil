@@ -15,6 +15,8 @@ import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:flutter/services.dart';
+import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
@@ -385,62 +387,136 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
             ),
             Flexible(
               child: Obx(() {
-                return ListView.builder(
+                return ListView(
                   shrinkWrap: true,
-                  itemCount: controller.currentOrder.length,
-                  itemBuilder: (context, index) {
-                    final item = controller.currentOrder[index];
-                    final comboDetails = _buildComboDetails(item);
+                  children: [
+                    ListView.builder(
+                      physics: const NeverScrollableScrollPhysics(),
+                      shrinkWrap: true,
+                      itemCount: controller.currentOrder.length,
+                      itemBuilder: (context, index) {
+                        final item = controller.currentOrder[index];
+                        final comboDetails = _buildComboDetails(item);
 
-                    return ListTile(
-                      title: Text(
-                        '${item.product.name} (x${item.quantity})',
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      subtitle:
-                          (comboDetails.isNotEmpty ||
-                              (item.comment != null &&
-                                  item.comment!.isNotEmpty))
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                if (comboDetails.isNotEmpty)
-                                  Text(
-                                    comboDetails,
-                                    style: TextStyle(
-                                      color: Colors.grey[800],
-                                      fontSize: 13,
-                                    ),
-                                  ),
-                                if (item.comment != null &&
-                                    item.comment!.isNotEmpty)
-                                  Text(
-                                    'Nota: ${item.comment}',
-                                    style: const TextStyle(
-                                      fontStyle: FontStyle.italic,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                              ],
-                            )
-                          : null,
-                      trailing: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text('\$${item.total.toStringAsFixed(0)}'),
-                          IconButton(
-                            icon: const Icon(Icons.delete, color: Colors.red),
-                            onPressed: () {
-                              controller.removeFromOrder(item);
-                              if (controller.currentOrder.isEmpty) {
-                                Get.back();
-                              }
-                            },
+                        return ListTile(
+                          title: Text(
+                            '${item.product.name} (x${item.quantity})',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
-                        ],
+                          subtitle:
+                              (comboDetails.isNotEmpty ||
+                                  (item.comment != null &&
+                                      item.comment!.isNotEmpty))
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    if (comboDetails.isNotEmpty)
+                                      Text(
+                                        comboDetails,
+                                        style: TextStyle(
+                                          color: Colors.grey[800],
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    if (item.comment != null &&
+                                        item.comment!.isNotEmpty)
+                                      Text(
+                                        'Nota: ${item.comment}',
+                                        style: const TextStyle(
+                                          fontStyle: FontStyle.italic,
+                                          color: Colors.grey,
+                                        ),
+                                      ),
+                                  ],
+                                )
+                              : null,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text('\$${item.total.toStringAsFixed(0)}'),
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () {
+                                  controller.removeFromOrder(item);
+                                  if (controller.currentOrder.isEmpty) {
+                                    Get.back();
+                                  }
+                                },
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    const Divider(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text(
+                          'Cargos Adicionales',
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                          ),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => _showAddSurchargeDialog(context),
+                          icon: const Icon(Icons.add_circle_outline, size: 20),
+                          label: const Text('Agregar'),
+                        ),
+                      ],
+                    ),
+                    if (controller.surcharges.isEmpty)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(
+                          vertical: 8.0,
+                          horizontal: 16.0,
+                        ),
+                        child: Text(
+                          'No hay cargos adicionales.',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
                       ),
-                    );
-                  },
+                    ...controller.surcharges.asMap().entries.map((entry) {
+                      final index = entry.key;
+                      final surcharge = entry.value;
+                      return ListTile(
+                        dense: true,
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16.0,
+                          vertical: 0.0,
+                        ),
+                        title: Text(surcharge.description),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              '\$${surcharge.amount.toStringAsFixed(0)}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.remove_circle_outline,
+                                color: Colors.red,
+                                size: 20,
+                              ),
+                              onPressed: () {
+                                controller.removeSurcharge(index);
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
                 );
               }),
             ),
@@ -499,5 +575,79 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
       }
     }
     return details.join(' - ');
+  }
+
+  void _showAddSurchargeDialog(BuildContext context) {
+    final descriptionController = TextEditingController();
+    final amountController = TextEditingController();
+
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Agregar Cargo Adicional'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Descripción (ej. Domicilio, Empaque)',
+                border: OutlineInputBorder(),
+              ),
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: amountController,
+              decoration: const InputDecoration(
+                labelText: 'Monto',
+                border: OutlineInputBorder(),
+                prefixText: '\$ ',
+              ),
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                ThousandsSeparatorInputFormatter(),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final description = descriptionController.text.trim();
+              final amountStr = amountController.text.trim();
+              if (description.isNotEmpty && amountStr.isNotEmpty) {
+                final amount = double.tryParse(amountStr.replaceAll('.', '').replaceAll(',', ''));
+                if (amount != null && amount > 0) {
+                  controller.addSurcharge(description, amount);
+                  Get.back();
+                } else {
+                  Get.snackbar(
+                    'Error',
+                    'Ingrese un monto válido mayor a 0',
+                    snackPosition: SnackPosition.BOTTOM,
+                    backgroundColor: Colors.red[100],
+                    colorText: Colors.red[900],
+                  );
+                }
+              } else {
+                Get.snackbar(
+                  'Error',
+                  'Complete ambos campos',
+                  snackPosition: SnackPosition.BOTTOM,
+                  backgroundColor: Colors.red[100],
+                  colorText: Colors.red[900],
+                );
+              }
+            },
+            child: const Text('Agregar'),
+          ),
+        ],
+      ),
+    );
   }
 }

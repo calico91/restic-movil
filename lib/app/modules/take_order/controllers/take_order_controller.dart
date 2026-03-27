@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/customer_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
+import 'package:restic_movil/app/data/models/order_surcharge_model.dart';
 import 'package:restic_movil/app/data/models/origin_type.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
@@ -51,9 +52,13 @@ class TakeOrderController extends GetxController {
   final RxList<String> selectedTableIds = <String>[].obs;
   final Rxn<CustomerModel> selectedCustomer = Rxn<CustomerModel>();
   final RxList<OrderItemModel> currentOrder = <OrderItemModel>[].obs;
+  final RxList<OrderSurchargeModel> surcharges = <OrderSurchargeModel>[].obs;
 
-  double get totalOrderAmount =>
-      currentOrder.fold(0, (sum, item) => sum + item.total);
+  double get totalOrderAmount {
+    double detailsTotal = currentOrder.fold(0, (sum, item) => sum + item.total);
+    double surchargesTotal = surcharges.fold(0, (sum, item) => sum + item.amount);
+    return detailsTotal + surchargesTotal;
+  }
 
   @override
   void onInit() {
@@ -285,6 +290,17 @@ class TakeOrderController extends GetxController {
         .where((item) => item.product.id == product.id)
         .fold(0, (sum, item) => sum + item.quantity);
   }
+  // Agregar recargo al pedido
+  void addSurcharge(String description, double amount) {
+    surcharges.add(OrderSurchargeModel(description: description, amount: amount));
+  }
+
+  // Eliminar recargo por indice (podria ser por id si se asignan ids temporales)
+  void removeSurcharge(int index) {
+    if (index >= 0 && index < surcharges.length) {
+      surcharges.removeAt(index);
+    }
+  }
 
   void removeFromOrder(OrderItemModel item) {
     currentOrder.remove(item);
@@ -329,6 +345,13 @@ class TakeOrderController extends GetxController {
       "originType": origin,
       "observations": form.control('observations').value ?? "",
     };
+    // Agregar recargos si existen
+    if (surcharges.isNotEmpty) {
+      orderData["surcharges"] = surcharges.map((s) => {
+        "description": s.description,
+        "amount": s.amount
+      }).toList();
+    }
 
     if (origin == 'SALON') {
       orderData["tableIds"] = selectedTableIds.toList();
@@ -392,6 +415,7 @@ class TakeOrderController extends GetxController {
     selectedTableIds.clear();
     selectedCustomer.value = null;
     currentOrder.clear();
+    surcharges.clear();
     // Resetear el formulario completamnte, incluyendo el origen, dejandolo en null (estado inicial)
     form.reset();
   }
