@@ -60,11 +60,13 @@ class TakeOrderController extends GetxController {
 
     // Escuchar cambios en el origen
     form.control('origin').valueChanges.listen((value) {
+      if (value != null) {
+        _fetchCustomers();
+      }
+
       if (value == 'SALON') {
         _loadTables();
-        selectedCustomer.value = null;
       } else if (value == 'TAKE_AWAY' || value == 'DELIVERY') {
-        _fetchCustomers();
         tables.clear();
         selectedTableIds.clear();
       } else {
@@ -303,9 +305,8 @@ class TakeOrderController extends GetxController {
       return;
     }
 
-    // Validar cliente para otros origenes
-    if ((origin == 'TAKE_AWAY' || origin == 'DELIVERY') &&
-        selectedCustomer.value == null) {
+    // Validar cliente para todos los origenes
+    if (origin != null && selectedCustomer.value == null) {
       Get.showSnackbar(const ErrorSnackbar('Debe seleccionar un cliente'));
       return;
     }
@@ -330,9 +331,9 @@ class TakeOrderController extends GetxController {
 
     if (origin == 'SALON') {
       orderData["tableIds"] = selectedTableIds.toList();
-    } else {
-      orderData["customerId"] = selectedCustomer.value?.id;
     }
+    
+    orderData["customerId"] = selectedCustomer.value?.id;
 
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),

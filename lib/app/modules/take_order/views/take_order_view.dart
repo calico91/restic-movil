@@ -87,42 +87,48 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
       stream: controller.form.control('origin').valueChanges,
       builder: (context, snapshot) {
         final origin = controller.form.control('origin').value;
-        if (origin == 'SALON') {
-          return Obx(() {
-            if (controller.tables.isNotEmpty) {
-              return ExpandableSection(
-                title: 'Mesas Disponibles',
-                icon: Icons.table_restaurant,
-                initiallyExpanded: true,
-                content: GridView.builder(
-                  padding: EdgeInsets.zero,
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    crossAxisSpacing: 10,
-                    mainAxisSpacing: 10,
-                    childAspectRatio: 1.0,
-                  ),
-                  itemCount: controller.tables.length,
-                  itemBuilder: (context, index) {
-                    final table = controller.tables[index];
-                    return TableCardWidget(table: table);
-                  },
-                ),
-              );
-            }
-            return const SizedBox.shrink();
-          });
-        } else if (origin == 'TAKE_AWAY' || origin == 'DELIVERY') {
-          return const ExpandableSection(
-            title: 'Cliente',
-            icon: Icons.person,
-            initiallyExpanded: true,
-            content: CustomerCardWidget(),
-          );
-        }
-        return const SizedBox.shrink();
+        if (origin == null) return const SizedBox.shrink();
+
+        return Column(
+          children: [
+            const ExpandableSection(
+              title: 'Cliente',
+              icon: Icons.person,
+              initiallyExpanded: true,
+              content: CustomerCardWidget(),
+            ),
+            if (origin == 'SALON')
+              Obx(() {
+                if (controller.tables.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: ExpandableSection(
+                      title: 'Mesas Disponibles',
+                      icon: Icons.table_restaurant,
+                      initiallyExpanded: true,
+                      content: GridView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 3,
+                          crossAxisSpacing: 10,
+                          mainAxisSpacing: 10,
+                          childAspectRatio: 1.0,
+                        ),
+                        itemCount: controller.tables.length,
+                        itemBuilder: (context, index) {
+                          final table = controller.tables[index];
+                          return TableCardWidget(table: table);
+                        },
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+          ],
+        );
       },
     );
   }
