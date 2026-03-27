@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
@@ -78,8 +78,8 @@ class OrderPaymentCard extends StatelessWidget {
                           'DELIVERY',
                           'DOMICILIO',
                         ].contains(order.originType?.toUpperCase())
-                        ? (order.customerName ??
-                              order.customerId ??
+                        ? (order.customer?.fullName ??
+                              order.customer?.id ??
                               'Cliente sin nombre')
                         : (order.tables?.map((e) => e.name).join(', ') ??
                               'Sin mesa'),
@@ -135,7 +135,7 @@ class OrderPaymentCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 12),
-            // Botones de acción
+            // Botones de acciÃ³n
             Row(
               children: [
                 Expanded(

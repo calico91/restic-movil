@@ -56,26 +56,8 @@ class GlobalOrderCard extends StatelessWidget {
       } catch (_) {}
     }
 
-    // Obtener titulo (Mesas o Cliente)
-    String title = order.tables?.map((t) => t.name).join(', ') ?? '';
-
-    // Si no hay mesas, intentamos usar el cliente si es Take Away o Delivery
-    if (title.isEmpty &&
-        (order.originType == 'Domicilio' ||
-            order.originType == 'Para llevar' ||
-            order.originType == 'TAKE_AWAY' ||
-            order.originType == 'DELIVERY')) {
-      if (order.customerName != null) {
-        title = order.customerName!;
-      } else if (order.originType != null) {
-        title = order.originType!;
-      } else {
-        title = 'Sin información';
-      }
-    } else if (title.isEmpty) {
-      // Fallback a origin type
-      title = order.originType ?? 'Sin Mesa';
-    }
+    // Obtener titulo (Origen)
+    String title = order.originType ?? 'Sin Origen';
 
     final idDisplay = order.orderNumber!;
 
@@ -179,7 +161,9 @@ class GlobalOrderCard extends StatelessWidget {
                 ],
               ),
             ),
-            _buildInfoRow('Origen:', order.originType ?? 'N/A'),
+            _buildInfoRow('Cliente:', order.customer?.fullName ?? 'Sin información'),
+            if (order.tables != null && order.tables!.isNotEmpty)
+              _buildInfoRow('Mesa:', order.tables!.map((t) => t.name).join(', ')),
             _buildInfoRow('Fecha y hora:', dateText),
             const SizedBox(height: 15),
             Row(

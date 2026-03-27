@@ -30,14 +30,24 @@ class OrderTicket implements PrintableTicket {
     if (order.originType == 'SALON') {
       final tables = order.tables?.map((e) => e.name).join(', ') ?? 'N/A';
       extraInfo = "Mesas: $tables";
+      printer.printCustom(extraInfo.withoutDiacritics, 1, 0);
+      
+      if (order.customer != null) {
+        printer.printCustom("Cliente: ${order.customer!.fullName}".withoutDiacritics, 1, 0);
+      }
     } else if (order.originType == 'DELIVERY' ||
         order.originType == 'TAKE_AWAY') {
-      extraInfo = "Cliente: ${order.customerName ?? 'N/A'}";
-    } else if (order.customerName != null) {
-      extraInfo = "Cliente: ${order.customerName}";
-    }
+      extraInfo = "Cliente: ${order.customer?.fullName ?? 'N/A'}";
+      printer.printCustom(extraInfo.withoutDiacritics, 1, 0);
 
-    if (extraInfo.isNotEmpty) {
+      if (order.customer?.address != null && order.customer!.address!.isNotEmpty) {
+        printer.printCustom("Direccion: ${order.customer!.address}".withoutDiacritics, 1, 0);
+      }
+      if (order.customer?.phone != null && order.customer!.phone!.isNotEmpty) {
+        printer.printCustom("Telefono: ${order.customer!.phone}".withoutDiacritics, 1, 0);
+      }
+    } else if (order.customer != null) {
+      extraInfo = "Cliente: ${order.customer!.fullName}";
       printer.printCustom(extraInfo.withoutDiacritics, 1, 0);
     }
 

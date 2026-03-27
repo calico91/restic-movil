@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
@@ -48,7 +48,7 @@ class CommandsView extends GetView<CommandsController> {
                         right: 16,
                         top: 16,
                         bottom:
-                            100, // Espacio extra para la barra de navegación
+                            100, // Espacio extra para la barra de navegaciÃ³n
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: ordersList.length,
@@ -144,7 +144,7 @@ class CommandsView extends GetView<CommandsController> {
       }
     } catch (_) {}
 
-    // Lógica para título de la tarjeta
+    // LÃ³gica para tÃ­tulo de la tarjeta
     String title = '';
     final origin = order.originType;
 
@@ -153,11 +153,11 @@ class CommandsView extends GetView<CommandsController> {
         origin == 'Para llevar' ||
         origin == 'Domicilio') {
       title =
-          order.customerName ??
-          order.customerId ??
-          (origin ?? 'Sin Información');
+          order.customer?.fullName ??
+          order.customer?.id ??
+          (origin ?? 'Sin InformaciÃ³n');
     } else {
-      // Asumimos Salón u otros
+      // Asumimos SalÃ³n u otros
       title = _formatTables(order.tables);
       if (title == 'N/A' && origin != null) {
         title = origin;
@@ -262,7 +262,7 @@ class CommandsView extends GetView<CommandsController> {
     Color color = Colors.grey;
     String label = status ?? 'UNKNOWN';
 
-    // Obtener descripción si está disponible
+    // Obtener descripciÃ³n si estÃ¡ disponible
     if (status != null) {
       label = controller.getStatusDescription(status);
     }

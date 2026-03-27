@@ -54,9 +54,9 @@ class PrecountTicket implements PrintableTicket {
     );
     printer.printCustom("Fecha: $dateStr".withoutDiacritics, 1, 0);
 
-    if (order.customerName != null && order.customerName!.isNotEmpty) {
+    if (order.customer != null && order.customer!.fullName.isNotEmpty) {
       printer.printCustom(
-        "Cliente: ${order.customerName}".withoutDiacritics,
+        "Cliente: ${order.customer!.fullName}".withoutDiacritics,
         1,
         0,
       );

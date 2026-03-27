@@ -258,7 +258,7 @@ class OrdersController extends GetxController {
           final orderNumber = order.orderNumber?.toString() ?? '';
 
           // Buscar por nombre de cliente
-          final customerName = order.customerName?.toLowerCase() ?? '';
+          final customerName = order.customer?.fullName.toLowerCase() ?? '';
 
           return tableNames.any((name) => name.contains(query)) ||
               orderNumber.contains(query) ||
