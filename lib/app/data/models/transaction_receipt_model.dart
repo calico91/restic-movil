@@ -1,4 +1,5 @@
 import 'package:restic_movil/app/data/models/origin_type.dart';
+import 'package:restic_movil/app/data/models/order_surcharge_model.dart';
 
 class TransactionReceiptModel {
   final String? transactionNumber;
@@ -16,6 +17,8 @@ class TransactionReceiptModel {
   final String? waiterName;
   final List<TransactionItemModel>? items;
   final double? subtotal;
+  final List<OrderSurchargeModel>? surcharges;
+  final double? surchargesTotal;
   final double? tipAmount;
   final double? totalAmount;
   final double? totalPaid;
@@ -39,6 +42,8 @@ class TransactionReceiptModel {
     this.waiterName,
     this.items,
     this.subtotal,
+    this.surcharges,
+    this.surchargesTotal,
     this.tipAmount,
     this.totalAmount,
     this.totalPaid,
@@ -74,6 +79,12 @@ class TransactionReceiptModel {
               .toList()
           : null,
       subtotal: json['subtotal']?.toDouble(),
+      surcharges: json['surcharges'] != null
+          ? (json['surcharges'] as List)
+              .map((i) => OrderSurchargeModel.fromJson(i))
+              .toList()
+          : null,
+      surchargesTotal: json['surchargesTotal']?.toDouble(),
       tipAmount: json['tipAmount']?.toDouble(),
       totalAmount: json['totalAmount']?.toDouble(),
       totalPaid: json['totalPaid']?.toDouble(),

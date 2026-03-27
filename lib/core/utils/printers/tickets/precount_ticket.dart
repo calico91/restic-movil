@@ -91,12 +91,15 @@ class PrecountTicket implements PrintableTicket {
     printer.printCustom("--------------------------------", 1, 1);
 
     // CALCULOS
-    final subtotal = order.total ?? 0.0;
+    final subtotal = order.subtotal ?? (order.total ?? 0.0);
+    // Asumimos que la propina se calcula sobre el subtotal de productos, sin los surcharges
     final tipAmount = subtotal * (tipPercentage / 100);
-    final total = subtotal + tipAmount;
+    final total = (order.total ?? 0.0) + tipAmount;
 
     // TOTALES
     PrinterUtils.printCurrencyRow(printer, "Subtotal:       ", subtotal, 1);
+
+    PrinterUtils.printSurcharges(printer, order.surcharges);
 
     // Mostrar porcentaje en la etiqueta de la propina si es aplicable
     String tipLabel = tipPercentage > 0

@@ -68,10 +68,14 @@ class DeliveryTicket implements PrintableTicket {
     printer.printCustom("--------------------------------", 1, 1);
     
     // Suma del total de la orden
-    double subtotal = order.total ?? 0.0;
+    double subtotal = order.subtotal ?? (order.total ?? 0.0);
+    double total = order.total ?? 0.0;
     
     PrinterUtils.printCurrencyRow(printer, "Subtotal:       ", subtotal, 1);
-    PrinterUtils.printCurrencyRow(printer, "TOTAL A COBRAR: ", subtotal, 2);
+
+    PrinterUtils.printSurcharges(printer, order.surcharges);
+
+    PrinterUtils.printCurrencyRow(printer, "TOTAL A COBRAR: ", total, 2);
     
     printer.printNewLine();
     printer.printCustom("Gracias por su compra!", 1, 1);

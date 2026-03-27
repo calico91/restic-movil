@@ -14,6 +14,7 @@ class OrderModel {
   final List<TableModel>? tables;
   final CustomerModel? customer;
   final String? observations;
+  final double? subtotal;
   final double? total;
   final double? surchargesTotal;
   final List<OrderDetailModel>? details;
@@ -30,6 +31,7 @@ class OrderModel {
     this.tables,
     this.customer,
     this.observations,
+    this.subtotal,
     this.total,
     this.surchargesTotal,
     this.details,
@@ -54,6 +56,7 @@ class OrderModel {
           ? CustomerModel.fromJson(json['customer'])
           : null,
       observations: json['observations'],
+      subtotal: (json['subtotal'] as num?)?.toDouble(),
       total: (json['total'] as num?)?.toDouble(),
       surchargesTotal: (json['surchargesTotal'] as num?)?.toDouble(),
       details: json['details'] != null
@@ -81,6 +84,7 @@ class OrderModel {
       'tables': tables?.map((i) => i.toJson()).toList(),
       'customer': customer?.toJson(),
       'observations': observations,
+      'subtotal': subtotal,
       'total': total,
       'surchargesTotal': surchargesTotal,
       'details': details?.map((i) => i.toJson()).toList(),
