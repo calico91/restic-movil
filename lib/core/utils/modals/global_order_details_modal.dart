@@ -162,6 +162,39 @@ class GlobalOrderDetailsModal extends StatelessWidget {
             ),
 
             if (isReadOnly) const Divider(),
+            if (isReadOnly && (order.surcharges?.isNotEmpty ?? false)) ...[
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Subtotal:',
+                    style: TextStyle(fontSize: 14),
+                  ),
+                  Text(
+                    CurrencyFormatter.toCurrency(order.subtotal ?? (order.total ?? 0)),
+                    style: const TextStyle(fontSize: 14),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 4),
+              ...order.surcharges!.map((surcharge) => Padding(
+                    padding: const EdgeInsets.only(bottom: 4.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          surcharge.description,
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                        Text(
+                          CurrencyFormatter.toCurrency(surcharge.amount),
+                          style: const TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  )),
+              const Divider(),
+            ],
             if (isReadOnly)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,

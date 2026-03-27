@@ -410,6 +410,12 @@ class TransactionModal extends StatelessWidget {
 
         return Column(
           children: [
+            if (order.subtotal != null && order.subtotal! < orderTotal)
+              _summaryRow('Subtotal:', order.subtotal!),
+            if (order.surcharges != null && order.surcharges!.isNotEmpty)
+              ...order.surcharges!.map((s) => _summaryRow('${s.description}:', s.amount)),
+            if (order.subtotal != null && order.subtotal! < orderTotal)
+              const Divider(),
             _summaryRow('Total Pedido:', orderTotal),
             _summaryRow('Propina:', tip),
             const Divider(),

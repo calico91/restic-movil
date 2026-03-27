@@ -245,7 +245,8 @@ class CashRegisterController extends GetxController {
     // Calcular montos iniciales basados en el porcentaje por defecto
     final orderTotal = order.total ?? 0.0;
     final initialPercent = double.tryParse(defaultTip) ?? 0.0;
-    final initialTip = orderTotal * (initialPercent / 100);
+    final orderSubtotal = order.subtotal ?? orderTotal;
+    final initialTip = orderSubtotal * (initialPercent / 100);
     form.control('tipAmount').value = currencyFormat.format(initialTip.round());
     form.control('totalToPay').value = currencyFormat.format(
       (orderTotal + initialTip).round(),
@@ -269,7 +270,7 @@ class CashRegisterController extends GetxController {
       }
       if (value != null && value.toString().isNotEmpty) {
         final percent = double.tryParse(value.toString()) ?? 0.0;
-        final calcTip = orderTotal * (percent / 100);
+        final calcTip = orderSubtotal * (percent / 100);
 
         final newTipAmount = currencyFormat.format(calcTip.round());
         final newTotalToPay = currencyFormat.format(
@@ -296,7 +297,7 @@ class CashRegisterController extends GetxController {
         final tipVal =
             double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
 
-        final newPercent = orderTotal > 0 ? (tipVal / orderTotal) * 100 : 0.0;
+        final newPercent = orderSubtotal > 0 ? (tipVal / orderSubtotal) * 100 : 0.0;
         final newTipPercentage = newPercent
             .toStringAsFixed(1)
             .replaceAll('.0', '');
@@ -328,7 +329,7 @@ class CashRegisterController extends GetxController {
           final newTip = totalVal - orderTotal;
 
           final newTipAmount = currencyFormat.format(newTip.round());
-          final newPercent = orderTotal > 0 ? (newTip / orderTotal) * 100 : 0.0;
+          final newPercent = orderSubtotal > 0 ? (newTip / orderSubtotal) * 100 : 0.0;
           final newTipPercentage = newPercent
               .toStringAsFixed(1)
               .replaceAll('.0', '');
