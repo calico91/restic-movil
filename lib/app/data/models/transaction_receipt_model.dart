@@ -1,3 +1,5 @@
+import 'package:restic_movil/app/data/models/origin_type.dart';
+
 class TransactionReceiptModel {
   final String? transactionNumber;
   final String? issuedAt;
@@ -6,7 +8,7 @@ class TransactionReceiptModel {
   final String? cashierId;
   final String? orderId;
   final int? orderNumber;
-  final String? originType;
+  final OriginType? originType;
   final List<String>? tableNames;
   final String? customerId;
   final String? customerName;
@@ -56,7 +58,9 @@ class TransactionReceiptModel {
       cashierId: json['cashierId'],
       orderId: json['orderId'],
       orderNumber: json['orderNumber'],
-      originType: json['originType'],
+      originType: json['originType'] != null
+          ? OriginType.fromJson(json['originType'])
+          : null,
       tableNames: json['tableNames'] != null
           ? List<String>.from(json['tableNames'])
           : null,

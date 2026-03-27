@@ -63,7 +63,7 @@ class OrderPaymentCard extends StatelessWidget {
                         'PARA LLEVAR',
                         'DELIVERY',
                         'DOMICILIO',
-                      ].contains(order.originType?.toUpperCase())
+                      ].contains(order.originType?.code?.toUpperCase())
                       ? Icons.person
                       : Icons.table_restaurant,
                   size: 20,
@@ -77,7 +77,7 @@ class OrderPaymentCard extends StatelessWidget {
                           'PARA LLEVAR',
                           'DELIVERY',
                           'DOMICILIO',
-                        ].contains(order.originType?.toUpperCase())
+                        ].contains(order.originType?.code?.toUpperCase())
                         ? (order.customer?.fullName ??
                               order.customer?.id ??
                               'Cliente sin nombre')
@@ -98,7 +98,7 @@ class OrderPaymentCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  order.originType ?? 'Desconocido',
+                  order.originType?.description ?? 'Desconocido',
                   style: const TextStyle(fontSize: 14),
                 ),
               ],

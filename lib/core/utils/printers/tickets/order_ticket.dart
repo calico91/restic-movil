@@ -24,10 +24,10 @@ class OrderTicket implements PrintableTicket {
     // INFO DE LA ORDEN
     printer.printCustom("Orden: #${order.orderNumber}".withoutDiacritics, 1, 0);
     printer.printCustom("Fecha: $date".withoutDiacritics, 1, 0);
-    printer.printCustom("Origen: ${order.originType ?? 'N/A'}".withoutDiacritics, 1, 0);
+    printer.printCustom("Origen: ${order.originType?.description ?? 'N/A'}".withoutDiacritics, 1, 0);
 
     String extraInfo = "";
-    if (order.originType == 'SALON') {
+    if (order.originType?.code == 'SALON') {
       final tables = order.tables?.map((e) => e.name).join(', ') ?? 'N/A';
       extraInfo = "Mesas: $tables";
       printer.printCustom(extraInfo.withoutDiacritics, 1, 0);
@@ -35,8 +35,8 @@ class OrderTicket implements PrintableTicket {
       if (order.customer != null) {
         printer.printCustom("Cliente: ${order.customer!.fullName}".withoutDiacritics, 1, 0);
       }
-    } else if (order.originType == 'DELIVERY' ||
-        order.originType == 'TAKE_AWAY') {
+    } else if (order.originType?.code == 'DELIVERY' ||
+        order.originType?.code == 'TAKE_AWAY') {
       extraInfo = "Cliente: ${order.customer?.fullName ?? 'N/A'}";
       printer.printCustom(extraInfo.withoutDiacritics, 1, 0);
 

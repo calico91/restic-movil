@@ -146,21 +146,22 @@ class CommandsView extends GetView<CommandsController> {
 
     // LÃ³gica para tÃ­tulo de la tarjeta
     String title = '';
-    final origin = order.originType;
+    final originCode = order.originType?.code;
+    final originDesc = order.originType?.description;
 
-    if (origin == 'TAKE_AWAY' ||
-        origin == 'DELIVERY' ||
-        origin == 'Para llevar' ||
-        origin == 'Domicilio') {
+    if (originCode == 'TAKE_AWAY' ||
+        originCode == 'DELIVERY' ||
+        originCode == 'Para llevar' ||
+        originCode == 'Domicilio') {
       title =
           order.customer?.fullName ??
           order.customer?.id ??
-          (origin ?? 'Sin InformaciÃ³n');
+          (originDesc ?? 'Sin Información');
     } else {
-      // Asumimos SalÃ³n u otros
+      // Asumimos Salón u otros
       title = _formatTables(order.tables);
-      if (title == 'N/A' && origin != null) {
-        title = origin;
+      if (title == 'N/A' && originDesc != null) {
+        title = originDesc;
       }
     }
 
@@ -213,7 +214,7 @@ class CommandsView extends GetView<CommandsController> {
                   children: [
                     const Icon(Icons.storefront, size: 16, color: Colors.grey),
                     const SizedBox(width: 4),
-                    Text('Origen: ${order.originType ?? "N/A"}'),
+                    Text('Origen: ${order.originType?.description ?? 'N/A'}'),
                   ],
                 ),
                 const SizedBox(height: 4),

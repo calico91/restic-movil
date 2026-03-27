@@ -57,7 +57,7 @@ class GlobalOrderCard extends StatelessWidget {
     }
 
     // Obtener titulo (Origen)
-    String title = order.originType ?? 'Sin Origen';
+    String title = order.originType?.description ?? 'Sin Origen';
 
     final idDisplay = order.orderNumber!;
 

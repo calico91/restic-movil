@@ -1,6 +1,7 @@
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/data/models/customer_model.dart';
+import 'package:restic_movil/app/data/models/origin_type.dart';
 
 class OrderModel {
   final String? id;
@@ -8,7 +9,7 @@ class OrderModel {
   final String? closingDate;
   final int? orderNumber;
   final String? status;
-  final String? originType;
+  final OriginType? originType;
   final List<TableModel>? tables;
   final CustomerModel? customer;
   final String? observations;
@@ -38,7 +39,9 @@ class OrderModel {
       closingDate: json['closingDate'],
       status: json['status'],
       orderNumber: json['orderNumber'],
-      originType: json['originType'],
+      originType: json['originType'] != null
+          ? OriginType.fromJson(json['originType'])
+          : null,
       tables: json['tables'] != null
           ? (json['tables'] as List).map((i) => TableModel.fromJson(i)).toList()
           : null,
@@ -63,7 +66,7 @@ class OrderModel {
       'closingDate': closingDate,
       'openingDate': openingDate,
       'status': status,
-      'originType': originType,
+      'originType': originType?.toJson(),
       'tables': tables?.map((i) => i.toJson()).toList(),
       'customer': customer?.toJson(),
       'observations': observations,
