@@ -69,16 +69,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         await getDevices();
 
         // Intentar conectar con la impresora guardada
-        final savedPrinter = await _storageService.getPrinterDevice();
-        if (savedPrinter != null && savedPrinter['address'] != null) {
-          final savedAddress = savedPrinter['address']!;
-          final device = devices.firstWhereOrNull(
-            (d) => d.address == savedAddress,
-          );
-          if (device != null) {
-            await connect(device);
-          }
-        }
+        await autoConnect();
       }
 
       bluetooth.onStateChanged().listen((state) async {
@@ -110,10 +101,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
             break;
           case BlueThermalPrinter.STATE_ON:
             isBluetoothOn.value = true;
-            isConnected.value = false;
-            try {
-              await bluetooth.disconnect();
-            } catch (_) {}
+            // No hacemos disconnect() porque podríamos interrumpir el autoConnect
             getDevices();
             break;
           default:
@@ -153,6 +141,48 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       _logger.e("Error conectando a impresora: $e");
       isConnected.value = false;
       return false;
+    }
+  }
+
+  /* reconexión automática de la impresora Bluetooth guardada */
+  Future<void> autoConnect() async {
+    try {
+      final savedPrinter = await _storageService.getPrinterDevice();
+      if (savedPrinter != null && savedPrinter['address'] != null) {
+        final savedAddress = savedPrinter['address']!;
+        final device = devices.firstWhereOrNull(
+          (d) => d.address == savedAddress,
+        );
+        if (device != null) {
+          _logger.i("Intentando auto-conectar a la impresora guardada...");
+          
+          // Desconexión preventiva para limpiar sockets fantasmas
+          try {
+            await bluetooth.disconnect();
+          } catch (_) {}
+          
+          // Pausa antes de conectar
+          await Future.delayed(const Duration(milliseconds: 500));
+          
+          bool success = await connect(device);
+          
+          // Reintento en caso de fallo  
+          if (!success) {
+            _logger.w("Primer intento fallido, reintentando tras 1 seg...");
+            await Future.delayed(const Duration(seconds: 1));
+            
+            // Intento final limpieza agresiva
+            try {
+              await bluetooth.disconnect();
+            } catch (_) {}
+            await Future.delayed(const Duration(milliseconds: 300));
+            
+            await connect(device);
+          }
+        }
+      }
+    } catch (e) {
+      _logger.e("Error en reconexión automática: $e");
     }
   }
 
