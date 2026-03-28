@@ -6,6 +6,7 @@ import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
+import 'package:restic_movil/app/modules/orders/views/widgets/manage_surcharges_sheet.dart';
 
 class OrdersView extends GetView<OrdersController> {
   const OrdersView({super.key});
@@ -163,6 +164,14 @@ class OrdersView extends GetView<OrdersController> {
                   : null,
               actionText: 'Agregar',
               onActionPressed: () => controller.startAddProducts(order),
+              onManageSurchargesPressed: controller.currentTab.value == 0
+                  ? () => Get.bottomSheet(
+                        ManageSurchargesSheet(order: order),
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        enableDrag: true,
+                      )
+                  : null,
               printTooltip: 'Imprimir pedido',
             );
           },

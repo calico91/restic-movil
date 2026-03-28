@@ -16,6 +16,7 @@ class GlobalOrderCard extends StatelessWidget {
   final String detailsText;
   final VoidCallback? onActionPressed;
   final String? actionText;
+  final VoidCallback? onManageSurchargesPressed;
   final VoidCallback? onPrintCustomAction;
   final String printTooltip;
   final VoidCallback? onCancelPressed;
@@ -26,6 +27,7 @@ class GlobalOrderCard extends StatelessWidget {
     required this.order,
     this.onDetailsPressed,
     this.detailsText = 'Ver Detalles',
+    this.onManageSurchargesPressed,
     this.onActionPressed,
     this.actionText,
     this.onPrintCustomAction,
@@ -93,6 +95,19 @@ class GlobalOrderCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                const SizedBox(width: 8),
+                if (onManageSurchargesPressed != null) ...[
+                  const SizedBox(width: 4),
+                  ActionIconButton(
+                    icon: Icons.edit_note,
+                    color: Colors.blue,
+                    size: 24,
+                    tooltip: 'Gestionar cargos',
+                    onPressed: onManageSurchargesPressed!,
+                    constraints: const BoxConstraints(),
+                    padding: EdgeInsets.zero,
+                  ),
+                ],
                 const SizedBox(width: 8),
                 if (showPrintButton)
                   Obx(() {

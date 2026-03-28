@@ -54,6 +54,13 @@ class OrdersRepository {
     await _client.put(UrlPaths.updateOrderDetailStatus, body: data);
   }
 
+  Future<void> updateOrderSurcharges(String orderId, List<Map<String, dynamic>> surcharges) async {
+    await _client.put(
+      'orders/$orderId/surcharges',
+      body: surcharges,
+    );
+  }
+
   Future<void> updateOrderStatus(String orderId, String status) async {
     await _client.put(
       '${UrlPaths.updateOrderStatus}/$orderId',
