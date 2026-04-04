@@ -9,6 +9,7 @@ class CustomFormDialog extends StatelessWidget {
   final VoidCallback onSave;
   final String saveText;
   final String cancelText;
+  final bool autoClose; // <- Nuevo campo
 
   const CustomFormDialog({
     super.key,
@@ -18,6 +19,7 @@ class CustomFormDialog extends StatelessWidget {
     required this.onSave,
     this.saveText = 'Guardar',
     this.cancelText = 'Cancelar',
+    this.autoClose = true,
   });
 
   @override
@@ -62,7 +64,9 @@ class CustomFormDialog extends StatelessWidget {
                     return ElevatedButton(
                       onPressed: form.valid
                           ? () {
-                              Get.back();
+                              if (autoClose) {
+                                Get.back();
+                              }
                               onSave();
                             }
                           : null,

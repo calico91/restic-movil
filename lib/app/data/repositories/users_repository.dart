@@ -1,6 +1,5 @@
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
-import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 
 class UsersRepository {
@@ -27,7 +26,7 @@ class UsersRepository {
         ? response['data']
         : response;
 
-    return data.map((json) => UserRole.fromJson(json)).toList();
+    return data.map((item) => UserRole.fromJson(item)).toList();
   }
 
   Future<UserModel> createUser(Map<String, dynamic> userData) async {

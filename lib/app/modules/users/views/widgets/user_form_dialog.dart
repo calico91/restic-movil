@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
@@ -68,6 +67,7 @@ class UserFormDialog extends StatelessWidget {
     });
 
     return CustomFormDialog(
+      autoClose: false,
       title: user == null ? 'Nuevo Usuario' : 'Editar Usuario',
       formGroup: form,
       onSave: () {
@@ -158,7 +158,6 @@ class UserFormDialog extends StatelessWidget {
               obscureText: true,
               validationMessages: {
                 'required': (error) => 'Requerido',
-                'minLength': (error) => 'Mínimo 6 caracteres',
               },
             ),
             const SizedBox(height: 12),

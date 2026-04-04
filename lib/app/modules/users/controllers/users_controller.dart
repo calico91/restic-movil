@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/app/data/repositories/users_repository.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -40,30 +39,39 @@ class UsersController extends GetxController {
   }
 
   /* Crea un nuevo usuario y actualiza la lista */
-  Future<void> createUser(Map<String, dynamic> data) async {
+  Future<bool> createUser(Map<String, dynamic> data) async {
+    bool isSuccess = false;
     await Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           final newUser = await _repository.createUser(data);
           users.add(newUser);
-          Get.dialog(
-            ModalInfo(
-              title: 'Éxito',
-              message: 'Usuario creado exitosamente',
-              onClose: () => Get.back(),
-            ),
-          );
+          isSuccess = true;
         } catch (e) {
           final errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
         }
       },
     );
+    
+    if (isSuccess) {
+      Get.back(); // Cierra el UserFormDialog
+      Get.dialog(
+        ModalInfo(
+          title: 'Éxito',
+          message: 'Usuario creado exitosamente',
+          onClose: () => Get.back(),
+        ),
+      );
+    }
+    
+    return isSuccess;
   }
 
   /* Actualiza un usuario existente y actualiza la lista */
-  Future<void> updateUser(String id, Map<String, dynamic> data) async {
+  Future<bool> updateUser(String id, Map<String, dynamic> data) async {
+    bool isSuccess = false;
     await Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
@@ -73,18 +81,25 @@ class UsersController extends GetxController {
           if (index != -1) {
             users[index] = updatedUser;
           }
-          Get.dialog(
-            ModalInfo(
-              title: 'Éxito',
-              message: 'Usuario actualizado exitosamente',
-              onClose: () => Get.back(),
-            ),
-          );
+          isSuccess = true;
         } catch (e) {
           final errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
         }
       },
     );
+
+    if (isSuccess) {
+      Get.back(); // Cierra el UserFormDialog
+      Get.dialog(
+        ModalInfo(
+          title: 'Éxito',
+          message: 'Usuario actualizado exitosamente',
+          onClose: () => Get.back(),
+        ),
+      );
+    }
+
+    return isSuccess;
   }
 }

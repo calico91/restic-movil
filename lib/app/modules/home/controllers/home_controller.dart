@@ -9,13 +9,13 @@ class NavigationItem {
   final String title;
   final IconData icon;
   final Widget view;
-  final List<String> allowedRoles;
+  final List<String> allowedModules;
 
   NavigationItem({
     required this.title,
     required this.icon,
     required this.view,
-    required this.allowedRoles,
+    required this.allowedModules,
   });
 }
 
@@ -30,7 +30,7 @@ class HomeController extends GetxController {
     _loadNavigationItems();
   }
 
-  /*metodo para validar roles y cargar items de navegación */
+  /*metodo para validar módulos y cargar items de navegación */
   Future<void> _loadNavigationItems() async {
     try {
       final user = await _storageService.getUser();
@@ -39,10 +39,10 @@ class HomeController extends GetxController {
         return;
       }
 
-      final roles =
-          user.roles
-              ?.map((r) => r.name?.trim().toUpperCase() ?? '')
-              .where((r) => r.isNotEmpty)
+      final modules =
+          user.modules
+              ?.map((m) => m.trim().toUpperCase())
+              .where((m) => m.isNotEmpty)
               .toList() ??
           [];
 
@@ -51,24 +51,24 @@ class HomeController extends GetxController {
           title: 'Pedidos',
           icon: Icons.receipt_long,
           view: const OrdersView(),
-          allowedRoles: ['SUPER', 'ADMINISTRADOR', 'PEDIDO'],
+          allowedModules: ['PEDIDOS'],
         ),
         NavigationItem(
           title: 'Comandas',
           icon: Icons.restaurant,
           view: const CommandsView(),
-          allowedRoles: ['SUPER', 'ADMINISTRADOR', 'COCINA'],
+          allowedModules: ['COMANDAS'],
         ),
         NavigationItem(
           title: 'Caja',
           icon: Icons.credit_card,
           view: const CashRegisterView(),
-          allowedRoles: ['SUPER', 'ADMINISTRADOR', 'CAJA'],
+          allowedModules: ['CAJA'],
         ),
       ];
 
       final allowed = allItems.where((item) {
-        return item.allowedRoles.any((role) => roles.contains(role));
+        return item.allowedModules.any((module) => modules.contains(module));
       }).toList();
 
       navigationItems.assignAll(allowed);

@@ -15,11 +15,11 @@ class UsersView extends GetView<UsersController> {
       UserFormDialog(
         user: user,
         roles: controller.roles,
-        onSubmit: (data) {
+        onSubmit: (data) async {
           if (user == null) {
-            controller.createUser(data);
+            await controller.createUser(data);
           } else {
-            controller.updateUser(user.id!, data);
+            await controller.updateUser(user.id!, data);
           }
         },
       ),

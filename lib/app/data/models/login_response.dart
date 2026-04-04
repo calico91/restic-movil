@@ -2,14 +2,16 @@ class LoginResponse {
   final List<Branch>? branches;
   final String? id;
   final String? mobileNumber;
+  final List<String>? modules;
   final String? name;
-  final List<UserRole>? roles;
+  final List<String>? roles;
   final String? token;
 
   LoginResponse({
     this.branches,
     this.id,
     this.mobileNumber,
+    this.modules,
     this.name,
     this.roles,
     this.token,
@@ -22,10 +24,9 @@ class LoginResponse {
           : null,
       id: json['id'],
       mobileNumber: json['mobile_number'],
+      modules: json['modules'] != null ? List<String>.from(json['modules']) : null,
       name: json['name'],
-      roles: json['roles'] != null
-          ? (json['roles'] as List).map((i) => UserRole.fromJson(i)).toList()
-          : null,
+      roles: json['roles'] != null ? List<String>.from(json['roles']) : null,
       token: json['token'],
     );
   }
@@ -35,8 +36,9 @@ class LoginResponse {
       'branches': branches?.map((e) => e.toJson()).toList(),
       'id': id,
       'mobile_number': mobileNumber,
+      'modules': modules,
       'name': name,
-      'roles': roles?.map((e) => e.toJson()).toList(),
+      'roles': roles,
       'token': token,
     };
   }
@@ -50,21 +52,6 @@ class Branch {
 
   factory Branch.fromJson(Map<String, dynamic> json) {
     return Branch(id: json['id'], name: json['name']);
-  }
-
-  Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name};
-  }
-}
-
-class UserRole {
-  final int? id;
-  final String? name;
-
-  UserRole({this.id, this.name});
-
-  factory UserRole.fromJson(Map<String, dynamic> json) {
-    return UserRole(id: json['id'], name: json['name']);
   }
 
   Map<String, dynamic> toJson() {
