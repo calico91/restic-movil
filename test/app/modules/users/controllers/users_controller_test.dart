@@ -4,7 +4,6 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/users/controllers/users_controller.dart';
 import 'package:restic_movil/app/data/repositories/users_repository.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
-import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 
 class MockUsersRepository extends Fake implements UsersRepository {
   @override Future<List<UserModel>> getUsers() async => [];

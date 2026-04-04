@@ -29,7 +29,6 @@ class MockCategoriesRepository implements CategoriesRepository {
     isCategoryUpdated = true;
   }
 
-  @override
   Future<void> deleteCategory(String id) async {}
 
   @override
@@ -38,7 +37,6 @@ class MockCategoriesRepository implements CategoriesRepository {
   @override
   Future<void> updateSubcategory(String id, Map<String, dynamic> data) async {}
 
-  @override
   Future<void> deleteSubcategory(String id) async {}
 
   @override
@@ -47,7 +45,6 @@ class MockCategoriesRepository implements CategoriesRepository {
   @override
   Future<void> updateProduct(String id, Map<String, dynamic> data) async {}
 
-  @override
   Future<void> deleteProduct(String id) async {}
 }
 

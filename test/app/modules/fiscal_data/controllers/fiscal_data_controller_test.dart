@@ -1,7 +1,6 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
-import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/modules/fiscal_data/controllers/fiscal_data_controller.dart';
 import 'package:restic_movil/app/data/repositories/fiscal_data_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -9,12 +8,12 @@ import 'package:restic_movil/app/data/models/fiscal_data_model.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
 
 class MockFiscalDataRepository extends Fake implements FiscalDataRepository {
-  @override Future<FiscalDataModel?> getFiscalDataByBranch(String branchId) async { return null; }
+  Future<FiscalDataModel?> getFiscalDataByBranch(String branchId) async { return null; }
 }
 
 class MockStorageService extends StorageService {
   @override Future<String?> getBranchId() async => 'branch-1';
-  @override Future<Map<String, dynamic>?> getFiscalData() async => null;
+  Future<Map<String, dynamic>?> getFiscalData() async => null;
   @override Future<LoginResponse?> getUser() async => null;
 }
 

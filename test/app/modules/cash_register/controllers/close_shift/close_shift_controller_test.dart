@@ -26,7 +26,6 @@ class MockCashierRepository implements CashierRepository {
     return {'status': 'OK'};
   }
 
-  @override
   Future<void> registerExpense({required String cashierShiftId, required double amount, required String reason, required String observations}) async {}
 }
 
@@ -36,8 +35,7 @@ class MockStorageService extends GetxService implements StorageService {
     return LoginResponse(id: 'u-1', token: 'token', name: 'Admin', modules: []);
   }
 
-  @override
-  get storage => throw UnimplementedError();
+  Never get storage => throw UnimplementedError();
 
   @override
   Future<void> deleteBranchId() async {}
@@ -84,10 +82,8 @@ class MockStorageService extends GetxService implements StorageService {
   @override
   Future<List<String>?> getTransactionTypes() async => [];
 
-  @override
   Future<bool> hasToken() async => true;
 
-  @override
   Future<bool> hasUser() async => true;
 
   @override
@@ -126,13 +122,10 @@ class MockStorageService extends GetxService implements StorageService {
   @override
   Future<void> savePrinterDevice(String name, String address) async {}
 
-  @override
   Future<Map<String, dynamic>?> getFiscalData() async => null;
 
-  @override
   Future<void> saveFiscalData(Map<String, dynamic> data) async {}
 
-  @override
   Future<void> removeFiscalData() async {}
 }
 

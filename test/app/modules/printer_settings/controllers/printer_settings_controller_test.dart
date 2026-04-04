@@ -49,10 +49,10 @@ class MockPrinterService extends GetxService implements PrinterService {
   @override
   get bluetooth => throw UnimplementedError();
   @override Future<void> initBluetooth() async {}
-  @override void initPrinter() {}
-  @override Future<void> printBill(Map<String, dynamic> data, {bool openCashDrawer = false}) async {}
-  @override Future<void> printExpense(Map<String, dynamic> data) async {}
-  @override Future<void> printZReport(Map<String, dynamic> reportData) async {}
+  void initPrinter() {}
+  Future<void> printBill(Map<String, dynamic> data, {bool openCashDrawer = false}) async {}
+  Future<void> printExpense(Map<String, dynamic> data) async {}
+  Future<void> printZReport(Map<String, dynamic> reportData) async {}
   @override void didChangeAppLifecycleState(dynamic state) {}
   @override void didChangeAccessibilityFeatures() {}
   @override void didChangeLocales(dynamic locales) {}
@@ -72,8 +72,7 @@ class MockPrinterService extends GetxService implements PrinterService {
 }
 
 class TestPrinterSettingsController extends PrinterSettingsController {
-  @override
-  void onInit() {} // Override onInit scan Devices
+// Override onInit scan Devices
 }
 
 void main() {
