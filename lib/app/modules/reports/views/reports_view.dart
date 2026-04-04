@@ -23,8 +23,21 @@ class ReportsView extends GetView<ReportsController> {
         return Theme(
           data: ThemeData.light().copyWith(
             colorScheme: const ColorScheme.light(
-              primary: Color(0xFF0D47A1), // Deep Blue color theme
+              primary: Color(0xFF0D47A1),
+              onPrimary: Colors.white,
+              surface: Colors.white,
+              onSurface: Colors.black87,
+              secondary: Color(0xFF0D47A1),
+              primaryContainer: Color(0xFFE4F0FE),
+              onPrimaryContainer: Color(0xFF0D47A1),
             ),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF0D47A1),
+              foregroundColor: Colors.white,
+            ),
+            dialogTheme: DialogThemeData(
+              backgroundColor: Colors.white,
+            ), // Fondo principal
           ),
           child: child!,
         );

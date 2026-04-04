@@ -46,6 +46,8 @@ dependencies:
   http: ^1.6.0
   stomp_dart_client: ^3.0.1
   blue_thermal_printer: ^1.2.3
+  flutter_localizations:
+    sdk: flutter
 
 dev_dependencies:
   flutter_test:
