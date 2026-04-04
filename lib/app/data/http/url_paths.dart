@@ -72,4 +72,6 @@ class UrlPaths {
   static const String fiscalDataGet = 'fiscal-data'; // get /id
   static const String fiscalDataAll = 'fiscal-data/all'; // ?branchId=
   static const String fiscalDataDeactivate = 'fiscal-data'; // patch /id/deactivate
+  // Reports
+  static const String getSalesReport = 'reports/sales';
 }

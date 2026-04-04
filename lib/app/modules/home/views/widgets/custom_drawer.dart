@@ -70,6 +70,17 @@ class CustomDrawer extends GetView<HomeController> {
                   );
                 }),
                 Obx(() {
+                  if (!controller.modules.contains('REPORTES')) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return _buildDrawerItem(
+                    icon: Icons.bar_chart,
+                    title: 'Reportes',
+                    onTap: () => Get.toNamed(Routes.REPORTS),
+                  );
+                }),
+                Obx(() {
                   final hasPrinter = controller.modules.contains(
                     'CONFIGURACION_IMPRESORA',
                   );
