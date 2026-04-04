@@ -2,6 +2,12 @@
     "dart.flutterSdkPath": "..\\flutter_sdk_stable",
     "terminal.integrated.env.windows": {
         "PATH": "D:\\Flutter\\flutter_sdk_stable\\bin;${env:PATH}"
+    },
+    "chat.tools.terminal.autoApprove": {
+        "mkdir": true,
+        "%": true,
+        "Out-File": true,
+        "Move-Item": true
     }
 }
 

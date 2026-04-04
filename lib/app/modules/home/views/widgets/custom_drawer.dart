@@ -147,8 +147,7 @@ class CustomDrawer extends GetView<HomeController> {
             ),
             child: const CircleAvatar(
               radius: 40,
-              backgroundImage: AssetImage('assets/images/logo.png'),
-              // Fallback or placeholder if logo not present, using Icon for now until asset is confirmed
+              backgroundColor: Colors.transparent,
               child: Icon(Icons.person, size: 40, color: Colors.grey),
             ),
           ),
