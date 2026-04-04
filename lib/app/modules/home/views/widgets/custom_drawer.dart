@@ -16,59 +16,88 @@ class CustomDrawer extends GetView<HomeController> {
             child: ListView(
               padding: EdgeInsets.zero,
               children: [
-                _buildDrawerItem(
-                  icon: Icons.person_outline,
-                  title: 'Mi Perfil',
-                  onTap: () {},
-                ),
-                _buildDrawerItem(
-                  icon: Icons.manage_accounts,
-                  title: 'Usuarios',
-                  onTap: () => Get.toNamed(Routes.USERS),
-                ),
-                _buildDrawerItem(
-                  icon: Icons.restaurant_menu,
-                  title: 'Menú',
-                  onTap: () => Get.toNamed(Routes.MENU),
-                ),
-                _buildDrawerItem(
-                  icon: Icons.people_outline,
-                  title: 'Clientes',
-                  onTap: () => Get.toNamed(Routes.CUSTOMERS),
-                ),
-                _buildExpansionTile(
-                  icon: Icons.point_of_sale,
-                  title: 'Opciones de Caja',
-                  children: [
-                    _buildDrawerSubItem(
-                      title: 'Apertura de Caja',
-                      onTap: () => Get.toNamed(Routes.OPEN_SHIFT),
-                    ),
-                    _buildDrawerSubItem(
-                      title: 'Cierre de Caja',
-                      onTap: () => Get.toNamed(Routes.CLOSE_SHIFT),
-                    ),
-                    _buildDrawerSubItem(
-                      title: 'Egresos de Caja',
-                      onTap: () => Get.toNamed(Routes.EXPENSES),
-                    ),
-                  ],
-                ),
+                Obx(() {
+                  if (!controller.modules.contains('USUARIOS')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.manage_accounts,
+                    title: 'Usuarios',
+                    onTap: () => Get.toNamed(Routes.USERS),
+                  );
+                }),
+                Obx(() {
+                  if (!controller.modules.contains('MENU')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.restaurant_menu,
+                    title: 'Menú',
+                    onTap: () => Get.toNamed(Routes.MENU),
+                  );
+                }),
+                Obx(() {
+                  if (!controller.modules.contains('CLIENTES')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.people_outline,
+                    title: 'Clientes',
+                    onTap: () => Get.toNamed(Routes.CUSTOMERS),
+                  );
+                }),
+                Obx(() {
+                  if (!controller.modules.contains('OPCIONES_CAJA')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildExpansionTile(
+                    icon: Icons.point_of_sale,
+                    title: 'Opciones de Caja',
+                    children: [
+                      _buildDrawerSubItem(
+                        title: 'Apertura de Caja',
+                        onTap: () => Get.toNamed(Routes.OPEN_SHIFT),
+                      ),
+                      _buildDrawerSubItem(
+                        title: 'Cierre de Caja',
+                        onTap: () => Get.toNamed(Routes.CLOSE_SHIFT),
+                      ),
+                      _buildDrawerSubItem(
+                        title: 'Egresos de Caja',
+                        onTap: () => Get.toNamed(Routes.EXPENSES),
+                      ),
+                    ],
+                  );
+                }),
+                Obx(() {
+                  final hasPrinter = controller.modules.contains(
+                    'CONFIGURACION_IMPRESORA',
+                  );
+                  final hasFiscal = controller.modules.contains(
+                    'CONFIGURACION_DATOS_FISCALES',
+                  );
 
-                _buildExpansionTile(
-                  icon: Icons.settings_outlined,
-                  title: 'Configuración',
-                  children: [
-                    _buildDrawerSubItem(
-                      title: 'Impresora',
-                      onTap: () => Get.toNamed(Routes.PRINTER_SETTINGS),
-                    ),
-                    _buildDrawerSubItem(
-                      title: 'Datos Fiscales',
-                      onTap: () => Get.toNamed(Routes.FISCAL_DATA),
-                    ),
-                  ],
-                ),
+                  if (!hasPrinter && !hasFiscal) {
+                    return const SizedBox.shrink();
+                  }
+
+                  return _buildExpansionTile(
+                    icon: Icons.settings_outlined,
+                    title: 'Configuración',
+                    children: [
+                      if (hasPrinter)
+                        _buildDrawerSubItem(
+                          title: 'Impresora',
+                          onTap: () => Get.toNamed(Routes.PRINTER_SETTINGS),
+                        ),
+                      if (hasFiscal)
+                        _buildDrawerSubItem(
+                          title: 'Datos Fiscales',
+                          onTap: () => Get.toNamed(Routes.FISCAL_DATA),
+                        ),
+                    ],
+                  );
+                }),
               ],
             ),
           ),

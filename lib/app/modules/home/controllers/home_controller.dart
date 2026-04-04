@@ -23,6 +23,7 @@ class HomeController extends GetxController {
   final StorageService _storageService = Get.find<StorageService>();
   final currentIndex = 0.obs;
   final RxList<NavigationItem> navigationItems = <NavigationItem>[].obs;
+  final RxList<String> modules = <String>[].obs;
 
   @override
   void onInit() {
@@ -39,12 +40,13 @@ class HomeController extends GetxController {
         return;
       }
 
-      final modules =
+      final loadedModules =
           user.modules
               ?.map((m) => m.trim().toUpperCase())
               .where((m) => m.isNotEmpty)
               .toList() ??
           [];
+      modules.assignAll(loadedModules);
 
       final allItems = [
         NavigationItem(
@@ -68,7 +70,7 @@ class HomeController extends GetxController {
       ];
 
       final allowed = allItems.where((item) {
-        return item.allowedModules.any((module) => modules.contains(module));
+        return item.allowedModules.any((m) => modules.contains(m));
       }).toList();
 
       navigationItems.assignAll(allowed);
