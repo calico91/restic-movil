@@ -127,6 +127,12 @@ class MockStorageService extends GetxService implements StorageService {
   Future<void> saveFiscalData(Map<String, dynamic> data) async {}
 
   Future<void> removeFiscalData() async {}
+  @override
+  Future<void> saveServerUrl(String url) async {}
+  @override
+  Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
+  @override
+  Future<void> deleteServerUrl() async {}
 }
 
 void main() {

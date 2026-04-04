@@ -184,17 +184,14 @@ class LoginView extends GetView<LoginController> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Text(
-          'No tienes una cuenta? ',
-          style: GoogleFonts.poppins(color: Colors.red[800]),
-        ),
         GestureDetector(
-          onTap: () {},
+          onTap: controller.configureConnection,
           child: Text(
-            'Registrarse',
+            'Configurar conexión',
             style: GoogleFonts.poppins(
               color: Colors.blue[800],
               decoration: TextDecoration.underline,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ),

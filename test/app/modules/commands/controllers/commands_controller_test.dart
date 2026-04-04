@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/commands/controllers/commands_controller.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
@@ -17,6 +17,12 @@ class MockStorageService extends StorageService {
   @override Future<void> saveOrderStatuses(List<dynamic> statuses) async {}
   @override Future<List<dynamic>?> getOrderDetailStatuses() async => null;
   @override Future<void> saveOrderDetailStatuses(List<dynamic> statuses) async {}
+  @override
+  Future<void> saveServerUrl(String url) async {}
+  @override
+  Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
+  @override
+  Future<void> deleteServerUrl() async {}
 }
 
 class MockWebSocketService extends WebSocketService {

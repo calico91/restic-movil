@@ -150,4 +150,16 @@ class StorageService extends GetxService {
   Future<String?> getDefaultTipPercentage() async {
     return await _storage.read(key: 'default_tip_percentage');
   }
+
+  Future<void> saveServerUrl(String url) async {
+    await _storage.write(key: 'server_url', value: url);
+  }
+
+  Future<String?> getServerUrl() async {
+    return await _storage.read(key: 'server_url');
+  }
+
+  Future<void> deleteServerUrl() async {
+    await _storage.delete(key: 'server_url');
+  }
 }

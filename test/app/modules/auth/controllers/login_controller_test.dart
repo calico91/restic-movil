@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/auth/controllers/login_controller.dart';
@@ -33,6 +33,12 @@ class MockStorageService extends StorageService {
   @override Future<void> saveToken(String token) async {}
   @override Future<void> saveUser(LoginResponse user) async {}
   @override Future<void> saveBranchId(String branchId) async {}
+  @override
+  Future<void> saveServerUrl(String url) async {}
+  @override
+  Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
+  @override
+  Future<void> deleteServerUrl() async {}
 }
 
 void main() {

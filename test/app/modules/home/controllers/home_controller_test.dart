@@ -23,6 +23,12 @@ class MockStorageService extends GetxService implements StorageService {
   dynamic noSuchMethod(Invocation invocation) {
     return super.noSuchMethod(invocation);
   }
+  @override
+  Future<void> saveServerUrl(String url) async {}
+  @override
+  Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
+  @override
+  Future<void> deleteServerUrl() async {}
 }
 
 void main() {

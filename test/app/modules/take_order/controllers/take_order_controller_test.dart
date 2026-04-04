@@ -1,4 +1,4 @@
-﻿import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
@@ -35,6 +35,12 @@ class MockStorageService extends StorageService {
   Future<List<dynamic>?> getOrderOrigins() async => null;
   @override
   Future<void> saveOrderOrigins(List<dynamic> origins) async {}
+  @override
+  Future<void> saveServerUrl(String url) async {}
+  @override
+  Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
+  @override
+  Future<void> deleteServerUrl() async {}
 }
 
 class MockPrinterService extends PrinterService {

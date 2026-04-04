@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/fiscal_data/controllers/fiscal_data_controller.dart';
@@ -15,6 +15,12 @@ class MockStorageService extends StorageService {
   @override Future<String?> getBranchId() async => 'branch-1';
   Future<Map<String, dynamic>?> getFiscalData() async => null;
   @override Future<LoginResponse?> getUser() async => null;
+  @override
+  Future<void> saveServerUrl(String url) async {}
+  @override
+  Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
+  @override
+  Future<void> deleteServerUrl() async {}
 }
 
 void main() {

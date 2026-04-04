@@ -10,14 +10,13 @@ import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 
 class BaseHttpClient {
-  static const String _baseUrl = 'http://192.168.0.103:8093/api/';
   final StorageService _storageService = Get.find<StorageService>();
 
   BaseHttpClient();
 
   Future<dynamic> get(String path, {Map<String, String>? parameters}) async {
     return _executeRequest(() async {
-      final uri = _buildUri(path, parameters);
+      final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
       return http.get(uri, headers: headers);
     });
@@ -33,7 +32,7 @@ class BaseHttpClient {
     );
 
     return _executeRequest(() async {
-      final uri = _buildUri(path, parameters);
+      final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
       return http.post(
         uri,
@@ -53,7 +52,7 @@ class BaseHttpClient {
     );
 
     return _executeRequest(() async {
-      final uri = _buildUri(path, parameters);
+      final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
       return http.put(
         uri,
@@ -69,7 +68,7 @@ class BaseHttpClient {
     Map<String, String>? parameters,
   }) async {
     return _executeRequest(() async {
-      final uri = _buildUri(path, parameters);
+      final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
       return http.delete(
         uri,
@@ -79,17 +78,30 @@ class BaseHttpClient {
     });
   }
 
-  Uri _buildUri(String path, Map<String, String>? parameters) {
+  Future<Uri> _buildUriAsync(
+    String path,
+    Map<String, String>? parameters,
+  ) async {
     if (path.startsWith('http')) {
       return Uri.parse(path).replace(queryParameters: parameters);
     }
 
-    final String cleanUrl = _baseUrl.endsWith('/')
-        ? _baseUrl.substring(0, _baseUrl.length - 1)
-        : _baseUrl;
+    final serverUrl = await _storageService.getServerUrl();
+    if (serverUrl == null || serverUrl.isEmpty) {
+      throw FetchDataException('Debe configurar la conexión al servidor', '');
+    }
+
+    final String baseUrlStr = serverUrl.startsWith('http')
+        ? serverUrl
+        : 'http://$serverUrl';
+    final String cleanUrl = baseUrlStr.endsWith('/')
+        ? baseUrlStr.substring(0, baseUrlStr.length - 1)
+        : baseUrlStr;
     final String cleanPath = path.startsWith('/') ? path : '/$path';
 
-    final baseUri = Uri.parse(cleanUrl + cleanPath);
+    final String finalUrl = '$cleanUrl/api$cleanPath';
+
+    final baseUri = Uri.parse(finalUrl);
     if (parameters != null) {
       return baseUri.replace(queryParameters: parameters);
     }

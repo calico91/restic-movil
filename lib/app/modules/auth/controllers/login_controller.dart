@@ -8,6 +8,7 @@ import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/branch_selection_modal.dart';
+import 'package:restic_movil/app/modules/auth/views/widgets/configure_connection_modal.dart';
 
 class LoginController extends GetxController {
   final AuthRepository authRepository;
@@ -28,12 +29,24 @@ class LoginController extends GetxController {
 
   final RxString selectedRole = 'Administrador'.obs;
 
+  void configureConnection() {
+    ConfigureConnectionModal.show(storageService);
+  }
+
   Future<void> login() async {
+    final serverUrl = await storageService.getServerUrl();
+    if (serverUrl == null || serverUrl.isEmpty) {
+      Get.showSnackbar(
+        const ErrorSnackbar('Debe configurar la conexión antes de ingresar.'),
+      );
+      return;
+    }
+
     if (form.valid) {
       final username = form.control('username').value as String;
       final password = form.control('password').value as String;
 
-      Get.showOverlay(
+      await Get.showOverlay(
         loadingWidget: LoadingCharging(),
         asyncFunction: () async {
           try {
