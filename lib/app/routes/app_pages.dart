@@ -25,12 +25,19 @@ import '../modules/fiscal_data/bindings/fiscal_data_binding.dart';
 import '../modules/fiscal_data/views/fiscal_data_view.dart';
 import '../modules/reports/bindings/reports_binding.dart';
 import '../modules/reports/views/reports_view.dart';
+import '../modules/splash/bindings/splash_binding.dart';
+import '../modules/splash/views/splash_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
+    GetPage(
+      name: Routes.SPLASH,
+      page: () => const SplashView(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: Routes.MENU,
       page: () => const MenuView(),
