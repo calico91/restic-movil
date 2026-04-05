@@ -60,7 +60,26 @@ class TableFormModal extends GetView<TablesController> {
                       formControlName: 'location',
                       labelText: 'Ubicación (opcional)',
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 15),
+                    Obx(() {
+                      if (!controller.isEditing.value) return const SizedBox.shrink();
+                      
+                      return const Column(
+                        children: [
+                          /* 
+                           Se muestra exclusivamente cuando la mesa ya existe para poder 
+                           actualizar su identificador de ordenamiento interno (tableNumber)
+                          */
+                          CustomReactiveTextField<int>(
+                            formControlName: 'tableNumber',
+                            labelText: 'Número de Orden de la Mesa',
+                            keyboardType: TextInputType.number,
+                          ),
+                          SizedBox(height: 15),
+                        ],
+                      );
+                    }),
+                    const SizedBox(height: 5),
                     ReactiveFormConsumer(
                       builder: (context, form, child) {
                         return CustomSubmitButton(

@@ -6,6 +6,7 @@ import 'package:restic_movil/app/data/models/table_status_model.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
@@ -13,7 +14,6 @@ class TablesController extends GetxController {
   final TablesRepository repository;
 
   TablesController({required this.repository});
-  
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   GlobalKey<ScaffoldState> get scaffoldKey => _scaffoldKey;
 
@@ -31,7 +31,7 @@ class TablesController extends GetxController {
     _initForm();
     _loadInitialData();
   }
-  
+
   void openDrawer() {
     _scaffoldKey.currentState?.openDrawer();
   }
@@ -42,6 +42,7 @@ class TablesController extends GetxController {
       'name': FormControl<String>(validators: [Validators.required]),
       'status': FormControl<String>(validators: [Validators.required]),
       'location': FormControl<String>(),
+      'tableNumber': FormControl<int>(), // Remover Validators.min(1) para evitar fallos si es nulo
     });
   }
 
@@ -69,18 +70,23 @@ class TablesController extends GetxController {
   void prepareCreate() {
     isEditing.value = false;
     editingTableId = null;
-    tableForm.reset();
+    tableForm.reset(value: {
+      'status': 'AVAILABLE',
+    });
   }
 
   /// Prepara el formulario para editar una mesa existente
   void prepareEdit(TableModel table) {
     isEditing.value = true;
     editingTableId = table.id;
-    tableForm.reset(value: {
-      'name': table.name,
-      'status': table.status,
-      'location': table.location,
-    });
+    tableForm.reset(
+      value: {
+        'name': table.name,
+        'status': table.status,
+        'location': table.location,
+        'tableNumber': table.tableNumber,
+      },
+    );
   }
 
   /// Crea o actualiza una mesa dependiendo del estado (isEditing)
@@ -96,21 +102,44 @@ class TablesController extends GetxController {
       if (tableForm.control('location').value != null &&
           (tableForm.control('location').value as String).isNotEmpty)
         'location': tableForm.control('location').value as String,
+      if (isEditing.value && tableForm.control('tableNumber').value != null)
+        'tableNumber': tableForm.control('tableNumber').value as int,
     };
 
     await Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
+          String modalTitle = '';
+          String modalMessage = '';
+
           if (isEditing.value && editingTableId != null) {
-            await repository.updateTable(editingTableId!, tableData);
-            Get.showSnackbar(const InfoSnackbar('Mesa actualizada correctamente'));
+            final response = await repository.updateTable(
+              editingTableId!,
+              tableData,
+            );
+            modalTitle = 'Mesa Actualizada';
+            modalMessage =
+                'La mesa "${response.name}" ha sido actualizada exitosamente.';
           } else {
-            await repository.createTables([tableData]);
-            Get.showSnackbar(const InfoSnackbar('Mesa creada correctamente'));
+            final response = await repository.createTables([tableData]);
+            modalTitle = 'Mesa Creada';
+            modalMessage = response.isNotEmpty
+                ? 'La mesa "${response.first.name}" ha sido creada exitosamente.'
+                : 'La mesa ha sido creada exitosamente.';
           }
           await _loadDataWithoutOverlay();
-          Get.back(); // Cerrar modal
+          Get.back(); // Cerrar modal del formulario
+
+          // Mostrar modal informativo
+          Get.dialog(
+            ModalInfo(
+              title: modalTitle,
+              message: modalMessage,
+              buttonText: 'Cerrar',
+              onClose: () => Get.back(),
+            ),
+          );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
@@ -130,7 +159,7 @@ class TablesController extends GetxController {
           Get.showSnackbar(const InfoSnackbar('Mesa eliminada'));
           await _loadDataWithoutOverlay();
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);       
+          final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));
         }
       },
@@ -159,9 +188,11 @@ class TablesController extends GetxController {
     }
   }
 
-/* Obtiene el nombre descriptivo del estado a partir del código */
+  /* Obtiene el nombre descriptivo del estado a partir del código */
   String getStatusName(String? status) {
-    return statuses.firstWhereOrNull((e) => e.name == status)?.description ?? status ?? 'Desconocido';
+    return statuses.firstWhereOrNull((e) => e.name == status)?.description ??
+        status ??
+        'Desconocido';
   }
 
   /// Verifica si una mesa está seleccionada
@@ -180,6 +211,7 @@ class TablesController extends GetxController {
   void clearSelection() {
     selectedTableIds.clear();
   }
+
   /// Verifica si se pueden reservar las mesas seleccionadas
   bool get canReserveSelected {
     if (selectedTableIds.isEmpty) return false;
@@ -193,6 +225,7 @@ class TablesController extends GetxController {
     final selected = tables.where((t) => selectedTableIds.contains(t.id));
     return selected.every((t) => t.status != 'AVAILABLE');
   }
+
   /// Reserva todas las mesas seleccionadas
   Future<void> reserveSelectedTables() async {
     if (selectedTableIds.isEmpty) return;
@@ -233,4 +266,3 @@ class TablesController extends GetxController {
     );
   }
 }
-

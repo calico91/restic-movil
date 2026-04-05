@@ -4,8 +4,16 @@ class TableModel {
   final String? status;
   final String? location;
   final String? branchId;
+  final int? tableNumber;
 
-  TableModel({this.id, this.name, this.status, this.location, this.branchId});
+  TableModel({
+    this.id,
+    this.name,
+    this.status,
+    this.location,
+    this.branchId,
+    this.tableNumber,
+  });
 
   factory TableModel.fromJson(Map<String, dynamic> json) {
     return TableModel(
@@ -14,6 +22,7 @@ class TableModel {
       status: json['status'],
       location: json['location'],
       branchId: json['branch_id'],
+      tableNumber: json['tableNumber'] ?? json['table_number'],
     );
   }
 
@@ -24,6 +33,7 @@ class TableModel {
       'status': status,
       'location': location,
       'branch_id': branchId,
+      'tableNumber': tableNumber,
     };
   }
 }
