@@ -15,6 +15,8 @@ import '../modules/customers/bindings/customer_binding.dart';
 import '../modules/customers/views/customer_view.dart';
 import '../modules/menu/bindings/menu_binding.dart';
 import '../modules/menu/views/menu_view.dart';
+import '../modules/tables/bindings/tables_binding.dart';
+import '../modules/tables/views/tables_view.dart';
 import '../modules/users/bindings/users_binding.dart';
 import '../modules/users/views/users_view.dart';
 import '../modules/printer_settings/bindings/printer_settings_binding.dart';
@@ -33,6 +35,11 @@ class AppPages {
       name: Routes.MENU,
       page: () => const MenuView(),
       binding: MenuBinding(),
+    ),
+    GetPage(
+      name: Routes.TABLES,
+      page: () => const TablesView(),
+      binding: TablesBinding(),
     ),
     GetPage(
       name: Routes.USERS,

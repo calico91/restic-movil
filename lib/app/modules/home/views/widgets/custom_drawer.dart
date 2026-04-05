@@ -37,6 +37,16 @@ class CustomDrawer extends GetView<HomeController> {
                   );
                 }),
                 Obx(() {
+                  if (!controller.modules.contains('MESAS')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.table_restaurant,
+                    title: 'Mesas',
+                    onTap: () => Get.toNamed(Routes.TABLES),
+                  );
+                }),
+                Obx(() {
                   if (!controller.modules.contains('CLIENTES')) {
                     return const SizedBox.shrink();
                   }

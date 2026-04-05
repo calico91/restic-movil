@@ -18,6 +18,7 @@ class MockOrdersRepository extends Fake implements OrdersRepository {
 }
 
 class MockTablesRepository extends Fake implements TablesRepository {
+  @override
   Future<List<TableModel>> getTables() async => [];
 }
 

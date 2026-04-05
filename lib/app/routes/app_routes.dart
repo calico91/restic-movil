@@ -2,6 +2,7 @@ abstract class Routes {
   static const LOGIN = '/login';
   static const HOME = '/home';
   static const MENU = '/menu';
+  static const TABLES = '/tables';
   static const USERS = '/users';
   static const TAKE_ORDER = '/take-order';
   static const OPEN_SHIFT = '/cash-register/open-shift';
