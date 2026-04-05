@@ -141,24 +141,28 @@ class TransactionTicket implements PrintableTicket {
 
     printer.printCustom("--------------------------------", 1, 1);
 
-    // PRODUCTOS A PREPARAR
-    printer.printCustom("CANT  DESCRIPCION       TOTAL", 1, 0);
+    // PRODUCTOS
+    printer.printCustom("PRODUCTOS", 1, 1);
     printer.printCustom("--------------------------------", 1, 1);
 
     final details = transaction.items ?? [];
     for (var item in details) {
-      // Nombre y cantidad
-      String itemName = item.productName ?? 'Producto';
-      if (itemName.length > 20) {
-        itemName = itemName.substring(0, 20); // limitar largo
-      }
+      // Nombre en una línea para permitir descripciones más largas
+      String itemName = (item.productName ?? 'Producto').withoutDiacritics;
+      printer.printCustom(itemName, 1, 0);
 
-      String qty = item.quantity.toString().padRight(4);
-      // Formatear precio y eliminar cualquier caracter extraño o diacrítico que la impresora falle en interpretar
-      String price = PrinterUtils.formatCurrency(item.subtotal ?? 0).padLeft(8);
+      // Cantidad x Precio Unitario a la izquierda, Total a la derecha
+      String qtyStr = item.quantity.toString();
+      String unitPrice = PrinterUtils.formatCurrency(item.unitPrice ?? 0);
+      String subtotal = PrinterUtils.formatCurrency(item.subtotal ?? 0);
 
-      printer.printCustom("$qty $itemName".withoutDiacritics, 1, 0);
-      printer.printCustom(price, 1, 2); // alinear a la derecha el precio
+      String lineLeft = "  $qtyStr x $unitPrice";
+      String lineRight = subtotal;
+
+      int spaces = 32 - (lineLeft.length + lineRight.length);
+      if (spaces < 1) spaces = 1;
+
+      printer.printCustom((lineLeft + (' ' * spaces) + lineRight).withoutDiacritics, 1, 0);
     }
 
     printer.printCustom("--------------------------------", 1, 1);

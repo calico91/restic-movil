@@ -28,6 +28,11 @@ class LoginController extends GetxController {
   });
 
   final RxString selectedRole = 'Administrador'.obs;
+  final RxBool isPasswordVisible = false.obs;
+
+  void togglePasswordVisibility() {
+    isPasswordVisible.value = !isPasswordVisible.value;
+  }
 
   void configureConnection() {
     ConfigureConnectionModal.show(storageService);

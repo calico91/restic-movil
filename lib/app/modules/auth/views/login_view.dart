@@ -151,17 +151,28 @@ class LoginView extends GetView<LoginController> {
   Widget _buildForm() {
     return ReactiveForm(
       formGroup: controller.form,
-      child: const Column(
+      child: Column(
         children: [
-          CustomReactiveTextField<String>(
+          const CustomReactiveTextField<String>(
             formControlName: 'username',
             labelText: 'Usuario',
           ),
-          SizedBox(height: 20),
-          CustomReactiveTextField<String>(
-            formControlName: 'password',
-            obscureText: true,
-            labelText: 'Contraseña',
+          const SizedBox(height: 20),
+          Obx(
+            () => CustomReactiveTextField<String>(
+              formControlName: 'password',
+              obscureText: !controller.isPasswordVisible.value,
+              labelText: 'Contraseña',
+              suffixIcon: IconButton(
+                icon: Icon(
+                  controller.isPasswordVisible.value
+                      ? Icons.visibility
+                      : Icons.visibility_off,
+                  color: Colors.grey,
+                ),
+                onPressed: controller.togglePasswordVisibility,
+              ),
+            ),
           ),
         ],
       ),
