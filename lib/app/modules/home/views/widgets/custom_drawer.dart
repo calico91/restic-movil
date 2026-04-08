@@ -124,6 +124,11 @@ class CustomDrawer extends GetView<HomeController> {
           ),
           const Divider(),
           _buildDrawerItem(
+            icon: Icons.account_circle,
+            title: 'Perfil',
+            onTap: () => Get.toNamed(Routes.PROFILE),
+          ),
+          _buildDrawerItem(
             icon: Icons.logout,
             title: 'Cerrar Sesión',
             onTap: controller.logout,

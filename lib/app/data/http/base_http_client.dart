@@ -63,6 +63,26 @@ class BaseHttpClient {
     });
   }
 
+  Future<dynamic> patch(
+    String path, {
+    dynamic body,
+    Map<String, String>? parameters,
+  }) async {
+    debugPrint(
+      'PATCH request to $path with body: $body and parameters: $parameters',
+    );
+
+    return _executeRequest(() async {
+      final uri = await _buildUriAsync(path, parameters);
+      final headers = await _getHeaders();
+      return http.patch(
+        uri,
+        headers: headers,
+        body: body != null ? json.encode(body) : null,
+      );
+    });
+  }
+
   Future<dynamic> delete(
     String path, {
     Map<String, dynamic>? body,

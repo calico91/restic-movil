@@ -62,6 +62,8 @@ class UrlPaths {
   static const String createUser = 'users/create';
   static const String updateUser = 'users/update';
   static const String getUserById = 'users/get-by-id';
+  static const String resetPassword = 'users'; // /{id}/reset-password
+  static const String changeMyPassword = 'users/me/change-password';
 
   // Roles
   static const String getRoles = 'roles/all';

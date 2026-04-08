@@ -13,4 +13,5 @@ abstract class Routes {
   static const PRINTER_SETTINGS = '/settings/printer';
   static const FISCAL_DATA = '/settings/fiscal-data';
   static const REPORTS = '/reports';
+  static const PROFILE = '/profile';
 }
