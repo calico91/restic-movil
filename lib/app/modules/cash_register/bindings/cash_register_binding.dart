@@ -8,15 +8,18 @@ import '../controllers/cash_register_controller.dart';
 class CashRegisterBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<BaseHttpClient>(() => BaseHttpClient());
+    Get.lazyPut<BaseHttpClient>(() => BaseHttpClient(), fenix: true);
     Get.lazyPut<OrdersRepository>(
       () => OrdersRepository(Get.find<BaseHttpClient>()),
+      fenix: true,
     );
-    Get.put<PaymentMethodsRepository>(
-      PaymentMethodsRepository(Get.find<BaseHttpClient>()),
+    Get.lazyPut<PaymentMethodsRepository>(
+      () => PaymentMethodsRepository(Get.find<BaseHttpClient>()),
+      fenix: true,
     );
     Get.lazyPut<TransactionsRepository>(
       () => TransactionsRepository(Get.find<BaseHttpClient>()),
+      fenix: true,
     );
     Get.lazyPut<CashRegisterController>(
       () => CashRegisterController(
@@ -24,6 +27,7 @@ class CashRegisterBinding extends Bindings {
         paymentMethodsRepository: Get.find<PaymentMethodsRepository>(),
         transactionsRepository: Get.find<TransactionsRepository>(),
       ),
+      fenix: true,
     );
   }
 }

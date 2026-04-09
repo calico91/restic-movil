@@ -6,7 +6,7 @@ import 'package:restic_movil/app/modules/payment_methods/controllers/payment_met
 class PaymentMethodsBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => PaymentMethodsRepository(Get.find<BaseHttpClient>()));
+    Get.lazyPut(() => PaymentMethodsRepository(Get.find<BaseHttpClient>()), fenix: true);
     Get.lazyPut(() => PaymentMethodsController(Get.find<PaymentMethodsRepository>()));
   }
-}
+}    

@@ -7,11 +7,12 @@ import '../controllers/commands_controller.dart';
 class CommandsBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut<WebSocketService>(() => WebSocketService());
-    Get.lazyPut(() => BaseHttpClient());
-    Get.lazyPut(() => OrdersRepository(Get.find<BaseHttpClient>()));
+    Get.lazyPut<WebSocketService>(() => WebSocketService(), fenix: true);
+    Get.lazyPut(() => BaseHttpClient(), fenix: true);
+    Get.lazyPut(() => OrdersRepository(Get.find<BaseHttpClient>()), fenix: true);
     Get.lazyPut<CommandsController>(
       () => CommandsController(ordersRepository: Get.find()),
+      fenix: true,
     );
   }
 }

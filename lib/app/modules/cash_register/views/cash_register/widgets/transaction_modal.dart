@@ -161,7 +161,8 @@ class TransactionModal extends StatelessWidget {
                   icon: const Icon(Icons.save_outlined, size: 20),
                   tooltip: 'Guardar como predeterminado',
                   onPressed: () {
-                    final val = form.control('tipPercentage').value?.toString() ?? '0';
+                    final val =
+                        form.control('tipPercentage').value?.toString() ?? '0';
                     controller.updateDefaultTipPreference(val);
                   },
                 ),
@@ -225,10 +226,15 @@ class TransactionModal extends StatelessWidget {
                   orderTotal,
                 );
 
+                final defaultPaymentMethod =
+                    controller.paymentMethods.isNotEmpty
+                    ? controller.paymentMethods.first.method
+                    : 'CASH';
+
                 paymentsArray.add(
                   FormGroup({
                     'paymentMethod': FormControl<String>(
-                      value: 'CASH',
+                      value: defaultPaymentMethod,
                       validators: [Validators.required],
                     ),
                     'amount': FormControl<String>(
@@ -413,7 +419,9 @@ class TransactionModal extends StatelessWidget {
             if (order.subtotal != null && order.subtotal! < orderTotal)
               _summaryRow('Subtotal:', order.subtotal!),
             if (order.surcharges != null && order.surcharges!.isNotEmpty)
-              ...order.surcharges!.map((s) => _summaryRow('${s.description}:', s.amount)),
+              ...order.surcharges!.map(
+                (s) => _summaryRow('${s.description}:', s.amount),
+              ),
             if (order.subtotal != null && order.subtotal! < orderTotal)
               const Divider(),
             _summaryRow('Total Pedido:', orderTotal),
@@ -509,7 +517,9 @@ class TransactionModal extends StatelessWidget {
     final orderTotal = order.total ?? 0.0;
     if (totalToPayInput < orderTotal) {
       Get.showSnackbar(
-        const ErrorSnackbar('El total a pagar no puede ser menor al total del pedido'),
+        const ErrorSnackbar(
+          'El total a pagar no puede ser menor al total del pedido',
+        ),
       );
       return;
     }

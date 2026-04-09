@@ -7,6 +7,7 @@ import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 
 class PaymentMethodsController extends GetxController {
   final PaymentMethodsRepository repository;
@@ -15,12 +16,19 @@ class PaymentMethodsController extends GetxController {
   PaymentMethodsController(this.repository);
 
   final RxList<PaymentMethodModel> methods = <PaymentMethodModel>[].obs;
-  
+
   final form = FormGroup({
     'method': FormControl<String>(validators: [Validators.required]),
-    'displayName': FormControl<String>(validators: [Validators.required, Validators.maxLength(80)]),
-    'active': FormControl<bool>(value: false, validators: [Validators.required]),
-    'displayOrder': FormControl<int>(validators: [Validators.required, Validators.min(1)]),
+    'displayName': FormControl<String>(
+      validators: [Validators.required, Validators.maxLength(80)],
+    ),
+    'active': FormControl<bool>(
+      value: false,
+      validators: [Validators.required],
+    ),
+    'displayOrder': FormControl<int>(
+      validators: [Validators.required, Validators.min(1)],
+    ),
   });
 
   @override
@@ -35,12 +43,14 @@ class PaymentMethodsController extends GetxController {
       asyncFunction: () async {
         try {
           final result = await repository.getPaymentMethodsAll();
-          result.sort((a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0));
+          result.sort(
+            (a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0),
+          );
           methods.assignAll(result);
         } catch (e) {
           Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
         }
-      }
+      },
     );
   }
 
@@ -71,17 +81,29 @@ class PaymentMethodsController extends GetxController {
             'active': values['active'],
             'displayOrder': values['displayOrder'],
           });
-          
-          // Refresh list and local storage (invalidate cash register cache intuitively)
+
+          // Actualización de almacenamiento local: borramos y obtenemos métodos activos actualizados
           await _storageService.deletePaymentMethods();
-          
+          final activeMethods = await repository.getPaymentMethodsActive();
+          await _storageService.savePaymentMethods(
+            activeMethods.map((e) => e.toJson()).toList(),
+          );
+
+          // Si el controlador de caja ya está en memoria (abierto en el cajón de abajo), forzamos actualización de la variable observable
+          if (Get.isRegistered<CashRegisterController>()) {
+            final cashRegisterCtrl = Get.find<CashRegisterController>();
+            cashRegisterCtrl.loadPaymentMethods();
+          }
+
           await loadMethods();
           Get.back(); // close modal
-          Get.showSnackbar(const InfoSnackbar('Método de pago actualizado exitosamente'));
+          Get.showSnackbar(
+            const InfoSnackbar('Método de pago actualizado exitosamente'),
+          );
         } catch (e) {
           Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
         }
-      }
+      },
     );
   }
 }

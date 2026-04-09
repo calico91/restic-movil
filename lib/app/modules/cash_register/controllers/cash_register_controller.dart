@@ -92,27 +92,35 @@ class CashRegisterController extends GetxController {
 
     await Future.wait([
       loadPendingOrders(withOverlay: true),
-      _loadPaymentMethods(),
+      loadPaymentMethods(),
       _loadTransactionTypes(),
     ]);
   }
 
   /*cargar métodos de pago: primero intenta cargar desde almacenamiento local, 
   si no hay, carga desde API y guarda en local*/
-  Future<void> _loadPaymentMethods() async {
+  Future<void> loadPaymentMethods() async {
     try {
       final savedMethods = await _storageService.getPaymentMethods();
+      List<PaymentMethodModel> methodsToAssign = [];
       if (savedMethods != null && savedMethods.isNotEmpty) {
-        paymentMethods.assignAll(
-          savedMethods.map((e) => PaymentMethodModel.fromJson(e)).toList(),
-        );
+        methodsToAssign = savedMethods
+            .map((e) => PaymentMethodModel.fromJson(e))
+            .toList();
       } else {
-        final methods = await paymentMethodsRepository.getPaymentMethodsActive();
-        paymentMethods.assignAll(methods);
+        final methods = await paymentMethodsRepository
+            .getPaymentMethodsActive();
+        methodsToAssign = methods;
         await _storageService.savePaymentMethods(
           methods.map((e) => e.toJson()).toList(),
         );
       }
+
+      // Ordenar por displayOrder, los que no tengan van al final
+      methodsToAssign.sort(
+        (a, b) => (a.displayOrder ?? 999).compareTo(b.displayOrder ?? 999),
+      );
+      paymentMethods.assignAll(methodsToAssign);
     } catch (e) {
       final String errorMessage = ExceptionHandler.extractMessage(e);
       Get.showSnackbar(ErrorSnackbar(errorMessage));
@@ -203,6 +211,12 @@ class CashRegisterController extends GetxController {
 
   void showTransactionModal(OrderModel order) {
     if (order.id == null) return;
+
+    if (paymentMethods.isEmpty) {
+      Get.showSnackbar(const ErrorSnackbar('No hay métodos de pago activos'));
+      return;
+    }
+
     Get.bottomSheet(
       TransactionModal(order: order),
       isScrollControlled: true,
@@ -218,6 +232,10 @@ class CashRegisterController extends GetxController {
     // Obtener porcentaje de propina por defecto, si está vacío o null, será 0
     final defaultTip = defaultTipPercentage.value;
 
+    final defaultPaymentMethod = paymentMethods.isNotEmpty
+        ? paymentMethods.first.method
+        : 'CASH';
+
     final form = FormGroup({
       'transactionType': FormControl<String>(value: 'SALE'),
       'tipPercentage': FormControl<String>(value: defaultTip),
@@ -227,7 +245,7 @@ class CashRegisterController extends GetxController {
       'payments': FormArray<Map<String, dynamic>>([
         FormGroup({
           'paymentMethod': FormControl<String>(
-            value: 'CASH',
+            value: defaultPaymentMethod,
             validators: [Validators.required],
           ),
           'amount': FormControl<String>(
@@ -297,7 +315,9 @@ class CashRegisterController extends GetxController {
         final tipVal =
             double.tryParse(cleanValue.isEmpty ? '0' : cleanValue) ?? 0.0;
 
-        final newPercent = orderSubtotal > 0 ? (tipVal / orderSubtotal) * 100 : 0.0;
+        final newPercent = orderSubtotal > 0
+            ? (tipVal / orderSubtotal) * 100
+            : 0.0;
         final newTipPercentage = newPercent
             .toStringAsFixed(1)
             .replaceAll('.0', '');
@@ -329,7 +349,9 @@ class CashRegisterController extends GetxController {
           final newTip = totalVal - orderTotal;
 
           final newTipAmount = currencyFormat.format(newTip.round());
-          final newPercent = orderSubtotal > 0 ? (newTip / orderSubtotal) * 100 : 0.0;
+          final newPercent = orderSubtotal > 0
+              ? (newTip / orderSubtotal) * 100
+              : 0.0;
           final newTipPercentage = newPercent
               .toStringAsFixed(1)
               .replaceAll('.0', '');
