@@ -14,4 +14,5 @@ abstract class Routes {
   static const FISCAL_DATA = '/settings/fiscal-data';
   static const REPORTS = '/reports';
   static const PROFILE = '/profile';
+  static const PAYMENT_METHODS = '/payment-methods';
 }

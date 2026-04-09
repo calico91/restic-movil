@@ -107,7 +107,7 @@ class CashRegisterController extends GetxController {
           savedMethods.map((e) => PaymentMethodModel.fromJson(e)).toList(),
         );
       } else {
-        final methods = await paymentMethodsRepository.getPaymentMethods();
+        final methods = await paymentMethodsRepository.getPaymentMethodsActive();
         paymentMethods.assignAll(methods);
         await _storageService.savePaymentMethods(
           methods.map((e) => e.toJson()).toList(),

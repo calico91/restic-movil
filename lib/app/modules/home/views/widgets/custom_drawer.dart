@@ -119,6 +119,16 @@ class CustomDrawer extends GetView<HomeController> {
                     ],
                   );
                 }),
+                Obx(() {
+                  if (!controller.modules.contains('METODOS_PAGO')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.payments_outlined,
+                    title: 'Métodos de Pago',
+                    onTap: () => Get.toNamed(Routes.PAYMENT_METHODS),
+                  );
+                }),
               ],
             ),
           ),

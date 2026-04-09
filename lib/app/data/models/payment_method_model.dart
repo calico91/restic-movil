@@ -1,18 +1,37 @@
 class PaymentMethodModel {
-  String? code;
-  String? description;
+  String? id;
+  String? method;
+  String? displayName;
+  bool? active;
+  int? displayOrder;
 
-  PaymentMethodModel({this.code, this.description});
+  PaymentMethodModel({
+    this.id,
+    this.method,
+    this.displayName,
+    this.active,
+    this.displayOrder,
+  });
 
   PaymentMethodModel.fromJson(Map<String, dynamic> json) {
-    code = json['code'];
-    description = json['description'];
+    id = json['id'];
+    method = json['method'];
+    displayName = json['displayName'];
+    active = json['active'];
+    displayOrder = json['displayOrder'];
   }
 
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = <String, dynamic>{};
-    data['code'] = code;
-    data['description'] = description;
+    data['id'] = id;
+    data['method'] = method;
+    data['displayName'] = displayName;
+    data['active'] = active;
+    data['displayOrder'] = displayOrder;
     return data;
   }
+
+  // Helpers backward compatibility si en algun lado se usa code o description aun
+  String? get code => method;
+  String? get description => displayName;
 }

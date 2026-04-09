@@ -16,7 +16,7 @@ class MockOrdersRepository extends Fake implements OrdersRepository {
   @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses) async { return []; }
 }
 class MockPaymentMethodsRepository extends Fake implements PaymentMethodsRepository {
-  @override Future<List<PaymentMethodModel>> getPaymentMethods() async { return []; }
+  @override Future<List<PaymentMethodModel>> getPaymentMethodsActive() async { return []; }
 }
 class MockTransactionsRepository extends Fake implements TransactionsRepository {
   @override Future<List<TransactionTypeModel>> getTransactionTypes() async { return []; }

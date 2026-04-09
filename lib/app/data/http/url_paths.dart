@@ -16,7 +16,9 @@ class UrlPaths {
   static const String getOrdersByStatuses = 'orders/by-statuses';
 
   // Payment Methods
-  static const String getPaymentMethods = 'payment-methods/all';
+  static const String getPaymentMethodsActive = 'payment-methods/config/active';
+  static const String getPaymentMethodsAll = 'payment-methods/config';
+  static const String updatePaymentMethod = 'payment-methods/config'; // /config/{method}
 
   // Transactions
   static const String getTransactionTypes = 'transactions/types';

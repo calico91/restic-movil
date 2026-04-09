@@ -12,8 +12,8 @@ class CashRegisterBinding extends Bindings {
     Get.lazyPut<OrdersRepository>(
       () => OrdersRepository(Get.find<BaseHttpClient>()),
     );
-    Get.lazyPut<PaymentMethodsRepository>(
-      () => PaymentMethodsRepository(Get.find<BaseHttpClient>()),
+    Get.put<PaymentMethodsRepository>(
+      PaymentMethodsRepository(Get.find<BaseHttpClient>()),
     );
     Get.lazyPut<TransactionsRepository>(
       () => TransactionsRepository(Get.find<BaseHttpClient>()),

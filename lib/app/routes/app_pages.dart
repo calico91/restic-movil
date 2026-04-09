@@ -29,6 +29,8 @@ import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
+import '../modules/payment_methods/bindings/payment_methods_binding.dart';
+import '../modules/payment_methods/views/payment_methods_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -109,6 +111,11 @@ class AppPages {
       name: Routes.PROFILE,
       page: () => const ProfileView(),
       binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.PAYMENT_METHODS,
+      page: () => const PaymentMethodsView(),
+      binding: PaymentMethodsBinding(),
     ),
   ];
 }
