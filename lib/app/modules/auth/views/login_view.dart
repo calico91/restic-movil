@@ -215,12 +215,16 @@ class LoginView extends GetView<LoginController> {
       alignment: Alignment.bottomCenter, // Centrado para equilibrar diseño
       child: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Text(
-          'Versión 1.0',
-          style: GoogleFonts.poppins(
-            color: Colors.black54,
-            fontWeight: FontWeight.w500,
-            fontSize: 12,
+        child: Obx(
+          () => Text(
+            controller.appVersion.value.isNotEmpty
+                ? controller.appVersion.value
+                : 'Versión -.-',
+            style: GoogleFonts.poppins(
+              color: Colors.black54,
+              fontWeight: FontWeight.w500,
+              fontSize: 12,
+            ),
           ),
         ),
       ),

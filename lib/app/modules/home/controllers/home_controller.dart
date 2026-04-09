@@ -4,6 +4,7 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_register_view.dart';
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class NavigationItem {
   final String title;
@@ -24,11 +25,22 @@ class HomeController extends GetxController {
   final currentIndex = 0.obs;
   final RxList<NavigationItem> navigationItems = <NavigationItem>[].obs;
   final RxList<String> modules = <String>[].obs;
+  final RxString appVersion = ''.obs;
 
   @override
   void onInit() {
     super.onInit();
     _loadNavigationItems();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      appVersion.value = 'Versión ${packageInfo.version} ';
+    } catch (e) {
+      debugPrint('Error loading app version: $e');
+    }
   }
 
   /*metodo para validar módulos y cargar items de navegación */

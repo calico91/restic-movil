@@ -58,6 +58,8 @@ class MockHomeController extends GetxController implements HomeController {
   final RxInt currentIndex = 0.obs;
   @override
   final RxList<NavigationItem> navigationItems = <NavigationItem>[].obs;
+  @override
+  final RxString appVersion = 'Versión 1.0.0 (1)'.obs;
 
   @override
   Future<void> logout() async {}

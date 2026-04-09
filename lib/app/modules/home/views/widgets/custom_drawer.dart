@@ -144,7 +144,22 @@ class CustomDrawer extends GetView<HomeController> {
             onTap: controller.logout,
             color: Colors.red,
           ),
-          const SizedBox(height: 20),
+          Obx(() {
+            if (controller.appVersion.value.isNotEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20, top: 10),
+                child: Text(
+                  controller.appVersion.value,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+            return const SizedBox(height: 20);
+          }),
         ],
       ),
     );

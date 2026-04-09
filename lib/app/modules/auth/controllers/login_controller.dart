@@ -9,6 +9,7 @@ import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/branch_selection_modal.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/configure_connection_modal.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 class LoginController extends GetxController {
   final AuthRepository authRepository;
@@ -29,6 +30,22 @@ class LoginController extends GetxController {
 
   final RxString selectedRole = 'Administrador'.obs;
   final RxBool isPasswordVisible = false.obs;
+  final RxString appVersion = ''.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+    _loadAppVersion();
+  }
+
+  Future<void> _loadAppVersion() async {
+    try {
+      final PackageInfo packageInfo = await PackageInfo.fromPlatform();
+      appVersion.value = 'Versión ${packageInfo.version}';
+    } catch (e) {
+      Get.log('Error loading app version: $e');
+    }
+  }
 
   void togglePasswordVisibility() {
     isPasswordVisible.value = !isPasswordVisible.value;
