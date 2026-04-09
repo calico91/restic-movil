@@ -58,4 +58,8 @@ class UsersRepository {
   Future<void> resetPassword(String id) async {
     await _httpClient.patch('${UrlPaths.resetPassword}/$id/reset-password');
   }
+
+  Future<void> toggleUserStatus(String id) async {
+    await _httpClient.patch('${UrlPaths.toggleUserStatus}/$id/toggle-status');
+  }
 }
