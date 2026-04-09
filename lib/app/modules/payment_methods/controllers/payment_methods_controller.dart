@@ -6,7 +6,7 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
-import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 
 class PaymentMethodsController extends GetxController {
@@ -71,7 +71,9 @@ class PaymentMethodsController extends GetxController {
     final values = form.value;
     final methodKey = values['method'] as String;
 
-    Get.showOverlay(
+    bool isSuccess = false;
+
+    await Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
@@ -96,14 +98,24 @@ class PaymentMethodsController extends GetxController {
           }
 
           await loadMethods();
-          Get.back(); // close modal
-          Get.showSnackbar(
-            const InfoSnackbar('Método de pago actualizado exitosamente'),
-          );
+          isSuccess = true;
         } catch (e) {
           Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
         }
       },
     );
+
+    if (isSuccess) {
+      if (Get.isBottomSheetOpen ?? false) {
+        Get.back();
+      }
+      Get.dialog(
+        ModalInfo(
+          title: '¡Operación Exitosa!',
+          message: 'Método de pago actualizado correctamente.',
+          onClose: () => Get.back(),
+        ),
+      );
+    }
   }
 }
