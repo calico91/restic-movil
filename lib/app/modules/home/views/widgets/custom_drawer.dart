@@ -37,6 +37,16 @@ class CustomDrawer extends GetView<HomeController> {
                   );
                 }),
                 Obx(() {
+                  if (!controller.modules.contains('MESAS')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.table_restaurant,
+                    title: 'Mesas',
+                    onTap: () => Get.toNamed(Routes.TABLES),
+                  );
+                }),
+                Obx(() {
                   if (!controller.modules.contains('CLIENTES')) {
                     return const SizedBox.shrink();
                   }
@@ -109,17 +119,47 @@ class CustomDrawer extends GetView<HomeController> {
                     ],
                   );
                 }),
+                Obx(() {
+                  if (!controller.modules.contains('METODOS_PAGO')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.payments_outlined,
+                    title: 'Métodos de Pago',
+                    onTap: () => Get.toNamed(Routes.PAYMENT_METHODS),
+                  );
+                }),
               ],
             ),
           ),
           const Divider(),
+          _buildDrawerItem(
+            icon: Icons.account_circle,
+            title: 'Perfil',
+            onTap: () => Get.toNamed(Routes.PROFILE),
+          ),
           _buildDrawerItem(
             icon: Icons.logout,
             title: 'Cerrar Sesión',
             onTap: controller.logout,
             color: Colors.red,
           ),
-          const SizedBox(height: 20),
+          Obx(() {
+            if (controller.appVersion.value.isNotEmpty) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 20, top: 10),
+                child: Text(
+                  controller.appVersion.value,
+                  style: const TextStyle(
+                    color: Colors.grey,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              );
+            }
+            return const SizedBox(height: 20);
+          }),
         ],
       ),
     );

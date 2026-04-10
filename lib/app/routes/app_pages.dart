@@ -15,6 +15,8 @@ import '../modules/customers/bindings/customer_binding.dart';
 import '../modules/customers/views/customer_view.dart';
 import '../modules/menu/bindings/menu_binding.dart';
 import '../modules/menu/views/menu_view.dart';
+import '../modules/tables/bindings/tables_binding.dart';
+import '../modules/tables/views/tables_view.dart';
 import '../modules/users/bindings/users_binding.dart';
 import '../modules/users/views/users_view.dart';
 import '../modules/printer_settings/bindings/printer_settings_binding.dart';
@@ -23,16 +25,32 @@ import '../modules/fiscal_data/bindings/fiscal_data_binding.dart';
 import '../modules/fiscal_data/views/fiscal_data_view.dart';
 import '../modules/reports/bindings/reports_binding.dart';
 import '../modules/reports/views/reports_view.dart';
+import '../modules/splash/bindings/splash_binding.dart';
+import '../modules/splash/views/splash_view.dart';
+import '../modules/profile/bindings/profile_binding.dart';
+import '../modules/profile/views/profile_view.dart';
+import '../modules/payment_methods/bindings/payment_methods_binding.dart';
+import '../modules/payment_methods/views/payment_methods_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
-  static const INITIAL = Routes.LOGIN;
+  static const INITIAL = Routes.SPLASH;
 
   static final routes = [
+    GetPage(
+      name: Routes.SPLASH,
+      page: () => const SplashView(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: Routes.MENU,
       page: () => const MenuView(),
       binding: MenuBinding(),
+    ),
+    GetPage(
+      name: Routes.TABLES,
+      page: () => const TablesView(),
+      binding: TablesBinding(),
     ),
     GetPage(
       name: Routes.USERS,
@@ -88,6 +106,16 @@ class AppPages {
       name: Routes.REPORTS,
       page: () => const ReportsView(),
       binding: ReportsBinding(),
+    ),
+    GetPage(
+      name: Routes.PROFILE,
+      page: () => const ProfileView(),
+      binding: ProfileBinding(),
+    ),
+    GetPage(
+      name: Routes.PAYMENT_METHODS,
+      page: () => const PaymentMethodsView(),
+      binding: PaymentMethodsBinding(),
     ),
   ];
 }

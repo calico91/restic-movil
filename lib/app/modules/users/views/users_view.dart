@@ -95,8 +95,70 @@ class UsersView extends GetView<UsersController> {
                     ),
                   ],
                 ),
-                trailing: CustomEditButton(
-                  onPressed: () => _showUserForm(context, user),
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Switch(
+                      value: user.isActive,
+                      onChanged: (value) {
+                         Get.dialog(
+                          AlertDialog(
+                            title: Text(value ? 'Activar Usuario' : 'Desactivar Usuario'),       
+                            content: Text(
+                              '¿Estás seguro de que quieres ${value ? 'activar' : 'desactivar'} a ${user.username}?'
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(),
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE52E2D)),
+                                onPressed: () {
+                                  Get.back();
+                                  controller.toggleUserStatus(user);       
+                                },
+                                child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      activeThumbColor: const Color(0xFF0D47A1),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.vpn_key_sharp, color: Color(0xFFE52E2D)),
+                      tooltip: 'Restablecer Contraseña',
+                      onPressed: () {
+                        // Dialog de confirmación
+                        Get.dialog(
+                          AlertDialog(
+                            title: const Text('Restablecer Contraseña'),
+                            content: Text(
+                              '¿Estás seguro de que quieres restablecer la contraseña a "cambio" para ${user.username}?'
+                            ),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Get.back(),
+                                child: const Text('Cancelar'),
+                              ),
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE52E2D)),
+                                onPressed: () {
+                                  Get.back();
+                                  controller.resetUserPassword(user.id!);
+                                },
+                                child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                    CustomEditButton(
+                      onPressed: () => _showUserForm(context, user),
+                    ),
+                  ],
                 ),
               ),
             );

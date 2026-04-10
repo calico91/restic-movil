@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/routes/app_routes.dart';
 
 class BaseHttpClient {
   final StorageService _storageService = Get.find<StorageService>();
@@ -55,6 +56,26 @@ class BaseHttpClient {
       final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
       return http.put(
+        uri,
+        headers: headers,
+        body: body != null ? json.encode(body) : null,
+      );
+    });
+  }
+
+  Future<dynamic> patch(
+    String path, {
+    dynamic body,
+    Map<String, String>? parameters,
+  }) async {
+    debugPrint(
+      'PATCH request to $path with body: $body and parameters: $parameters',
+    );
+
+    return _executeRequest(() async {
+      final uri = await _buildUriAsync(path, parameters);
+      final headers = await _getHeaders();
+      return http.patch(
         uri,
         headers: headers,
         body: body != null ? json.encode(body) : null,
@@ -204,6 +225,12 @@ class BaseHttpClient {
               apiError.error ??
               apiError.recommendation ??
               'Error en la petición';
+              
+          if (apiError.code == 'E2') {
+            _storageService.deleteToken();
+            _storageService.deleteUser();
+            Get.offAllNamed(Routes.LOGIN);
+          }
         } catch (_) {
           errorMessage =
               jsonResponse['error'] ?? jsonResponse['message'] ?? response.body;

@@ -5,6 +5,7 @@ import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class UsersController extends GetxController {
   final UsersRepository _repository;
@@ -54,7 +55,7 @@ class UsersController extends GetxController {
         }
       },
     );
-    
+
     if (isSuccess) {
       Get.back(); // Cierra el UserFormDialog
       Get.dialog(
@@ -65,7 +66,7 @@ class UsersController extends GetxController {
         ),
       );
     }
-    
+
     return isSuccess;
   }
 
@@ -101,5 +102,47 @@ class UsersController extends GetxController {
     }
 
     return isSuccess;
+  }
+
+  /// Restablece la contraseña de un usuario a su valor por defecto
+  Future<void> resetUserPassword(String id) async {
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await _repository.resetPassword(id);
+          Get.showSnackbar(
+            const InfoSnackbar(
+              'Contraseña restablecida exitosamente a "cambio"',
+            ),
+          );
+        } catch (e) {
+          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+        }
+      },
+    );
+  }
+
+  /// Activa o desactiva (toggle) un usuario
+  Future<void> toggleUserStatus(UserModel user) async {
+    if (user.id == null) return;
+
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await _repository.toggleUserStatus(user.id!);
+          // Refresh list to show updated status
+          await _loadInitialData();
+          Get.showSnackbar(
+            InfoSnackbar(
+              'El estado del usuario ${user.username} ha sido actualizado',
+            ),
+          );
+        } catch (e) {
+          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+        }
+      },
+    );
   }
 }

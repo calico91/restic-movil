@@ -16,7 +16,9 @@ class UrlPaths {
   static const String getOrdersByStatuses = 'orders/by-statuses';
 
   // Payment Methods
-  static const String getPaymentMethods = 'payment-methods/all';
+  static const String getPaymentMethodsActive = 'payment-methods/config/active';
+  static const String getPaymentMethodsAll = 'payment-methods/config';
+  static const String updatePaymentMethod = 'payment-methods/config'; // /config/{method}
 
   // Transactions
   static const String getTransactionTypes = 'transactions/types';
@@ -25,6 +27,16 @@ class UrlPaths {
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
+  static const String getTablesAll = 'tables/all';
+  static const String getTableById = 'tables/get-by-id'; // /:id
+  static const String getTablesByStatus = 'tables/by-status'; // /:status
+  static const String getTablesByLocation = 'tables/by-location'; // /:location
+  static const String createTables = 'tables/create';
+  static const String updateTable = 'tables/update'; // /:id
+  static const String deleteTable = 'tables/delete'; // /:id
+  static const String getTableStatuses = 'tables/statuses';
+  static const String reserveTables = 'tables/reserve';
+  static const String releaseTables = 'tables/release';
 
   // Customers
   static const String getCustomers = 'customers/all';
@@ -52,6 +64,9 @@ class UrlPaths {
   static const String createUser = 'users/create';
   static const String updateUser = 'users/update';
   static const String getUserById = 'users/get-by-id';
+  static const String resetPassword = 'users'; // /{id}/reset-password
+  static const String toggleUserStatus = 'users'; // /{id}/toggle-status
+  static const String changeMyPassword = 'users/me/change-password';
 
   // Roles
   static const String getRoles = 'roles/all';

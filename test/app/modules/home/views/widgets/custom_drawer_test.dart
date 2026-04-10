@@ -16,6 +16,9 @@ class MockHomeController extends GetxController implements HomeController {
   final RxList<NavigationItem> navigationItems = <NavigationItem>[].obs;
 
   @override
+  final RxString appVersion = 'Versión 1.0.0 (1)'.obs;
+
+  @override
   void changePage(int index) {
     currentIndex.value = index;
   }
@@ -120,6 +123,11 @@ void main() {
       expect(find.text('Menú'), findsOneWidget);
       expect(find.text('Clientes'), findsOneWidget);
       expect(find.text('Opciones de Caja'), findsOneWidget);
+      
+      // Hacemos scroll hacia abajo en el ListView para asegurarnos de que los últimos elementos se rendericen en las dimensiones de prueba
+      await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+      await tester.pumpAndSettle();
+
       expect(find.text('Reportes'), findsOneWidget);
       expect(find.text('Configuración'), findsOneWidget);
     });
