@@ -18,8 +18,7 @@ class WebSocketService extends GetxService {
   final _openOrdersController = StreamController<List<OrderModel>>.broadcast();
   Stream<List<OrderModel>> get openOrdersStream => _openOrdersController.stream;
 
-  // URL del WebSocket, asumiendo el puerto y path estándar basado en la URL de la API
-  static const String _socketUrl = 'ws://192.168.0.103:8093/ws';
+  // URL del WebSocket se construirá dinámicamente usando StorageService
 
   Future<void> connect() async {
     final branchId = await _storageService.getBranchId();
@@ -29,9 +28,23 @@ class WebSocketService extends GetxService {
       return;
     }
 
+    final serverUrl = await _storageService.getServerUrl();
+    if (serverUrl == null || serverUrl.isEmpty) {
+      debugPrint("No server URL found, cannot connect to WebSocket");
+      return;
+    }
+
+    final String baseUrlStr = serverUrl.startsWith('http')
+        ? serverUrl.replaceFirst('http', 'ws')
+        : 'ws://$serverUrl';
+    final String cleanUrl = baseUrlStr.endsWith('/')
+        ? baseUrlStr.substring(0, baseUrlStr.length - 1)
+        : baseUrlStr;
+    final String socketUrl = '$cleanUrl/ws';
+
     _client = StompClient(
       config: StompConfig(
-        url: _socketUrl,
+        url: socketUrl,
         onConnect: (frame) => _onConnect(frame, branchId),
         beforeConnect: () async {
           debugPrint('Connecting to WebSocket...');
