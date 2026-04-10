@@ -20,11 +20,9 @@ class LoginController extends GetxController {
   final form = FormGroup({
     'username': FormControl<String>(
       validators: [Validators.required],
-      value: 'super',
     ),
     'password': FormControl<String>(
       validators: [Validators.required],
-      value: 'Golpi25*',
     ),
   });
 
