@@ -34,8 +34,8 @@ class WebSocketService extends GetxService {
       return;
     }
 
-    final String baseUrlStr = serverUrl.startsWith('http')
-        ? serverUrl.replaceFirst('http', 'ws')
+    final String baseUrlStr = serverUrl.startsWith('https')
+        ? serverUrl.replaceFirst('https', 'ws')
         : 'ws://$serverUrl';
     final String cleanUrl = baseUrlStr.endsWith('/')
         ? baseUrlStr.substring(0, baseUrlStr.length - 1)
