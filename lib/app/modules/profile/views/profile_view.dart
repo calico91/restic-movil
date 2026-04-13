@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/modules/profile/controllers/profile_controller.dart';
@@ -46,6 +47,7 @@ class ProfileView extends GetView<ProfileController> {
                           labelText: 'Contraseña Actual',
                           obscureText:
                               !controller.isCurrentPasswordVisible.value,
+                          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
                           suffixIcon: IconButton(
                             icon: Icon(
                               controller.isCurrentPasswordVisible.value
@@ -69,6 +71,7 @@ class ProfileView extends GetView<ProfileController> {
                           labelText: 'Nueva Contraseña',
                           obscureText: !controller.isNewPasswordVisible.value,
                           hintText: 'Mínimo 6 caracteres',
+                          inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
                           suffixIcon: IconButton(
                             icon: Icon(
                               controller.isNewPasswordVisible.value

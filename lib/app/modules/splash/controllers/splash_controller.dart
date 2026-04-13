@@ -13,7 +13,7 @@ class SplashController extends GetxController {
 
   /// Inicia el temporizador del splash screen
   void _startSplash() async {
-    await Future.delayed(const Duration(seconds: 4));
+    await Future.delayed(const Duration(seconds: 2));
     
     final token = await storageService.getToken();
     final branchId = await storageService.getBranchId();
