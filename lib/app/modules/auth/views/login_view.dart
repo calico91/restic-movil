@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:reactive_forms/reactive_forms.dart';
@@ -153,9 +154,10 @@ class LoginView extends GetView<LoginController> {
       formGroup: controller.form,
       child: Column(
         children: [
-          const CustomReactiveTextField<String>(
+          CustomReactiveTextField<String>(
             formControlName: 'username',
             labelText: 'Usuario',
+            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
           ),
           const SizedBox(height: 20),
           Obx(
@@ -163,6 +165,7 @@ class LoginView extends GetView<LoginController> {
               formControlName: 'password',
               obscureText: !controller.isPasswordVisible.value,
               labelText: 'Contraseña',
+              inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
               suffixIcon: IconButton(
                 icon: Icon(
                   controller.isPasswordVisible.value
