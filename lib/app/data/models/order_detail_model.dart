@@ -13,6 +13,7 @@ class OrderDetailModel {
   final String? addedAt;
   final String? preparedAt;
   final String? servedAt;
+  final String? sizeLabel;
   final List<OrderComboSelectionModel>? comboSelections;
 
   OrderDetailModel({
@@ -28,6 +29,7 @@ class OrderDetailModel {
     this.addedAt,
     this.preparedAt,
     this.servedAt,
+    this.sizeLabel,
     this.comboSelections,
   });
 
@@ -45,6 +47,7 @@ class OrderDetailModel {
       addedAt: json['addedAt'],
       preparedAt: json['preparedAt'],
       servedAt: json['servedAt'],
+      sizeLabel: json['selected_size_label'],
       comboSelections: json['comboSelections'] != null
           ? (json['comboSelections'] as List)
                 .map((i) => OrderComboSelectionModel.fromJson(i))
@@ -67,6 +70,7 @@ class OrderDetailModel {
       'addedAt': addedAt,
       'preparedAt': preparedAt,
       'servedAt': servedAt,
+      'selected_size_label': sizeLabel,
       'comboSelections': comboSelections?.map((i) => i.toJson()).toList(),
     };
   }

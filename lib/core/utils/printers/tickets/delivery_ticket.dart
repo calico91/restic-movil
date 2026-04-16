@@ -49,7 +49,10 @@ class DeliveryTicket implements PrintableTicket {
 
     final details = order.details ?? [];
     for (var item in details) {
-      String itemName = "${item.quantity}x  ${item.productName ?? 'Producto'}";
+      final pName = item.sizeLabel != null 
+          ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}' 
+          : (item.productName ?? 'Producto');
+      String itemName = "${item.quantity}x  $pName";
       printer.printCustom(itemName.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {

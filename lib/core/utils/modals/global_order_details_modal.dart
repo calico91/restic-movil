@@ -287,7 +287,9 @@ class GlobalOrderDetailsModal extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.productName ?? '-',
+                  item.sizeLabel != null
+                      ? '${item.productName ?? '-'} - ${item.sizeLabel}'
+                      : (item.productName ?? '-'),
                   style: TextStyle(
                     fontSize: 13,
                     fontWeight: FontWeight.bold,
@@ -461,7 +463,9 @@ class GlobalOrderDetailsModal extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          item.productName ?? 'Producto desconocido',
+                          item.sizeLabel != null
+                              ? '${item.productName ?? 'Producto desconocido'} - ${item.sizeLabel}'
+                              : (item.productName ?? 'Producto desconocido'),
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 15,
@@ -637,7 +641,9 @@ class GlobalOrderDetailsModal extends StatelessWidget {
                       children: [
                         Expanded(
                           child: Text(
-                            item.productName ?? '',
+                            item.sizeLabel != null
+                                ? '${item.productName ?? ''} - ${item.sizeLabel}'
+                                : (item.productName ?? ''),
                             overflow: TextOverflow.ellipsis,
                             style: const TextStyle(fontWeight: FontWeight.w500),
                           ),
