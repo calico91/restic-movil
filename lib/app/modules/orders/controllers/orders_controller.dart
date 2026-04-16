@@ -379,7 +379,9 @@ class OrdersController extends GetxController {
     final itemsToAdd = tempAdditionalOrderItems.map((item) {
       final detail = {
         'productId': item.product.id,
+        'productName': item.productName,
         'quantity': item.quantity,
+        'selectedPriceId': item.selectedPrice?.id,
         'observations': item.comment ?? '',
       };
 

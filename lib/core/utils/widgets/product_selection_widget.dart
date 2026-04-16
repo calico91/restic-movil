@@ -71,15 +71,77 @@ class ProductSelectionWidget extends StatelessWidget {
 
   Widget _buildProductRow(ProductModel product) {
     if (product.productType == 'VARIABLE' && (product.prices?.isNotEmpty ?? false)) {
-      return Column(
-        children: product.prices!.map((price) {
-          return _buildSingleProductRow(product, price);
-        }).toList(),
-      );
+      return _buildVariableProductRow(product);
     } else {
       final price = (product.prices?.isNotEmpty ?? false) ? product.prices!.first : null;
       return _buildSingleProductRow(product, price);
     }
+  }
+
+  Widget _buildVariableProductRow(ProductModel product) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product.name ?? '',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (product.description != null && product.description!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                product.description!,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
+            const SizedBox(height: 12),
+            ...product.prices!.map((price) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0, left: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            price.sizeLabel ?? '',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '\$${price.amount?.toStringAsFixed(0) ?? '0'}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildStandardActions(product, price),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildSingleProductRow(ProductModel product, PriceModel? price) {

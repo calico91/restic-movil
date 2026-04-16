@@ -149,7 +149,11 @@ class AddProductsSheet extends GetView<OrdersController> {
 
     Get.dialog(
       AlertDialog(
-        title: Text('Producto: ${product.name}'),
+        title: Text(
+          product.productType == 'VARIABLE' && price?.sizeLabel != null
+              ? 'Producto: ${product.name} - ${price!.sizeLabel}'
+              : 'Producto: ${product.name}',
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

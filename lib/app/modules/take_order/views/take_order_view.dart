@@ -243,7 +243,11 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
 
     Get.dialog(
       AlertDialog(
-        title: Text('Producto: ${product.name}'),
+        title: Text(
+          product.productType == 'VARIABLE' && price?.sizeLabel != null
+              ? 'Producto: ${product.name} - ${price!.sizeLabel}'
+              : 'Producto: ${product.name}',
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -400,9 +404,11 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                         final item = controller.currentOrder[index];
                         final comboDetails = _buildComboDetails(item);
 
+                        final productName = item.productName;
+
                         return ListTile(
                           title: Text(
-                            '${item.product.name} (x${item.quantity})',
+                            '$productName (x${item.quantity})',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle:

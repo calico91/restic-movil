@@ -18,6 +18,10 @@ class OrderItemModel {
     this.additionalPrice = 0,
   });
 
+  String get productName => product.productType == 'VARIABLE' && selectedPrice?.sizeLabel != null
+      ? '${product.name} - ${selectedPrice!.sizeLabel}'
+      : product.name ?? '';
+
   double get total =>
       ((selectedPrice?.amount ?? (product.prices?.isNotEmpty == true ? product.prices!.first.amount ?? 0 : 0)) + additionalPrice) * quantity;
 }

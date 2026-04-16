@@ -336,6 +336,8 @@ class TakeOrderController extends GetxController {
       "details": currentOrder.map((item) {
         final detail = {
           "productId": item.product.id,
+          "selectedPriceId": item.selectedPrice?.id,
+          "productName": item.productName,
           "quantity": item.quantity,
           "observations": item.comment ?? "",
         };
