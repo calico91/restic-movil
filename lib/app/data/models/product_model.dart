@@ -7,7 +7,7 @@ class ProductModel {
   final String? description;
   final bool? active;
   final String? subcategoryId;
-  final PriceModel? price;
+  final List<PriceModel>? prices;
   final String? productType;
   final List<ComboGroupModel>? comboGroups;
 
@@ -17,7 +17,7 @@ class ProductModel {
     this.description,
     this.active,
     this.subcategoryId,
-    this.price,
+    this.prices,
     this.productType,
     this.comboGroups,
   });
@@ -29,7 +29,9 @@ class ProductModel {
       description: json['description'],
       active: json['active'],
       subcategoryId: json['subcategory_id'],
-      price: json['price'] != null ? PriceModel.fromJson(json['price']) : null,
+      prices: json['prices'] != null
+          ? (json['prices'] as List).map((e) => PriceModel.fromJson(e)).toList()
+          : null,
       productType: json['productType'],
       comboGroups: json['combo_groups'] != null
           ? (json['combo_groups'] as List)
@@ -46,7 +48,7 @@ class ProductModel {
       'description': description,
       'active': active,
       'subcategory_id': subcategoryId,
-      'price': price?.toJson(),
+      'prices': prices?.map((e) => e.toJson()).toList(),
       'productType': productType,
       'combo_groups': comboGroups?.map((e) => e.toJson()).toList(),
     };

@@ -183,7 +183,7 @@ class MenuView extends GetView<MenuController> {
                                                   final product =
                                                       products[productIndex];
                                                   final price =
-                                                      product.price?.amount ??
+                                                      product.prices?.firstOrNull?.amount ??
                                                       0;
                                                   return ListTile(
                                                     contentPadding:
