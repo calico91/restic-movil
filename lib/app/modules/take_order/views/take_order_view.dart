@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:restic_movil/app/data/models/product_model.dart';
-import 'package:restic_movil/app/data/models/order_item_model.dart';
+import 'package:restic_movil/app/data/models/product_model.dart';import 'package:restic_movil/app/data/models/price_model.dart';import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
@@ -193,21 +192,21 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
           return ProductSelectionWidget(
             categories: controller.categories,
             getQuantity: controller.getProductQuantity,
-            onIncrement: (product) {
+            onIncrement: (product, price) {
               if (product.productType == 'COMBO') {
-                _showComboDialog(context, product);
+                _showComboDialog(context, product, price);
               } else {
-                controller.incrementProduct(product);
+                controller.incrementProduct(product, price);
               }
             },
-            onDecrement: (product) {
-              controller.decrementProduct(product);
+            onDecrement: (product, price) {
+              controller.decrementProduct(product, price);
             },
-            onEdit: (product) {
+            onEdit: (product, price) {
               if (product.productType == 'COMBO') {
-                _showComboDialog(context, product);
+                _showComboDialog(context, product, price);
               } else {
-                _showAddProductDialog(context, product);
+                _showAddProductDialog(context, product, price);
               }
             },
           );
@@ -217,16 +216,18 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
   }
 
   /* Mostrar dialogo de seleccion de combo */
-  void _showComboDialog(BuildContext context, ProductModel product) {
+  void _showComboDialog(BuildContext context, ProductModel product, PriceModel? price) {
     Get.dialog(
       ComboSelectionDialog(
         product: product,
+        price: price,
         onConfirm:
-            (product, quantity, comment, comboSelections, additionalPrice) {
+            (product, selectedPrice, quantity, comment, comboSelections, additionalPrice) {
               controller.addToOrder(
                 product,
                 quantity,
                 comment,
+                price: selectedPrice,
                 comboSelections: comboSelections,
                 additionalPrice: additionalPrice,
               );
@@ -236,13 +237,17 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
   }
 
   /*muestra el dialogo para agregar producto al pedido */
-  void _showAddProductDialog(BuildContext context, ProductModel product) {
+  void _showAddProductDialog(BuildContext context, ProductModel product, PriceModel? price) {
     final quantityControl = FormControl<int>(value: 1);
     final commentControl = FormControl<String>(value: '');
 
     Get.dialog(
       AlertDialog(
-        title: Text('Producto: ${product.name}'),
+        title: Text(
+          product.productType == 'VARIABLE' && price?.sizeLabel != null
+              ? 'Producto: ${product.name} - ${price!.sizeLabel}'
+              : 'Producto: ${product.name}',
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -270,6 +275,7 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                 product,
                 quantityControl.value ?? 1,
                 commentControl.value,
+                price: price,
               );
             },
             child: const Text('Agregar'),
@@ -398,9 +404,11 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                         final item = controller.currentOrder[index];
                         final comboDetails = _buildComboDetails(item);
 
+                        final productName = item.productName;
+
                         return ListTile(
                           title: Text(
-                            '${item.product.name} (x${item.quantity})',
+                            '$productName (x${item.quantity})',
                             style: const TextStyle(fontWeight: FontWeight.bold),
                           ),
                           subtitle:

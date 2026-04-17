@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/price_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -59,19 +60,19 @@ class AddProductsSheet extends GetView<OrdersController> {
                 return ProductSelectionWidget(
                   categories: controller.categories.toList(),
                   getQuantity: controller.getTempProductQuantity,
-                  onIncrement: (product) {
+                  onIncrement: (product, price) {
                     if (product.productType == 'COMBO') {
-                      _showComboDialog(context, product);
+                      _showComboDialog(context, product, price);
                     } else {
-                      controller.incrementTempProduct(product);
+                      controller.incrementTempProduct(product, price);
                     }
                   },
                   onDecrement: controller.decrementTempProduct,
-                  onEdit: (product) {
+                  onEdit: (product, price) {
                     if (product.productType == 'COMBO') {
-                      _showComboDialog(context, product);
+                      _showComboDialog(context, product, price);
                     } else {
-                      _showAddProductDialog(product);
+                      _showAddProductDialog(product, price);
                     }
                   },
                 );
@@ -142,13 +143,17 @@ class AddProductsSheet extends GetView<OrdersController> {
     );
   }
 
-  void _showAddProductDialog(ProductModel product) {
+  void _showAddProductDialog(ProductModel product, PriceModel? price) {
     final quantityControl = FormControl<int>(value: 1);
     final commentControl = FormControl<String>(value: '');
 
     Get.dialog(
       AlertDialog(
-        title: Text('Producto: ${product.name}'),
+        title: Text(
+          product.productType == 'VARIABLE' && price?.sizeLabel != null
+              ? 'Producto: ${product.name} - ${price!.sizeLabel}'
+              : 'Producto: ${product.name}',
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -176,6 +181,7 @@ class AddProductsSheet extends GetView<OrdersController> {
                 product,
                 quantityControl.value ?? 1,
                 commentControl.value,
+                price: price,
               );
               Get.back(); // Cerrar dialogo
             },
@@ -187,16 +193,18 @@ class AddProductsSheet extends GetView<OrdersController> {
   }
 
   /* Mostrar dialogo de seleccion de combo */
-  void _showComboDialog(BuildContext context, ProductModel product) {
+  void _showComboDialog(BuildContext context, ProductModel product, PriceModel? price) {
     Get.dialog(
       ComboSelectionDialog(
         product: product,
+        price: price,
         onConfirm:
-            (product, quantity, comment, comboSelections, additionalPrice) {
+            (product, selectedPrice, quantity, comment, comboSelections, additionalPrice) {
               controller.addToTempOrder(
                 product,
                 quantity,
                 comment,
+                price: selectedPrice,
                 comboSelections: comboSelections,
                 additionalPrice: additionalPrice,
               );

@@ -299,6 +299,7 @@ class OrdersController extends GetxController {
     ProductModel product,
     int quantity,
     String? comment, {
+    PriceModel? price,
     List<Map<String, String>>? comboSelections,
     double additionalPrice = 0,
   }) {
@@ -316,6 +317,7 @@ class OrdersController extends GetxController {
       index = tempAdditionalOrderItems.indexWhere(
         (item) =>
             item.product.id == product.id &&
+            item.selectedPrice?.id == price?.id &&
             item.comment == normalizedComment &&
             (item.comboSelections == null || item.comboSelections!.isEmpty),
       );
@@ -328,6 +330,7 @@ class OrdersController extends GetxController {
       tempAdditionalOrderItems.add(
         OrderItemModel(
           product: product,
+          selectedPrice: price,
           quantity: quantity,
           comment: normalizedComment,
           comboSelections: comboSelections,
@@ -338,16 +341,17 @@ class OrdersController extends GetxController {
   }
 
   /* Incrementar cantidad temporal de un producto */
-  void incrementTempProduct(ProductModel product) {
+  void incrementTempProduct(ProductModel product, PriceModel? price) {
     // Solo llama a esto si no es combo o si se maneja desde fuera
-    addToTempOrder(product, 1, null);
+    addToTempOrder(product, 1, null, price: price);
   }
 
   /* Decrementar cantidad temporal de un producto */
-  void decrementTempProduct(ProductModel product) {
+  void decrementTempProduct(ProductModel product, PriceModel? price) {
     final index = tempAdditionalOrderItems.indexWhere(
       (item) =>
           item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
           (item.comment == null || item.comment!.isEmpty),
     );
 
@@ -362,9 +366,9 @@ class OrdersController extends GetxController {
   }
 
   /* Obtener cantidad temporal de un producto */
-  int getTempProductQuantity(ProductModel product) {
+  int getTempProductQuantity(ProductModel product, PriceModel? price) {
     return tempAdditionalOrderItems
-        .where((item) => item.product.id == product.id)
+        .where((item) => item.product.id == product.id && item.selectedPrice?.id == price?.id)
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
@@ -375,7 +379,9 @@ class OrdersController extends GetxController {
     final itemsToAdd = tempAdditionalOrderItems.map((item) {
       final detail = {
         'productId': item.product.id,
+        'productName': item.productName,
         'quantity': item.quantity,
+        'selectedPriceId': item.selectedPrice?.id,
         'observations': item.comment ?? '',
       };
 

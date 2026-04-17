@@ -5,10 +5,10 @@ import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 
 class ProductSelectionWidget extends StatelessWidget {
   final List<CategoryModel> categories;
-  final int Function(ProductModel) getQuantity;
-  final void Function(ProductModel) onIncrement;
-  final void Function(ProductModel) onDecrement;
-  final void Function(ProductModel) onEdit;
+  final int Function(ProductModel, PriceModel?) getQuantity;
+  final void Function(ProductModel, PriceModel?) onIncrement;
+  final void Function(ProductModel, PriceModel?) onDecrement;
+  final void Function(ProductModel, PriceModel?) onEdit;
   final bool initiallyExpanded;
 
   const ProductSelectionWidget({
@@ -43,35 +43,123 @@ class ProductSelectionWidget extends StatelessWidget {
   }
 
   Widget _buildCategoryTile(CategoryModel category) {
+    final subcategories = category.subcategories ?? [];
+    List<Widget> childrenWidgets = [];
+
+    if (subcategories.length == 1) {
+      // Si solo hay una subcategoría, mostrar los productos directamente
+      final singleSub = subcategories.first;
+      final products = singleSub.products ?? [];
+      childrenWidgets = products.map((product) {
+        return _buildProductRow(product);
+      }).toList();
+    } else if (subcategories.length > 1) {
+      // Si hay múltiples subcategorías, mantener los ExpansionTile
+      childrenWidgets = subcategories.map((subcategory) {
+        return ExpansionTile(
+          title: Text(
+            subcategory.name ?? '',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(subcategory.description ?? ''),
+          childrenPadding: const EdgeInsets.only(left: 16),
+          children:
+              subcategory.products?.map((product) {
+                return _buildProductRow(product);
+              }).toList() ??
+              [],
+        );
+      }).toList();
+    }
+
     return ExpansionTile(
       title: Text(
         category.name ?? '',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       childrenPadding: const EdgeInsets.only(left: 16),
-      children:
-          category.subcategories?.map((subcategory) {
-            return ExpansionTile(
-              title: Text(
-                subcategory.name ?? '',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(subcategory.description ?? ''),
-              childrenPadding: const EdgeInsets.only(left: 16),
-              children:
-                  subcategory.products?.map((product) {
-                    return _buildProductRow(product);
-                  }).toList() ??
-                  [],
-            );
-          }).toList() ??
-          [],
+      children: childrenWidgets,
     );
   }
 
   Widget _buildProductRow(ProductModel product) {
+    if (product.productType == 'VARIABLE' && (product.prices?.isNotEmpty ?? false)) {
+      return _buildVariableProductRow(product);
+    } else {
+      final price = (product.prices?.isNotEmpty ?? false) ? product.prices!.first : null;
+      return _buildSingleProductRow(product, price);
+    }
+  }
+
+  Widget _buildVariableProductRow(ProductModel product) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product.name ?? '',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (product.description != null && product.description!.isNotEmpty) ...[
+              const SizedBox(height: 4),
+              Text(
+                product.description!,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            ],
+            const SizedBox(height: 12),
+            ...product.prices!.map((price) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12.0, left: 8.0),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            price.sizeLabel ?? '',
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            '\$${price.amount?.toStringAsFixed(0) ?? '0'}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.green,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    _buildStandardActions(product, price),
+                  ],
+                ),
+              );
+            }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSingleProductRow(ProductModel product, PriceModel? price) {
     final isCombo = product.productType == 'COMBO';
-    final quantity = getQuantity(product);
+    final quantity = getQuantity(product, price);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -88,7 +176,9 @@ class ProductSelectionWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    product.name ?? '',
+                    product.productType == 'VARIABLE' && price?.sizeLabel != null
+                        ? '${product.name ?? ''} - ${price!.sizeLabel}'
+                        : product.name ?? '',
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w500,
@@ -101,7 +191,7 @@ class ProductSelectionWidget extends StatelessWidget {
                     ),
                   const SizedBox(height: 4),
                   Text(
-                    '\$${product.price?.amount?.toStringAsFixed(0) ?? '0'}',
+                    '\$${price?.amount?.toStringAsFixed(0) ?? '0'}',
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.green,
@@ -112,22 +202,23 @@ class ProductSelectionWidget extends StatelessWidget {
               ),
             ),
             if (isCombo)
-              _buildComboActions(product, quantity)
+              _buildComboActions(product, price, quantity)
             else
-              _buildStandardActions(product),
+              _buildStandardActions(product, price),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildComboActions(ProductModel product, int quantity) {
+  Widget _buildComboActions(ProductModel product, PriceModel? price, int quantity) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         ElevatedButton(
           onPressed: () => onIncrement(
             product,
+            price,
           ), // Usamos onIncrement para activar el diálogo
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue[900],
@@ -153,11 +244,11 @@ class ProductSelectionWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildStandardActions(ProductModel product) {
+  Widget _buildStandardActions(ProductModel product, PriceModel? price) {
     return Row(
       children: [
         IconButton(
-          onPressed: () => onEdit(product),
+          onPressed: () => onEdit(product, price),
           icon: const Icon(Icons.edit_note, color: Colors.orange),
           tooltip: 'Agregar con notas',
         ),
@@ -170,13 +261,13 @@ class ProductSelectionWidget extends StatelessWidget {
             children: [
               IconButton(
                 icon: const Icon(Icons.remove, color: Colors.red, size: 20),
-                onPressed: () => onDecrement(product),
+                onPressed: () => onDecrement(product, price),
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
               ),
               Obx(
                 () => Text(
-                  '${getQuantity(product)}',
+                  '${getQuantity(product, price)}',
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -185,7 +276,7 @@ class ProductSelectionWidget extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.green, size: 20),
-                onPressed: () => onIncrement(product),
+                onPressed: () => onIncrement(product, price),
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
               ),

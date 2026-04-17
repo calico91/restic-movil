@@ -6,6 +6,7 @@ import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
 import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
+import 'package:restic_movil/app/data/models/product_model.dart';
 
 class MenuView extends GetView<MenuController> {
   const MenuView({super.key});
@@ -182,8 +183,26 @@ class MenuView extends GetView<MenuController> {
                                                 itemBuilder: (context, productIndex) {
                                                   final product =
                                                       products[productIndex];
+
+                                                  if (product.productType ==
+                                                          'VARIABLE' &&
+                                                      (product
+                                                              .prices
+                                                              ?.isNotEmpty ??
+                                                          false)) {
+                                                    return _buildVariableProductTile(
+                                                      product,
+                                                      controller,
+                                                      category.id ?? '',
+                                                      subcategory.id ?? '',
+                                                    );
+                                                  }
+
                                                   final price =
-                                                      product.price?.amount ??
+                                                      product
+                                                          .prices
+                                                          ?.firstOrNull
+                                                          ?.amount ??
                                                       0;
                                                   return ListTile(
                                                     contentPadding:
@@ -201,7 +220,10 @@ class MenuView extends GetView<MenuController> {
                                                     ),
                                                     subtitle:
                                                         product.description !=
-                                                            null
+                                                                null &&
+                                                            product
+                                                                .description!
+                                                                .isNotEmpty
                                                         ? Text(
                                                             product
                                                                 .description!,
@@ -266,6 +288,78 @@ class MenuView extends GetView<MenuController> {
           ),
         );
       }),
+    );
+  }
+
+  Widget _buildVariableProductTile(
+    ProductModel product,
+    MenuController controller,
+    String categoryId,
+    String subcategoryId,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.name ?? 'Sin nombre',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    if (product.description != null &&
+                        product.description!.isNotEmpty)
+                      Text(product.description!),
+                  ],
+                ),
+              ),
+              CustomEditButton(
+                iconSize: 20,
+                onPressed: () => controller.showProductForm(
+                  categoryId: categoryId,
+                  subcategoryId: subcategoryId,
+                  product: product,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ...product.prices!.map((price) {
+            return Padding(
+              padding: const EdgeInsets.only(left: 16.0, bottom: 4.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    price.sizeLabel ?? 'Sin tamaño',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  Text(
+                    CurrencyFormatter.toCurrency(price.amount ?? 0.0),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0D47A1),
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }),
+        ],
+      ),
     );
   }
 }

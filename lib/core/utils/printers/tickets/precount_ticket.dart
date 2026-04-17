@@ -75,7 +75,9 @@ class PrecountTicket implements PrintableTicket {
       if (item.status == 'Anulado') continue;
 
       // Nombre y cantidad
-      String itemName = item.productName ?? 'Producto';
+      String itemName = item.sizeLabel != null 
+          ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}' 
+          : (item.productName ?? 'Producto');
       if (itemName.length > 20) {
         itemName = itemName.substring(0, 20); // limitar largo
       }

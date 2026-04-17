@@ -214,6 +214,7 @@ class TakeOrderController extends GetxController {
     ProductModel product,
     int quantity,
     String? comment, {
+    PriceModel? price,
     List<Map<String, String>>? comboSelections,
     double additionalPrice = 0,
   }) {
@@ -222,7 +223,7 @@ class TakeOrderController extends GetxController {
         ? null
         : comment.trim();
 
-    // Verificar si ya existe el producto con el mismo comentario
+    // Verificar si ya existe el producto con el mismo comentario y precio
     // Para combos, si hay selecciones, por ahora no agrupamos para evitar complejidad
     // (o se podria implementar deep equality check)
     int index = -1;
@@ -231,6 +232,7 @@ class TakeOrderController extends GetxController {
       index = currentOrder.indexWhere(
         (item) =>
             item.product.id == product.id &&
+            item.selectedPrice?.id == price?.id &&
             item.comment == normalizedComment &&
             (item.comboSelections == null || item.comboSelections!.isEmpty),
       );
@@ -243,6 +245,7 @@ class TakeOrderController extends GetxController {
       currentOrder.add(
         OrderItemModel(
           product: product,
+          selectedPrice: price,
           quantity: quantity,
           comment: normalizedComment,
           comboSelections: comboSelections,
@@ -257,16 +260,17 @@ class TakeOrderController extends GetxController {
   }
 
   /*incrementar cantidad de producto (sin comentarios)*/
-  void incrementProduct(ProductModel product) {
-    addToOrder(product, 1, null);
+  void incrementProduct(ProductModel product, PriceModel? price) {
+    addToOrder(product, 1, null, price: price);
   }
 
   /*decrementar cantidad de producto (sin comentarios)*/
-  void decrementProduct(ProductModel product) {
-    // Busca items sin comentarios (productos estándar)
+  void decrementProduct(ProductModel product, PriceModel? price) {
+    // Busca items sin comentarios (productos estándar) con el mismo precio
     final index = currentOrder.indexWhere(
       (item) =>
           item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
           (item.comment == null || item.comment!.isEmpty),
     );
 
@@ -285,9 +289,9 @@ class TakeOrderController extends GetxController {
   }
 
   /*obtener cantidad de producto en el pedido (total, sin importar notas)*/
-  int getProductQuantity(ProductModel product) {
+  int getProductQuantity(ProductModel product, PriceModel? price) {
     return currentOrder
-        .where((item) => item.product.id == product.id)
+        .where((item) => item.product.id == product.id && item.selectedPrice?.id == price?.id)
         .fold(0, (sum, item) => sum + item.quantity);
   }
   // Agregar recargo al pedido
@@ -332,6 +336,8 @@ class TakeOrderController extends GetxController {
       "details": currentOrder.map((item) {
         final detail = {
           "productId": item.product.id,
+          "selectedPriceId": item.selectedPrice?.id,
+          "productName": item.productName,
           "quantity": item.quantity,
           "observations": item.comment ?? "",
         };

@@ -2,14 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/combo_group_model.dart';
 import 'package:restic_movil/app/data/models/combo_option_model.dart';
+import 'package:restic_movil/app/data/models/price_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 
 class ComboSelectionController extends GetxController {
   final ProductModel product;
-  final Function(ProductModel, int, String, List<Map<String, String>>, double)
+  final PriceModel? price;
+  final Function(ProductModel, PriceModel?, int, String, List<Map<String, String>>, double)
   onConfirm;
 
-  ComboSelectionController({required this.product, required this.onConfirm});
+  ComboSelectionController({required this.product, this.price, required this.onConfirm});
 
   // State
   final RxInt quantity = 1.obs;
@@ -19,7 +21,7 @@ class ComboSelectionController extends GetxController {
 
   // Computed Properties
   double get totalPrice {
-    double base = product.price?.amount ?? 0;
+    double base = price?.amount ?? (product.prices?.firstOrNull?.amount ?? 0);
     double extras = 0;
 
     selections.forEach((groupId, options) {
@@ -145,6 +147,7 @@ class ComboSelectionController extends GetxController {
 
     onConfirm(
       product,
+      price,
       quantity.value,
       commentController.text,
       comboSelectionsList,

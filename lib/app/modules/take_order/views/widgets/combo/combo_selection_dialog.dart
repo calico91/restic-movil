@@ -2,24 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/combo_group_model.dart';
 import 'package:restic_movil/app/data/models/combo_option_model.dart';
+import 'package:restic_movil/app/data/models/price_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/combo_selection_controller.dart';
 
 class ComboSelectionDialog extends StatelessWidget {
   final ProductModel product;
-  final Function(ProductModel, int, String, List<Map<String, String>>, double)
+  final PriceModel? price;
+  final Function(ProductModel, PriceModel?, int, String, List<Map<String, String>>, double)
   onConfirm;
 
   const ComboSelectionDialog({
     super.key,
     required this.product,
+    this.price,
     required this.onConfirm,
   });
 
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ComboSelectionController>(
-      init: ComboSelectionController(product: product, onConfirm: onConfirm),
+      init: ComboSelectionController(product: product, price: price, onConfirm: onConfirm),
       tag: 'combo_${product.id}',
       builder: (controller) {
         return AlertDialog(
