@@ -130,7 +130,7 @@ class ProductFormDialog extends StatelessWidget {
   FormGroup _buildForm() {
     final String initialType = product?.productType ?? 'SIMPLE';
     final List<dynamic> initialPrices = product?.prices ?? [];
-    
+
     // Si no hay precios, pre-llenar con uno vacío
     if (initialPrices.isEmpty) {
       initialPrices.add(null);
@@ -160,9 +160,7 @@ class ProductFormDialog extends StatelessWidget {
                 Validators.pattern(RegExp(r'^[0-9.]+$')),
               ],
             ),
-            'size_label': FormControl<String>(
-              value: p?.sizeLabel ?? '',
-            ),
+            'size_label': FormControl<String>(value: p?.sizeLabel ?? ''),
           });
         }).toList(),
       ),
@@ -179,26 +177,34 @@ class ProductFormDialog extends StatelessWidget {
       onSave: () {
         final data = Map<String, dynamic>.from(form.value);
         final String productType = data['productType'];
-        
+
         // Mapear el array de precios
-        final List<Map<String, dynamic>> pricesArray = (data['prices'] as List).map((p) {
-          final priceValue = p['amount'] as String;
-          final double amount =
-              double.tryParse(priceValue.replaceAll(RegExp(r'[^0-9]'), '')) ??
-              0.0;
-          
-          final Map<String, dynamic> priceMap = {
-            "amount": amount,
-            "start_date": DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(DateTime.now()),
-            "end_date": null,
-          };
-          
-          if (productType == 'VARIABLE' && p['size_label'] != null && p['size_label'].toString().isNotEmpty) {
-            priceMap['size_label'] = p['size_label'];
-          }
-          
-          return priceMap;
-        }).toList();
+        final List<Map<String, dynamic>> pricesArray = (data['prices'] as List)
+            .map((p) {
+              final priceValue = p['amount'] as String;
+              final double amount =
+                  double.tryParse(
+                    priceValue.replaceAll(RegExp(r'[^0-9]'), ''),
+                  ) ??
+                  0.0;
+
+              final Map<String, dynamic> priceMap = {
+                "amount": amount,
+                "start_date": DateFormat(
+                  "yyyy-MM-dd'T'HH:mm:ss",
+                ).format(DateTime.now()),
+                "end_date": null,
+              };
+
+              if (productType == 'VARIABLE' &&
+                  p['size_label'] != null &&
+                  p['size_label'].toString().isNotEmpty) {
+                priceMap['size_label'] = p['size_label'];
+              }
+
+              return priceMap;
+            })
+            .toList();
 
         final formattedResult = {
           "name": data['name'],
@@ -283,7 +289,7 @@ class ProductFormDialog extends StatelessWidget {
                                     Expanded(
                                       flex: 3,
                                       child: ReactiveTextField<String>(
-                                        formControlName: 'prices.$i.size_label',
+                                        formControlName: '$i.size_label',
                                         decoration: const InputDecoration(
                                           labelText: 'Tamaño (ej: 12oz)',
                                           border: OutlineInputBorder(),
@@ -295,7 +301,7 @@ class ProductFormDialog extends StatelessWidget {
                                   Expanded(
                                     flex: 4,
                                     child: ReactiveTextField<String>(
-                                      formControlName: 'prices.$i.amount',
+                                      formControlName: '$i.amount',
                                       validationMessages: {
                                         'required': (error) => 'Requerido',
                                         'pattern': (error) => 'Solo números',
@@ -306,12 +312,18 @@ class ProductFormDialog extends StatelessWidget {
                                         prefixText: '\$ ',
                                       ),
                                       keyboardType: TextInputType.number,
-                                      inputFormatters: [ThousandsSeparatorInputFormatter()],
+                                      inputFormatters: [
+                                        ThousandsSeparatorInputFormatter(),
+                                      ],
                                     ),
                                   ),
-                                  if (isVariable && formArray.controls.length > 1)
+                                  if (isVariable &&
+                                      formArray.controls.length > 1)
                                     IconButton(
-                                      icon: const Icon(Icons.delete, color: Colors.red),
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        color: Colors.red,
+                                      ),
                                       onPressed: () {
                                         formArray.removeAt(i);
                                       },
@@ -327,10 +339,14 @@ class ProductFormDialog extends StatelessWidget {
                                     'amount': FormControl<String>(
                                       validators: [
                                         Validators.required,
-                                        Validators.pattern(RegExp(r'^[0-9.]+$')),
+                                        Validators.pattern(
+                                          RegExp(r'^[0-9.]+$'),
+                                        ),
                                       ],
                                     ),
-                                    'size_label': FormControl<String>(value: ''),
+                                    'size_label': FormControl<String>(
+                                      value: '',
+                                    ),
                                   }),
                                 );
                               },
