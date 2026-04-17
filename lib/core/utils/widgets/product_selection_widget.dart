@@ -43,29 +43,42 @@ class ProductSelectionWidget extends StatelessWidget {
   }
 
   Widget _buildCategoryTile(CategoryModel category) {
+    final subcategories = category.subcategories ?? [];
+    List<Widget> childrenWidgets = [];
+
+    if (subcategories.length == 1) {
+      // Si solo hay una subcategoría, mostrar los productos directamente
+      final singleSub = subcategories.first;
+      final products = singleSub.products ?? [];
+      childrenWidgets = products.map((product) {
+        return _buildProductRow(product);
+      }).toList();
+    } else if (subcategories.length > 1) {
+      // Si hay múltiples subcategorías, mantener los ExpansionTile
+      childrenWidgets = subcategories.map((subcategory) {
+        return ExpansionTile(
+          title: Text(
+            subcategory.name ?? '',
+            style: const TextStyle(fontWeight: FontWeight.w600),
+          ),
+          subtitle: Text(subcategory.description ?? ''),
+          childrenPadding: const EdgeInsets.only(left: 16),
+          children:
+              subcategory.products?.map((product) {
+                return _buildProductRow(product);
+              }).toList() ??
+              [],
+        );
+      }).toList();
+    }
+
     return ExpansionTile(
       title: Text(
         category.name ?? '',
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       childrenPadding: const EdgeInsets.only(left: 16),
-      children:
-          category.subcategories?.map((subcategory) {
-            return ExpansionTile(
-              title: Text(
-                subcategory.name ?? '',
-                style: const TextStyle(fontWeight: FontWeight.w600),
-              ),
-              subtitle: Text(subcategory.description ?? ''),
-              childrenPadding: const EdgeInsets.only(left: 16),
-              children:
-                  subcategory.products?.map((product) {
-                    return _buildProductRow(product);
-                  }).toList() ??
-                  [],
-            );
-          }).toList() ??
-          [],
+      children: childrenWidgets,
     );
   }
 
