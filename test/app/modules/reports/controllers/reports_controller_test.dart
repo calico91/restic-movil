@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/sales_report_response.dart';
+import 'package:restic_movil/app/data/models/shift_sales_report_response.dart';
 import 'package:restic_movil/app/data/repositories/reports_repository.dart';
 import 'package:restic_movil/app/modules/reports/controllers/reports_controller.dart';
 
@@ -50,6 +51,24 @@ class MockReportsRepository implements ReportsRepository {
     
     return dummyResponse;
   }
+
+  @override
+  Future<SalesReportResponse> getSalesReportByDateTime(String startDateTime, String endDateTime) async {
+    if (throwError) throw Exception('Error del servidor (HTTP 500)');
+    return dummyResponse;
+  }
+
+  @override
+  Future<ShiftSalesReportResponse> getSalesReportByShiftId(String shiftId) async {
+    if (throwError) throw Exception('Error del servidor (HTTP 500)');
+    return ShiftSalesReportResponse(); // Retornamos objeto en blanco para compilación
+  }
+
+  @override
+  Future<ShiftSalesReportResponse> getSalesReportByShiftDate(String openDate) async {
+    if (throwError) throw Exception('Error del servidor (HTTP 500)');
+    return ShiftSalesReportResponse(); // Retornamos objeto en blanco para compilación
+  }
 }
 
 // Controlador de prueba que evita que onReady consuma el servicio automáticamente y crashee por falta de UI montada
@@ -85,7 +104,7 @@ void main() {
 
       // Usando await tester.runAsync resolverá los futures encolados
       await tester.runAsync(() async {
-        await controller.fetchSalesReport();
+        await controller.fetchReport();
       });
 
       expect(mockRepository.lastStartDate, '2026-04-04', reason: 'El mes y el día deben tener cero a la izquierda');
@@ -98,7 +117,7 @@ void main() {
       controller = Get.put(TestReportsController(mockRepository));
 
       await tester.runAsync(() async {
-        await controller.fetchSalesReport();
+        await controller.fetchReport();
       });
 
       final report = controller.reportData.value;
@@ -123,7 +142,7 @@ void main() {
       controller = Get.put(TestReportsController(mockRepository));
 
       await tester.runAsync(() async {
-        await controller.fetchSalesReport();
+        await controller.fetchReport();
         // Cerramos el overlay activo o snackbar para evitar memory leaks the Tickeres en flutter_test
         Get.closeAllSnackbars();
       });

@@ -89,4 +89,6 @@ class UrlPaths {
   static const String fiscalDataDeactivate = 'fiscal-data'; // patch /id/deactivate
   // Reports
   static const String getSalesReport = 'reports/sales';
+  static const String getSalesReportByDateTime = 'reports/sales/datetime';
+  static const String getSalesReportByShift = 'reports/sales/shift';
 }
