@@ -63,7 +63,7 @@ class TransactionModal extends StatelessWidget {
                 ],
               ),
             ),
-            _buildActions(form),
+            _buildActions(context, form),
           ],
         ),
       ),
@@ -475,9 +475,14 @@ class TransactionModal extends StatelessWidget {
     );
   }
 
-  Widget _buildActions(FormGroup form) {
+  Widget _buildActions(BuildContext context, FormGroup form) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.only(
+        top: 16,
+        left: 16,
+        right: 16,
+        bottom: 16 + MediaQuery.of(context).padding.bottom,
+      ),
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
