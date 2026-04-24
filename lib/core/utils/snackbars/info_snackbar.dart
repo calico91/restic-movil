@@ -20,7 +20,7 @@ class InfoSnackbar extends GetSnackBar {
   Color get backgroundColor => const Color(0xFF0D47A1).withValues(alpha: 0.8);
 
   @override
-  Duration? get duration => const Duration(seconds: 3);
+  Duration? get duration => const Duration(seconds: 2);
 
   @override
   Widget? get icon => const Icon(Icons.info_outline, color: Colors.white);

@@ -62,6 +62,14 @@ class WebSocketService extends GetxService {
   void _onConnect(StompFrame frame, String branchId) {
     debugPrint('Connected to WebSocket');
 
+    // Diferir las suscripciones un microtask para que StompHandler
+    // termine de actualizar su estado interno antes de llamar a subscribe.
+    Future.microtask(() {
+      _subscribe(branchId);
+    });
+  }
+
+  void _subscribe(String branchId) {
     /* Suscribirse a nuevas órdenes */
     final createdDestination = '/topic/branch/$branchId/orders/created';
     debugPrint('Subscribing to $createdDestination');
