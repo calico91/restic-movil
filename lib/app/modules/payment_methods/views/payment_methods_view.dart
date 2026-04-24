@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/payment_method_model.dart';
-import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/payment_methods/controllers/payment_methods_controller.dart';
 import 'package:restic_movil/app/modules/payment_methods/views/widgets/payment_method_form_modal.dart';
 import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
@@ -12,8 +11,6 @@ class PaymentMethodsView extends GetView<PaymentMethodsController> {
 
   @override
   Widget build(BuildContext context) {
-    Get.find<HomeController>();
-
     return CustomScaffold(
       title: 'Métodos de Pago',
       body: Obx(() {

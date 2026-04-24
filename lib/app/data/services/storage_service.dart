@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
+import '../models/customer_model.dart';
 import '../models/login_response.dart';
 
 class StorageService extends GetxService {
@@ -161,5 +162,22 @@ class StorageService extends GetxService {
 
   Future<void> deleteServerUrl() async {
     await _storage.delete(key: 'server_url');
+  }
+
+  Future<void> saveDefaultCustomer(CustomerModel customer) async {
+    await _storage.write(
+      key: 'default_customer',
+      value: jsonEncode(customer.toJson()),
+    );
+  }
+
+  Future<CustomerModel?> getDefaultCustomer() async {
+    final str = await _storage.read(key: 'default_customer');
+    if (str != null) return CustomerModel.fromJson(jsonDecode(str));
+    return null;
+  }
+
+  Future<void> deleteDefaultCustomer() async {
+    await _storage.delete(key: 'default_customer');
   }
 }

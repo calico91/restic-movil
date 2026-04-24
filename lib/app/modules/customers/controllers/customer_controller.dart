@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/customer_model.dart';
 import 'package:restic_movil/app/data/repositories/customer_repository.dart';
+import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -12,8 +13,10 @@ import 'package:restic_movil/app/modules/customers/views/customer_form_dialog.da
 
 class CustomerController extends GetxController {
   final CustomerRepository _repository = Get.find();
+  final StorageService _storageService = Get.find();
 
   final customers = <CustomerModel>[].obs;
+  final defaultCustomer = Rxn<CustomerModel>();
   late FormGroup form;
 
   final isEditing = false.obs;
@@ -28,7 +31,26 @@ class CustomerController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    _loadDefaultCustomer();
     loadCustomers();
+  }
+
+  /*cargar cliente predeterminado desde almacenamiento seguro*/
+  Future<void> _loadDefaultCustomer() async {
+    final customer = await _storageService.getDefaultCustomer();
+    defaultCustomer.value = customer;
+  }
+
+  /*establecer un cliente como predeterminado para nuevos pedidos*/
+  Future<void> setDefaultCustomer(CustomerModel customer) async {
+    await _storageService.saveDefaultCustomer(customer);
+    defaultCustomer.value = customer;
+  }
+
+  /*remover el cliente predeterminado*/
+  Future<void> clearDefaultCustomer() async {
+    await _storageService.deleteDefaultCustomer();
+    defaultCustomer.value = null;
   }
 
   void _initForm() {

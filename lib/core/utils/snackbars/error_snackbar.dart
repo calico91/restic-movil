@@ -20,7 +20,7 @@ class ErrorSnackbar extends GetSnackBar {
   Color get backgroundColor => const Color(0xFFB71C1C).withValues(alpha: 0.8);
 
   @override
-  Duration? get duration => const Duration(seconds: 3);
+  Duration? get duration => const Duration(seconds: 2);
 
   @override
   Widget? get icon => const Icon(Icons.error_outlined, color: Colors.white);

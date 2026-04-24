@@ -79,32 +79,63 @@ class CustomerView extends GetView<CustomerController> {
                       ),
                   ],
                 ),
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CustomEditButton(
-                      onPressed: () => controller.openEditForm(customer),
-                    ),
-                    const SizedBox(width: 8),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFB71C1C).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: IconButton(
-                        icon: const Icon(
-                          Icons.delete,
-                          color: Color(0xFFB71C1C),
-                          size: 20,
+                trailing: Obx(() {
+                  final isDefault =
+                      controller.defaultCustomer.value?.id == customer.id;
+                  return Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Botón predeterminar
+                      Container(
+                        decoration: BoxDecoration(
+                          color: isDefault
+                              ? const Color(0xFF0D47A1).withValues(alpha: 0.12)
+                              : Colors.grey.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(8),
                         ),
-                        onPressed: () =>
-                            controller.deleteCustomer(customer.id!),
-                        constraints: const BoxConstraints(),
-                        padding: const EdgeInsets.all(8),
+                        child: IconButton(
+                          icon: Icon(
+                            isDefault ? Icons.star : Icons.star_border,
+                            color: isDefault
+                                ? const Color(0xFF0D47A1)
+                                : Colors.grey,
+                            size: 20,
+                          ),
+                          tooltip: isDefault
+                              ? 'Quitar predeterminado'
+                              : 'Predeterminar cliente',
+                          onPressed: () => isDefault
+                              ? controller.clearDefaultCustomer()
+                              : controller.setDefaultCustomer(customer),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.all(8),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
+                      const SizedBox(width: 8),
+                      CustomEditButton(
+                        onPressed: () => controller.openEditForm(customer),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFB71C1C).withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Color(0xFFB71C1C),
+                            size: 20,
+                          ),
+                          onPressed: () =>
+                              controller.deleteCustomer(customer.id!),
+                          constraints: const BoxConstraints(),
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ),
+                    ],
+                  );
+                }),
               ),
             );
           },

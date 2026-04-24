@@ -6,6 +6,7 @@ import 'package:restic_movil/app/data/models/cashier_user_model.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/repositories/cashier_repository.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/close_shift/close_shift_controller.dart';
+import 'package:restic_movil/app/data/models/customer_model.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 
 class MockCashierRepository implements CashierRepository {
@@ -133,6 +134,13 @@ class MockStorageService extends GetxService implements StorageService {
   Future<String?> getServerUrl() async => "http://192.168.0.103:8093";
   @override
   Future<void> deleteServerUrl() async {}
+
+  @override
+  Future<void> saveDefaultCustomer(dynamic customer) async {}
+  @override
+  Future<CustomerModel?> getDefaultCustomer() async => null;
+  @override
+  Future<void> deleteDefaultCustomer() async {}
 }
 
 void main() {

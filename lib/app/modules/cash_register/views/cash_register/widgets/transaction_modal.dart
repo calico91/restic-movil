@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
@@ -13,11 +14,24 @@ import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
-class TransactionModal extends StatelessWidget {
+class TransactionModal extends StatefulWidget {
   final OrderModel order;
-  final CashRegisterController controller = Get.find();
 
-  TransactionModal({super.key, required this.order});
+  const TransactionModal({super.key, required this.order});
+
+  @override
+  State<TransactionModal> createState() => _TransactionModalState();
+}
+
+class _TransactionModalState extends State<TransactionModal> {
+  final CashRegisterController controller = Get.find();
+  late final FormGroup _form;
+
+  @override
+  void initState() {
+    super.initState();
+    _form = controller.createTransactionForm(widget.order);
+  }
 
   double _parseAmount(dynamic value) {
     if (value == null) return 0.0;
@@ -32,9 +46,11 @@ class TransactionModal extends StatelessWidget {
     return 0.0;
   }
 
+  OrderModel get order => widget.order;
+
   @override
   Widget build(BuildContext context) {
-    final form = controller.createTransactionForm(order);
+    final form = _form;
 
     return Container(
       height: Get.height * 0.85,
@@ -220,16 +236,21 @@ class TransactionModal extends StatelessWidget {
                     ) ??
                     0.0;
 
+                final tipAmount = _parseAmount(form.control('tipAmount').value);
                 final orderTotal = order.total ?? 0.0;
-                final remaining = (orderTotal - currentTotal).clamp(
+                final totalToPay = orderTotal + tipAmount;
+
+                final remaining = (totalToPay - currentTotal).clamp(
                   0.0,
-                  orderTotal,
+                  totalToPay,
                 );
 
                 final defaultPaymentMethod =
                     controller.paymentMethods.isNotEmpty
                     ? controller.paymentMethods.first.method
                     : 'CASH';
+
+                final formatter = NumberFormat.decimalPattern('es_CO');
 
                 paymentsArray.add(
                   FormGroup({
@@ -238,9 +259,7 @@ class TransactionModal extends StatelessWidget {
                       validators: [Validators.required],
                     ),
                     'amount': FormControl<String>(
-                      value: CurrencyFormatter.toCurrency(
-                        remaining,
-                      ).replaceAll('\$', '').trim(),
+                      value: formatter.format(remaining),
                       validators: [Validators.required],
                     ),
                     'cardLastFour': FormControl<String>(),
@@ -397,22 +416,26 @@ class TransactionModal extends StatelessWidget {
   }
 
   Widget _buildSummary(FormGroup form) {
-    return ReactiveFormConsumer(
-      builder: (context, form, child) {
+    return StreamBuilder<Map<String, dynamic>?>(
+      stream: form.valueChanges,
+      builder: (context, snapshot) {
         final orderTotal = order.total ?? 0.0;
         final tip = _parseAmount(form.control('tipAmount').value);
 
-        final payments = (form.control('payments') as FormArray).value;
+        final paymentsArray = form.control('payments') as FormArray;
+        final payments = paymentsArray.value;
+        
         final totalPaid =
             payments?.fold<double>(
               0.0,
-              (sum, item) => sum + _parseAmount(item?['amount']),
+              (sum, item) {
+                final map = item as Map<String, dynamic>?;
+                return sum + _parseAmount(map?['amount']);
+              },
             ) ??
             0.0;
 
-        final difference =
-            totalPaid -
-            (orderTotal + tip); // If positive -> change, negative -> remaining
+        final difference = totalPaid - (orderTotal + tip);
 
         return Column(
           children: [
@@ -430,7 +453,7 @@ class TransactionModal extends StatelessWidget {
             _summaryRow('Total a Pagar:', orderTotal + tip, isBold: true),
             const SizedBox(height: 10),
             _summaryRow('Total Cubierto:', totalPaid, color: Colors.blue),
-            if (difference < -0.01)
+            if (difference <= -0.01)
               _summaryRow('Faltante:', difference.abs(), color: Colors.red)
             else
               _summaryRow(

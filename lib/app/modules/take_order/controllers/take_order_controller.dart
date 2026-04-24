@@ -68,6 +68,7 @@ class TakeOrderController extends GetxController {
     form.control('origin').valueChanges.listen((value) {
       if (value != null) {
         _fetchCustomers();
+        _applyDefaultCustomer();
       }
 
       if (value == 'SALON') {
@@ -81,6 +82,15 @@ class TakeOrderController extends GetxController {
         selectedCustomer.value = null;
       }
     });
+  }
+
+  /*carga y asigna automáticamente el cliente predeterminado si no hay uno seleccionado*/
+  Future<void> _applyDefaultCustomer() async {
+    if (selectedCustomer.value != null) return;
+    final customer = await storageService.getDefaultCustomer();
+    if (customer != null) {
+      selectedCustomer.value = customer;
+    }
   }
 
   @override
