@@ -5,6 +5,7 @@ import 'package:restic_movil/app/modules/orders/controllers/orders_controller.da
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
+import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
 import 'package:restic_movil/app/modules/orders/views/widgets/manage_surcharges_sheet.dart';
 
@@ -17,6 +18,12 @@ class OrdersView extends GetView<OrdersController> {
       children: [
         _buildSearchBar(),
         const SizedBox(height: 10),
+        DateNavigator(
+          selectedDate: controller.selectedDate,
+          onPrevious: controller.previousDay,
+          onNext: controller.nextDay,
+          onDateSelected: controller.changeDate,
+        ),
         _buildTabs(),
         const SizedBox(height: 10),
         Obx(

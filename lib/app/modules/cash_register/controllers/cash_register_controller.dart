@@ -42,6 +42,10 @@ class CashRegisterController extends GetxController {
       0.obs; // 0: Pending (Open/Finalized), 1: History (Paid/Canceled)
   final RxList<OrderModel> pendingOrders = <OrderModel>[].obs;
   final RxList<OrderModel> historyOrders = <OrderModel>[].obs;
+
+  // Filtro de fecha
+  final Rx<DateTime> selectedDate = DateTime.now().obs;
+  String get _formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate.value);
   final RxList<PaymentMethodModel> paymentMethods = <PaymentMethodModel>[].obs;
   final RxList<TransactionTypeModel> transactionTypes =
       <TransactionTypeModel>[].obs;
@@ -149,14 +153,45 @@ class CashRegisterController extends GetxController {
     }
   }
 
+  /*retroceder un día y recargar*/
+  void previousDay() {
+    selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+    _reloadCurrentTab();
+  }
+
+  /*avanzar un día (máximo hoy) y recargar*/
+  void nextDay() {
+    final DateTime now = DateTime.now();
+    final DateTime next = selectedDate.value.add(const Duration(days: 1));
+    if (next.year <= now.year && next.month <= now.month && next.day <= now.day) {
+      selectedDate.value = next;
+      _reloadCurrentTab();
+    }
+  }
+
+  /*cambiar a una fecha específica y recargar*/
+  void changeDate(DateTime date) {
+    selectedDate.value = date;
+    _reloadCurrentTab();
+  }
+
+  /*recargar el tab activo*/
+  void _reloadCurrentTab() {
+    if (currentTab.value == 0) {
+      loadPendingOrders(withOverlay: true);
+    } else {
+      loadHistoryOrders(withOverlay: true);
+    }
+  }
+
   /*cargar pedidos pendientes (Open, Finalized)*/
   Future<void> loadPendingOrders({bool withOverlay = false}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses([
-          'OPEN',
-          'FINALIZED',
-        ]);
+        final result = await ordersRepository.getOrdersByStatuses(
+          ['OPEN', 'FINALIZED'],
+          date: _formattedDate,
+        );
         pendingOrders.assignAll(result);
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);
@@ -178,10 +213,10 @@ class CashRegisterController extends GetxController {
   Future<void> loadHistoryOrders({bool withOverlay = false}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses([
-          'PAID',
-          'CANCELED',
-        ]);
+        final result = await ordersRepository.getOrdersByStatuses(
+          ['PAID', 'CANCELED'],
+          date: _formattedDate,
+        );
         historyOrders.assignAll(result);
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);

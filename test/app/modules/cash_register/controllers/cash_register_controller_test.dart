@@ -13,7 +13,7 @@ import 'package:restic_movil/app/data/models/payment_method_model.dart';
 import 'package:restic_movil/app/data/models/transaction_type_model.dart';
 
 class MockOrdersRepository extends Fake implements OrdersRepository {
-  @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses) async { return []; }
+  @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses, {String? date}) async { return []; }
 }
 class MockPaymentMethodsRepository extends Fake implements PaymentMethodsRepository {
   @override Future<List<PaymentMethodModel>> getPaymentMethodsActive() async { return []; }

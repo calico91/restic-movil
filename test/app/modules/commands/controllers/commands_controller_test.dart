@@ -7,7 +7,7 @@ import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 
 class MockOrdersRepository extends Fake implements OrdersRepository {
-  @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses) async { return []; }
+  @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses, {String? date}) async { return []; }
   @override Future<List<Map<String, dynamic>>> getOrderStatuses() async { return [{'name': 'OPEN'}, {'name': 'PREPARING'}]; }
   @override Future<List<Map<String, dynamic>>> getOrderDetailStatuses() async { return []; }
 }

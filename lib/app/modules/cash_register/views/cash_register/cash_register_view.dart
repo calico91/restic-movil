@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
+import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
@@ -12,6 +13,12 @@ class CashRegisterView extends GetView<CashRegisterController> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        DateNavigator(
+          selectedDate: controller.selectedDate,
+          onPrevious: controller.previousDay,
+          onNext: controller.nextDay,
+          onDateSelected: controller.changeDate,
+        ),
         _buildTabs(),
         Expanded(
           child: Obx(() {

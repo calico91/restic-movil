@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
+import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import '../controllers/commands_controller.dart';
 
 class CommandsView extends GetView<CommandsController> {
@@ -13,6 +14,12 @@ class CommandsView extends GetView<CommandsController> {
   Widget build(BuildContext context) {
     return Column(
       children: [
+        DateNavigator(
+          selectedDate: controller.selectedDate,
+          onPrevious: controller.previousDay,
+          onNext: controller.nextDay,
+          onDateSelected: controller.changeDate,
+        ),
         _buildTabs(),
         Expanded(
           child: Obx(() {

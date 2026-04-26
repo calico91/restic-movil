@@ -9,7 +9,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 
 class MockOrdersRepository extends Fake implements OrdersRepository {
-  @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses) async { return []; }
+  @override Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses, {String? date}) async { return []; }
   @override Future<List<Map<String, dynamic>>> getOrderStatuses() async { return [{'id': 1, 'name': 'OPEN'}, {'id': 2, 'name': 'FINALIZED'}]; }
   @override Future<List<Map<String, dynamic>>> getOrderDetailStatuses() async { return []; }
 }

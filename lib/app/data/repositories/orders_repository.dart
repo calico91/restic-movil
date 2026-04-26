@@ -28,10 +28,15 @@ class OrdersRepository {
     );
   }
 
-  Future<List<OrderModel>> getOrdersByStatuses(List<String> statuses) async {
+  Future<List<OrderModel>> getOrdersByStatuses(
+    List<String> statuses, {
+    String? date,
+  }) async {
+    final Map<String, String> params = {'statuses': statuses.join(',')};
+    if (date != null) params['date'] = date;
     final response = await _client.get(
       UrlPaths.getOrdersByStatuses,
-      parameters: {'statuses': statuses.join(',')},
+      parameters: params,
     );
     return (response as List).map((e) => OrderModel.fromJson(e)).toList();
   }
