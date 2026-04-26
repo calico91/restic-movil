@@ -66,35 +66,39 @@ class PrecountTicket implements PrintableTicket {
 
     printer.printCustom("--------------------------------", 1, 1);
 
-    // PRODUCTOS A PREPARAR
-    printer.printCustom("CANT  DESCRIPCION       TOTAL", 1, 0);
+    // PRODUCTOS
+    printer.printCustom("PRODUCTOS", 1, 1);
     printer.printCustom("--------------------------------", 1, 1);
 
     final details = order.details ?? [];
     for (var item in details) {
       if (item.status == 'Anulado') continue;
 
-      // Nombre y cantidad
-      String itemName = item.sizeLabel != null 
-          ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}' 
+      // Nombre en una línea (incluye talla/tamaño si aplica)
+      final String rawName = item.sizeLabel != null
+          ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}'
           : (item.productName ?? 'Producto');
-      if (itemName.length > 20) {
-        itemName = itemName.substring(0, 20); // limitar largo
-      }
+      printer.printCustom(rawName.withoutDiacritics, 1, 0);
 
-      String qty = item.quantity.toString().padRight(4);
-      // Formatear precio y eliminar cualquier caracter extraño o diacrítico que la impresora falle en interpretar
-      String price = PrinterUtils.formatCurrency(item.subtotal ?? 0).padLeft(8);
+      // Cantidad x Precio unitario a la izquierda, Subtotal a la derecha
+      final String qtyStr = item.quantity.toString();
+      final String unitPriceStr = PrinterUtils.formatCurrency(item.unitPrice ?? 0);
+      final String subtotalStr = PrinterUtils.formatCurrency(item.subtotal ?? 0);
 
-      printer.printCustom("$qty $itemName".withoutDiacritics, 1, 0);
-      printer.printCustom(price, 1, 2); // alinear a la derecha el precio
+      final String lineLeft = '  $qtyStr x $unitPriceStr';
+      final int spaces = (32 - (lineLeft.length + subtotalStr.length)).clamp(1, 32);
+      printer.printCustom(
+        (lineLeft + (' ' * spaces) + subtotalStr).withoutDiacritics,
+        1,
+        0,
+      );
     }
 
     printer.printCustom("--------------------------------", 1, 1);
 
     // CALCULOS
     final subtotal = order.subtotal ?? (order.total ?? 0.0);
-    // Asumimos que la propina se calcula sobre el subtotal de productos, sin los surcharges
+    // La propina se calcula sobre el subtotal de productos, sin recargos
     final tipAmount = subtotal * (tipPercentage / 100);
     final total = (order.total ?? 0.0) + tipAmount;
 
@@ -103,13 +107,9 @@ class PrecountTicket implements PrintableTicket {
 
     PrinterUtils.printSurcharges(printer, order.surcharges);
 
-    // Mostrar porcentaje en la etiqueta de la propina si es aplicable
-    String tipLabel = tipPercentage > 0
-        ? "Servicio (${tipPercentage.toStringAsFixed(0)}%): "
-        : "Servicio:        ";
-
-    // Asegurar que la etiqueta se alinee correctamente
-    tipLabel = tipLabel.padRight(16);
+    // Etiqueta de servicio alineada a 16 caracteres como los demás totales
+    final String tipLabel =
+        "Servicio (${tipPercentage.toStringAsFixed(0)}%):".padRight(16);
     PrinterUtils.printCurrencyRow(printer, tipLabel, tipAmount, 1);
 
     PrinterUtils.printCurrencyRow(printer, "TOTAL A PAGAR:  ", total, 2);
