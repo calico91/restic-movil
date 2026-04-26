@@ -19,8 +19,10 @@ import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
-import 'package:restic_movil/core/utils/printers/tickets/transaction_ticket.dart';
-import 'package:restic_movil/core/utils/printers/tickets/precount_ticket.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/transaction_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/precount_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/transaction_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/precount_ticket_80mm.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 
 class CashRegisterController extends GetxController {
@@ -484,7 +486,10 @@ class CashRegisterController extends GetxController {
     final tipValStr = defaultTipPercentage.value;
     final tipPercentage = double.tryParse(tipValStr) ?? 0.0;
 
-    final ticket = PrecountTicket(order: order, tipPercentage: tipPercentage);
+    final bool is80mm = _printerService.printerSize.value == '80mm';
+    final ticket = is80mm
+        ? PrecountTicket80mm(order: order, tipPercentage: tipPercentage)
+        : PrecountTicket58mm(order: order, tipPercentage: tipPercentage);
 
     _printerService.printTicket(ticket);
   }
@@ -501,7 +506,10 @@ class CashRegisterController extends GetxController {
 
           final modelResponse = TransactionReceiptModel.fromJson(response);
 
-          final ticket = TransactionTicket(transaction: modelResponse);
+          final bool is80mmReprint = _printerService.printerSize.value == '80mm';
+          final ticket = is80mmReprint
+              ? TransactionTicket80mm(transaction: modelResponse)
+              : TransactionTicket58mm(transaction: modelResponse);
           await _printerService.printTicket(ticket);
 
           Get.showSnackbar(
@@ -557,7 +565,10 @@ class CashRegisterController extends GetxController {
               buttonText: 'Cerrar',
               secondaryButtonText: 'Imprimir Factura',
               onSecondaryAction: () {
-                final ticket = TransactionTicket(transaction: modelResponse);
+                final bool is80mm = _printerService.printerSize.value == '80mm';
+                final ticket = is80mm
+                    ? TransactionTicket80mm(transaction: modelResponse)
+                    : TransactionTicket58mm(transaction: modelResponse);
                 _printerService.printTicket(ticket);
                 Get.back();
               },

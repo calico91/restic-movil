@@ -12,8 +12,10 @@ import 'package:restic_movil/app/data/repositories/customer_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
-import 'package:restic_movil/core/utils/printers/tickets/order_ticket.dart';
-import 'package:restic_movil/core/utils/printers/tickets/delivery_ticket.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/order_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/delivery_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/delivery_ticket_80mm.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -409,9 +411,11 @@ class TakeOrderController extends GetxController {
                         const InfoSnackbar('Enviando a imprimir...'),
                       );
                       if (newOrder.originType?.code == 'DELIVERY') {
-                        printerService.printTicket(DeliveryTicket(order: newOrder));
+                        final bool is80mm = printerService.printerSize.value == '80mm';
+                        printerService.printTicket(is80mm ? DeliveryTicket80mm(order: newOrder) : DeliveryTicket58mm(order: newOrder));
                       } else {
-                        printerService.printTicket(OrderTicket(order: newOrder));
+                        final bool is80mm = printerService.printerSize.value == '80mm';
+                        printerService.printTicket(is80mm ? OrderTicket80mm(order: newOrder) : OrderTicket58mm(order: newOrder));
                       }
                       Get.until((route) => route.settings.name == Routes.HOME);
                     }

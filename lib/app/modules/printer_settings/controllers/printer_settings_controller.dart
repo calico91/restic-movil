@@ -16,10 +16,24 @@ class PrinterSettingsController extends GetxController {
   RxList<BluetoothDevice> get devices => printerService.devices;
   Rx<BluetoothDevice?> get selectedDevice => printerService.selectedDevice;
 
+  final RxString selectedPrinterSize = '58mm'.obs;
+
   @override
   void onInit() {
     super.onInit();
     scanDevices();
+    _loadPrinterSize();
+  }
+
+  /* cargar el tamaño de impresora guardado desde el secure storage */
+  Future<void> _loadPrinterSize() async {
+    selectedPrinterSize.value = printerService.printerSize.value;
+  }
+
+  /* guardar el tamaño de impresora seleccionado en el secure storage */
+  Future<void> setPrinterSize(String size) async {
+    await printerService.setPrinterSize(size);
+    selectedPrinterSize.value = size;
   }
 
   /* escanear dispositivos bluetooth vinculados */

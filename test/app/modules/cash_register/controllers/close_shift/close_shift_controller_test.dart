@@ -141,6 +141,12 @@ class MockStorageService extends GetxService implements StorageService {
   Future<CustomerModel?> getDefaultCustomer() async => null;
   @override
   Future<void> deleteDefaultCustomer() async {}
+
+  @override
+  Future<String> getPrinterSize() async => '58mm';
+
+  @override
+  Future<void> savePrinterSize(String size) async {}
 }
 
 void main() {
