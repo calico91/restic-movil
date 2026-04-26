@@ -19,8 +19,10 @@ import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
-import 'package:restic_movil/core/utils/printers/tickets/transaction_ticket.dart';
-import 'package:restic_movil/core/utils/printers/tickets/precount_ticket.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/transaction_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/precount_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/transaction_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/precount_ticket_80mm.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 
 class CashRegisterController extends GetxController {
@@ -42,6 +44,10 @@ class CashRegisterController extends GetxController {
       0.obs; // 0: Pending (Open/Finalized), 1: History (Paid/Canceled)
   final RxList<OrderModel> pendingOrders = <OrderModel>[].obs;
   final RxList<OrderModel> historyOrders = <OrderModel>[].obs;
+
+  // Filtro de fecha
+  final Rx<DateTime> selectedDate = DateTime.now().obs;
+  String get _formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate.value);
   final RxList<PaymentMethodModel> paymentMethods = <PaymentMethodModel>[].obs;
   final RxList<TransactionTypeModel> transactionTypes =
       <TransactionTypeModel>[].obs;
@@ -149,14 +155,45 @@ class CashRegisterController extends GetxController {
     }
   }
 
+  /*retroceder un día y recargar*/
+  void previousDay() {
+    selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+    _reloadCurrentTab();
+  }
+
+  /*avanzar un día (máximo hoy) y recargar*/
+  void nextDay() {
+    final DateTime now = DateTime.now();
+    final DateTime next = selectedDate.value.add(const Duration(days: 1));
+    if (next.year <= now.year && next.month <= now.month && next.day <= now.day) {
+      selectedDate.value = next;
+      _reloadCurrentTab();
+    }
+  }
+
+  /*cambiar a una fecha específica y recargar*/
+  void changeDate(DateTime date) {
+    selectedDate.value = date;
+    _reloadCurrentTab();
+  }
+
+  /*recargar el tab activo*/
+  void _reloadCurrentTab() {
+    if (currentTab.value == 0) {
+      loadPendingOrders(withOverlay: true);
+    } else {
+      loadHistoryOrders(withOverlay: true);
+    }
+  }
+
   /*cargar pedidos pendientes (Open, Finalized)*/
   Future<void> loadPendingOrders({bool withOverlay = false}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses([
-          'OPEN',
-          'FINALIZED',
-        ]);
+        final result = await ordersRepository.getOrdersByStatuses(
+          ['OPEN', 'FINALIZED'],
+          date: _formattedDate,
+        );
         pendingOrders.assignAll(result);
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);
@@ -178,10 +215,10 @@ class CashRegisterController extends GetxController {
   Future<void> loadHistoryOrders({bool withOverlay = false}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses([
-          'PAID',
-          'CANCELED',
-        ]);
+        final result = await ordersRepository.getOrdersByStatuses(
+          ['PAID', 'CANCELED'],
+          date: _formattedDate,
+        );
         historyOrders.assignAll(result);
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);
@@ -449,7 +486,10 @@ class CashRegisterController extends GetxController {
     final tipValStr = defaultTipPercentage.value;
     final tipPercentage = double.tryParse(tipValStr) ?? 0.0;
 
-    final ticket = PrecountTicket(order: order, tipPercentage: tipPercentage);
+    final bool is80mm = _printerService.printerSize.value == '80mm';
+    final ticket = is80mm
+        ? PrecountTicket80mm(order: order, tipPercentage: tipPercentage)
+        : PrecountTicket58mm(order: order, tipPercentage: tipPercentage);
 
     _printerService.printTicket(ticket);
   }
@@ -466,7 +506,10 @@ class CashRegisterController extends GetxController {
 
           final modelResponse = TransactionReceiptModel.fromJson(response);
 
-          final ticket = TransactionTicket(transaction: modelResponse);
+          final bool is80mmReprint = _printerService.printerSize.value == '80mm';
+          final ticket = is80mmReprint
+              ? TransactionTicket80mm(transaction: modelResponse)
+              : TransactionTicket58mm(transaction: modelResponse);
           await _printerService.printTicket(ticket);
 
           Get.showSnackbar(
@@ -522,7 +565,10 @@ class CashRegisterController extends GetxController {
               buttonText: 'Cerrar',
               secondaryButtonText: 'Imprimir Factura',
               onSecondaryAction: () {
-                final ticket = TransactionTicket(transaction: modelResponse);
+                final bool is80mm = _printerService.printerSize.value == '80mm';
+                final ticket = is80mm
+                    ? TransactionTicket80mm(transaction: modelResponse)
+                    : TransactionTicket58mm(transaction: modelResponse);
                 _printerService.printTicket(ticket);
                 Get.back();
               },

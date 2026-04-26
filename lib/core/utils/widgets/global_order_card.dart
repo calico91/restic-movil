@@ -5,7 +5,11 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
-import 'package:restic_movil/core/utils/printers/tickets/order_ticket.dart';import 'package:restic_movil/core/utils/printers/tickets/delivery_ticket.dart';    import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/order_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/delivery_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/delivery_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
@@ -128,13 +132,14 @@ class GlobalOrderCard extends StatelessWidget {
                               if (onPrintCustomAction != null) {
                                 onPrintCustomAction!();
                               } else {
+                                final bool is80mm = printerService.printerSize.value == '80mm';
                                 if (order.originType?.code == 'DELIVERY') {
                                   printerService.printTicket(
-                                    DeliveryTicket(order: order),
+                                    is80mm ? DeliveryTicket80mm(order: order) : DeliveryTicket58mm(order: order),
                                   );
                                 } else {
                                   printerService.printTicket(
-                                    OrderTicket(order: order),
+                                    is80mm ? OrderTicket80mm(order: order) : OrderTicket58mm(order: order),
                                   );
                                 }
                               }

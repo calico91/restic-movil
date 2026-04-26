@@ -19,6 +19,8 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
           children: [
             _buildStatusHeader(),
             const SizedBox(height: 20),
+            _buildPaperSizeSection(),
+            const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: controller.scanDevices,
               icon: const Icon(Icons.refresh),
@@ -58,6 +60,109 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
                         },
                       ),
               ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /* construir seccion de seleccion de tamaño de papel */
+  Widget _buildPaperSizeSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Tamaño de Papel:',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF0D47A1),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Obx(
+          () => Row(
+            children: [
+              Expanded(
+                child: _buildSizeOption(
+                  size: '58mm',
+                  label: '58 mm',
+                  description: '32 columnas',
+                  isSelected: controller.selectedPrinterSize.value == '58mm',
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildSizeOption(
+                  size: '80mm',
+                  label: '80 mm',
+                  description: '48 columnas',
+                  isSelected: controller.selectedPrinterSize.value == '80mm',
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /* construir tarjeta de opcion de tamaño de papel */
+  Widget _buildSizeOption({
+    required String size,
+    required String label,
+    required String description,
+    required bool isSelected,
+  }) {
+    return GestureDetector(
+      onTap: () => controller.setPrinterSize(size),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? const Color(0xFF0D47A1).withValues(alpha: 0.1)
+              : Colors.grey.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? const Color(0xFF0D47A1) : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isSelected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: isSelected ? const Color(0xFF0D47A1) : Colors.grey,
+              size: 22,
+            ),
+            const SizedBox(width: 10),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                    color: isSelected
+                        ? const Color(0xFF0D47A1)
+                        : Colors.grey.shade700,
+                  ),
+                ),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isSelected
+                        ? const Color(0xFF0D47A1).withValues(alpha: 0.7)
+                        : Colors.grey,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

@@ -119,6 +119,14 @@ class StorageService extends GetxService {
     await _storage.delete(key: _userKey);
   }
 
+  Future<void> savePrinterSize(String size) async {
+    await _storage.write(key: 'printer_size', value: size);
+  }
+
+  Future<String> getPrinterSize() async {
+    return await _storage.read(key: 'printer_size') ?? '58mm';
+  }
+
   Future<LoginResponse?> getUser() async {
     final userStr = await _storage.read(key: _userKey);
     if (userStr != null) {

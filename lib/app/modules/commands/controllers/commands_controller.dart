@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -19,6 +20,10 @@ class CommandsController extends GetxController {
   final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
   final RxList<OrderModel> orders = <OrderModel>[].obs;
   final RxList<OrderModel> finalizedOrders = <OrderModel>[].obs;
+
+  // Filtro de fecha
+  final Rx<DateTime> selectedDate = DateTime.now().obs;
+  String get _formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate.value);
 
   final RxList<Map<String, dynamic>> orderStatuses =
       <Map<String, dynamic>>[].obs;
@@ -48,7 +53,10 @@ class CommandsController extends GetxController {
     }
 
     try {
-      final result = await ordersRepository.getOrdersByStatuses(['OPEN']);
+      final result = await ordersRepository.getOrdersByStatuses(
+        ['OPEN'],
+        date: _formattedDate,
+      );
       orders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading active orders: $e');
@@ -58,10 +66,44 @@ class CommandsController extends GetxController {
   /*cargar pedidos finalizados*/
   Future<void> loadFinalizedOrders({bool withOverlay = false}) async {
     try {
-      final result = await ordersRepository.getOrdersByStatuses(['FINALIZED']);
+      final result = await ordersRepository.getOrdersByStatuses(
+        ['FINALIZED'],
+        date: _formattedDate,
+      );
       finalizedOrders.assignAll(result);
     } catch (e) {
       debugPrint('Error loading finalized orders: $e');
+    }
+  }
+
+  /*retroceder un día y recargar*/
+  void previousDay() {
+    selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+    _reloadCurrentTab();
+  }
+
+  /*avanzar un día (máximo hoy) y recargar*/
+  void nextDay() {
+    final DateTime now = DateTime.now();
+    final DateTime next = selectedDate.value.add(const Duration(days: 1));
+    if (next.year <= now.year && next.month <= now.month && next.day <= now.day) {
+      selectedDate.value = next;
+      _reloadCurrentTab();
+    }
+  }
+
+  /*cambiar a una fecha específica y recargar*/
+  void changeDate(DateTime date) {
+    selectedDate.value = date;
+    _reloadCurrentTab();
+  }
+
+  /*recargar el tab activo*/
+  void _reloadCurrentTab() {
+    if (currentTab.value == 0) {
+      loadOrders(withOverlay: true);
+    } else {
+      loadFinalizedOrders(withOverlay: true);
     }
   }
 

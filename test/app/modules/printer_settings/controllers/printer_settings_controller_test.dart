@@ -20,6 +20,14 @@ class MockPrinterService extends GetxService implements PrinterService {
   Rx<BluetoothDevice?> selectedDevice = Rx<BluetoothDevice?>(null);
 
   @override
+  RxString printerSize = '58mm'.obs;
+
+  @override
+  Future<void> setPrinterSize(String size) async {
+    printerSize.value = size;
+  }
+
+  @override
   Future<void> getDevices() async {
      devices.assignAll([
        BluetoothDevice("Impresora Termica", "00:11:22:33:44"),

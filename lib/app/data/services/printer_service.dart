@@ -14,11 +14,13 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   Rx<BluetoothDevice?> selectedDevice = Rx<BluetoothDevice?>(null);
   RxBool isConnected = false.obs;
   RxBool isBluetoothOn = false.obs;
+  RxString printerSize = '58mm'.obs;
 
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
+    _loadPrinterSize();
     initBluetooth();
   }
 
@@ -35,8 +37,18 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* verifica el estado actual del bluetooth al volver a la app */
-  Future<void> _checkBluetoothState() async {
+  /* cargar el tamaño de impresora guardado desde storage */
+  Future<void> _loadPrinterSize() async {
+    printerSize.value = await _storageService.getPrinterSize();
+  }
+
+  /* actualizar el tamaño de impresora y persistirlo */
+  Future<void> setPrinterSize(String size) async {
+    await _storageService.savePrinterSize(size);
+    printerSize.value = size;
+  }
+
+  /* verifica el estado actual del bluetooth al volver a la app */  Future<void> _checkBluetoothState() async {
     try {
       bool? isOn = await bluetooth.isOn;
       isBluetoothOn.value = isOn == true;

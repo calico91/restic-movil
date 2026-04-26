@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
@@ -32,6 +33,10 @@ class OrdersController extends GetxController {
   final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
   final RxList<OrderModel> _allFinalizedOrders = <OrderModel>[].obs;
   final RxList<OrderModel> finalizedOrders = <OrderModel>[].obs;
+
+  // Filtro de fecha
+  final Rx<DateTime> selectedDate = DateTime.now().obs;
+  String get _formattedDate => DateFormat('yyyy-MM-dd').format(selectedDate.value);
 
   final RxList<Map<String, dynamic>> orderStatuses =
       <Map<String, dynamic>>[].obs;
@@ -97,7 +102,10 @@ class OrdersController extends GetxController {
 
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses(['OPEN']);
+        final result = await ordersRepository.getOrdersByStatuses(
+          ['OPEN'],
+          date: _formattedDate,
+        );
         _allOrders.assignAll(result);
         _filterOrders();
       } catch (e) {
@@ -120,9 +128,10 @@ class OrdersController extends GetxController {
   Future<void> loadFinalizedOrders({bool withOverlay = true}) async {
     Future<void> loadAction() async {
       try {
-        final result = await ordersRepository.getOrdersByStatuses([
-          'FINALIZED',
-        ]);
+        final result = await ordersRepository.getOrdersByStatuses(
+          ['FINALIZED'],
+          date: _formattedDate,
+        );
         _allFinalizedOrders.assignAll(result);
         _filterOrders();
       } catch (e) {
@@ -146,6 +155,37 @@ class OrdersController extends GetxController {
     currentTab.value = index;
     searchController.clear();
     if (index == 0) {
+      loadOrders(withOverlay: true);
+    } else {
+      loadFinalizedOrders(withOverlay: true);
+    }
+  }
+
+  /*retroceder un día y recargar*/
+  void previousDay() {
+    selectedDate.value = selectedDate.value.subtract(const Duration(days: 1));
+    _reloadCurrentTab();
+  }
+
+  /*avanzar un día (máximo hoy) y recargar*/
+  void nextDay() {
+    final DateTime now = DateTime.now();
+    final DateTime next = selectedDate.value.add(const Duration(days: 1));
+    if (next.year <= now.year && next.month <= now.month && next.day <= now.day) {
+      selectedDate.value = next;
+      _reloadCurrentTab();
+    }
+  }
+
+  /*cambiar a una fecha específica y recargar*/
+  void changeDate(DateTime date) {
+    selectedDate.value = date;
+    _reloadCurrentTab();
+  }
+
+  /*recargar el tab activo*/
+  void _reloadCurrentTab() {
+    if (currentTab.value == 0) {
       loadOrders(withOverlay: true);
     } else {
       loadFinalizedOrders(withOverlay: true);
