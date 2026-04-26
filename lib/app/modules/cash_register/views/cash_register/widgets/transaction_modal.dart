@@ -228,7 +228,17 @@ class _TransactionModalState extends State<TransactionModal> {
               icon: const Icon(Icons.add),
               label: const Text('Agregar'),
               onPressed: () {
-                // Determine remaining amount
+                // Validar que haya más de un método de pago configurado
+                if (controller.paymentMethods.length <= 1) {
+                  Get.showSnackbar(
+                    const ErrorSnackbar(
+                      'Solo tienes un método de pago configurado. Agrega más métodos en la sección de Métodos de Pago.',
+                    ),
+                  );
+                  return;
+                }
+
+                // Determinar monto restante
                 final currentTotal =
                     paymentsArray.value?.fold<double>(
                       0.0,
@@ -245,17 +255,24 @@ class _TransactionModalState extends State<TransactionModal> {
                   totalToPay,
                 );
 
-                final defaultPaymentMethod =
-                    controller.paymentMethods.isNotEmpty
-                    ? controller.paymentMethods.first.method
-                    : 'CASH';
+                // Obtener métodos ya seleccionados en el formulario
+                final usedMethods = paymentsArray.value
+                    ?.map((item) => item?['paymentMethod'] as String?)
+                    .whereType<String>()
+                    .toSet() ?? <String>{};
+
+                // Seleccionar el primer método configurado que aún no esté en uso
+                final nextMethod = controller.paymentMethods.firstWhere(
+                  (m) => !usedMethods.contains(m.method),
+                  orElse: () => controller.paymentMethods[1],
+                );
 
                 final formatter = NumberFormat.decimalPattern('es_CO');
 
                 paymentsArray.add(
                   FormGroup({
                     'paymentMethod': FormControl<String>(
-                      value: defaultPaymentMethod,
+                      value: nextMethod.method,
                       validators: [Validators.required],
                     ),
                     'amount': FormControl<String>(
