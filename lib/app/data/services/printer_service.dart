@@ -149,6 +149,11 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   /* conectar a un dispositivo especÃ­fico */
   Future<bool> connect(BluetoothDevice device) async {
+    // Si hay una conexión de red activa, desconectarla primero
+    if (isNetworkConnected.value) {
+      _logger.i('Desconectando impresora de red antes de conectar por Bluetooth...');
+      await disconnectNetwork();
+    }
     try {
       if (await bluetooth.isConnected == true) {
         await bluetooth.disconnect();
@@ -262,8 +267,13 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* conectar una impresora por red TCP: prueba la conexión y persiste la configuración */
+  /* conectar una impresora por red TCP: desconecta BT si está activo, prueba la conexión y persiste la configuración */
   Future<bool> connectNetwork(NetworkPrinterModel config) async {
+    // Si hay una conexión Bluetooth activa, desconectarla primero
+    if (isConnected.value) {
+      _logger.i('Desconectando Bluetooth antes de conectar por red...');
+      await disconnect();
+    }
     try {
       final Socket socket = await Socket.connect(
         config.ip,

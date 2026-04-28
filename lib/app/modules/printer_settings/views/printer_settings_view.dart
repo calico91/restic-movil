@@ -14,7 +14,9 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
     return CustomScaffold(
       title: 'Configuración de Impresora',
       showBackButton: true,
+      resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
