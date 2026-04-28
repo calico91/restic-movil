@@ -405,7 +405,8 @@ class TakeOrderController extends GetxController {
                 Get.until((route) => route.settings.name == Routes.HOME);
               },
               secondaryButtonText: 'Imprimir Orden',
-              onSecondaryAction: printerService.isConnected.value
+              onSecondaryAction: (printerService.isConnected.value ||
+                      printerService.isNetworkConnected.value)
                   ? () {
                       Get.showSnackbar(
                         const InfoSnackbar('Enviando a imprimir...'),

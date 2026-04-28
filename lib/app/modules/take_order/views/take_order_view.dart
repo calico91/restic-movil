@@ -34,7 +34,8 @@ class TakeOrderView extends GetView<TakeOrderController> {
       actions: [
         Obx(() {
           final printerService = Get.find<PrinterService>();
-          final isConnected = printerService.isConnected.value;
+          final isConnected = printerService.isConnected.value ||
+              printerService.isNetworkConnected.value;
           return ActionIconButton(
             icon: Icons.print,
             color: isConnected ? Colors.greenAccent : Colors.redAccent,
