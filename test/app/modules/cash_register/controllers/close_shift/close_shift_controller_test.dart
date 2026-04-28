@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/terminal_model.dart';
 import 'package:restic_movil/app/data/models/cashier_user_model.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
@@ -147,6 +148,21 @@ class MockStorageService extends GetxService implements StorageService {
 
   @override
   Future<void> savePrinterSize(String size) async {}
+
+  @override
+  Future<void> saveNetworkPrinter(dynamic printer) async {}
+
+  @override
+  Future<NetworkPrinterModel?> getNetworkPrinter() async => null;
+
+  @override
+  Future<void> deleteNetworkPrinter() async {}
+
+  @override
+  Future<void> saveConnectionType(String type) async {}
+
+  @override
+  Future<String?> getConnectionType() async => null;
 }
 
 void main() {

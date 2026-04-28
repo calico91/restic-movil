@@ -1,7 +1,7 @@
-import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:restic_movil/core/utils/printers/thermal_printer_port.dart';
 
 abstract class PrintableTicket {
-  /// Mtodo que se encargar de construir e imprimir la estructura del ticket
-  /// utilizando la instancia de la impresora Bluetooth.
-  Future<void> printReceipt(BlueThermalPrinter printer);
+  /// Construye e imprime la estructura del ticket usando el puerto de impresora activo
+  /// (Bluetooth o Red TCP), abstrayendo el medio de comunicación.
+  Future<void> printReceipt(ThermalPrinterPort printer);
 }

@@ -1,4 +1,4 @@
-import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:restic_movil/core/utils/printers/thermal_printer_port.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
@@ -16,7 +16,7 @@ class PrecountTicket80mm implements PrintableTicket {
   static const int _lineWidth = 48;
 
   @override
-  Future<void> printReceipt(BlueThermalPrinter printer) async {
+  Future<void> printReceipt(ThermalPrinterPort printer) async {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     String dateStr;
     if (order.openingDate != null) {

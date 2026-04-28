@@ -3,8 +3,10 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
+import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
 
 class MockPrinterService extends GetxService implements PrinterService {
   @override
@@ -21,6 +23,15 @@ class MockPrinterService extends GetxService implements PrinterService {
 
   @override
   RxString printerSize = '58mm'.obs;
+
+  @override
+  Rx<NetworkPrinterModel?> networkConfig = Rx<NetworkPrinterModel?>(null);
+
+  @override
+  RxBool isNetworkConnected = false.obs;
+
+  @override
+  Rx<PrinterConnectionType> connectionType = PrinterConnectionType.bluetooth.obs;
 
   @override
   Future<void> setPrinterSize(String size) async {
@@ -52,6 +63,24 @@ class MockPrinterService extends GetxService implements PrinterService {
 
   @override
   Future<void> printTicket(dynamic data) async {}
+
+  @override
+  Future<bool> connectNetwork(NetworkPrinterModel config) async {
+    networkConfig.value = config;
+    isNetworkConnected.value = true;
+    connectionType.value = PrinterConnectionType.network;
+    return true;
+  }
+
+  @override
+  Future<void> disconnectNetwork() async {
+    isNetworkConnected.value = false;
+    networkConfig.value = null;
+    connectionType.value = PrinterConnectionType.bluetooth;
+  }
+
+  @override
+  Future<void> printTestPage() async {}
 
   // Dummy Methods
   @override
