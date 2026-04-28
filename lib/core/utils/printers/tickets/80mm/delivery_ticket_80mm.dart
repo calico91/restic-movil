@@ -25,20 +25,20 @@ class DeliveryTicket80mm implements PrintableTicket {
     printer.printNewLine();
 
     printer.printCustom('Orden: #${order.orderNumber}'.withoutDiacritics, 2, 0);
-    printer.printCustom('Fecha: $date'.withoutDiacritics, 1, 0);
+    printer.printCustom('Fecha: $date'.withoutDiacritics, 2, 0);
 
     printer.printCustom(_sep, 1, 1);
-    printer.printCustom('Cliente: ${order.customer?.fullName ?? 'N/A'}'.withoutDiacritics, 1, 0);
+    printer.printCustom('Cliente: ${order.customer?.fullName ?? 'N/A'}'.withoutDiacritics, 2, 0);
 
     if (order.customer?.address != null && order.customer!.address!.isNotEmpty) {
       printer.printCustom('Direccion: ${order.customer!.address}'.withoutDiacritics, 1, 0);
     }
     if (order.customer?.phone != null && order.customer!.phone!.isNotEmpty) {
-      printer.printCustom('Telefono: ${order.customer!.phone}'.withoutDiacritics, 1, 0);
+      printer.printCustom('Telefono: ${order.customer!.phone}'.withoutDiacritics, 2, 0);
     }
     if (order.observations != null && order.observations!.trim().isNotEmpty) {
       printer.printNewLine();
-      printer.printCustom('OBSERVACION GENERAL:', 1, 1);
+      printer.printCustom('OBSERVACION GENERAL:', 2, 1);
       printer.printCustom(order.observations!.withoutDiacritics, 1, 1);
     }
 
@@ -75,10 +75,10 @@ class DeliveryTicket80mm implements PrintableTicket {
 
     PrinterUtils.printCurrencyRow(printer, 'Subtotal:       ', subtotal, 1);
     PrinterUtils.printSurcharges(printer, order.surcharges);
-    PrinterUtils.printCurrencyRow(printer, 'TOTAL A COBRAR: ', total, 2);
+    printer.printCustom('TOTAL A COBRAR: ${PrinterUtils.formatCurrency(total)}'.withoutDiacritics, 2, 1);
 
     printer.printNewLine();
-    printer.printCustom('Gracias por su compra!', 1, 1);
+    printer.printCustom('Gracias por su compra!', 2, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();
