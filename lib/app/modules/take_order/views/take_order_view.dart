@@ -44,9 +44,15 @@ class TakeOrderView extends GetView<TakeOrderController> {
           );
         }),
       ],
+      resizeToAvoidBottomInset: true,
       floatingActionButton: _buildFloatingActionButton(context),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.only(
+          left: 24,
+          right: 24,
+          top: 24,
+          bottom: 120,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -169,7 +175,7 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     );
   }
 
-  /*muestra la seccion de productos */
+  /*muestra la seccion de productos con campo de busqueda */
   Widget _buildProductsSection() {
     return StreamBuilder(
       stream: controller.form.control('origin').valueChanges,
@@ -190,29 +196,382 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
             return const SizedBox.shrink();
           }
 
-          return ProductSelectionWidget(
-            categories: controller.categories,
-            getQuantity: controller.getProductQuantity,
-            onIncrement: (product, price) {
-              if (product.productType == 'COMBO') {
-                _showComboDialog(context, product, price);
-              } else {
-                controller.incrementProduct(product, price);
-              }
-            },
-            onDecrement: (product, price) {
-              controller.decrementProduct(product, price);
-            },
-            onEdit: (product, price) {
-              if (product.productType == 'COMBO') {
-                _showComboDialog(context, product, price);
-              } else {
-                _showAddProductDialog(context, product, price);
-              }
-            },
+          return Column(
+            children: [
+              _buildSearchBar(),
+              const SizedBox(height: 12),
+              if (controller.searchProductQuery.isNotEmpty)
+                _buildSearchResultsList(context)
+              else
+                ProductSelectionWidget(
+                  categories: controller.categories,
+                  getQuantity: controller.getProductQuantity,
+                  onIncrement: (product, price) {
+                    if (product.productType == 'COMBO') {
+                      _showComboDialog(context, product, price);
+                    } else {
+                      controller.incrementProduct(product, price);
+                    }
+                  },
+                  onDecrement: (product, price) {
+                    controller.decrementProduct(product, price);
+                  },
+                  onEdit: (product, price) {
+                    if (product.productType == 'COMBO') {
+                      _showComboDialog(context, product, price);
+                    } else {
+                      _showAddProductDialog(context, product, price);
+                    }
+                  },
+                ),
+            ],
           );
         });
       },
+    );
+  }
+
+  /* Campo de busqueda de productos por nombre */
+  Widget _buildSearchBar() {
+    return Obx(() {
+      return TextField(
+        controller: controller.searchTextController,
+        onChanged: controller.onSearchProduct,
+        decoration: InputDecoration(
+          hintText: 'Buscar producto...',
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: controller.searchProductQuery.isNotEmpty
+              ? IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: controller.clearProductSearch,
+                )
+              : null,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
+        ),
+      );
+    });
+  }
+
+  /* Lista plana de productos filtrados por el texto de busqueda */
+  Widget _buildSearchResultsList(BuildContext context) {
+    return Obx(() {
+      final List<(ProductModel, String, String?)> results =
+          controller.searchResults;
+
+      if (results.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 24),
+          child: Center(
+            child: Text(
+              'No se encontraron productos.',
+              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
+            ),
+          ),
+        );
+      }
+
+      return ExpandableSection(
+        title: 'Resultados (${results.length})',
+        icon: Icons.search,
+        initiallyExpanded: true,
+        content: ListView.builder(
+          padding: EdgeInsets.zero,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: results.length,
+          itemBuilder: (context, index) {
+            final (ProductModel product, String categoryName, String? subcategoryName) =
+                results[index];
+            // Productos VARIABLE: una fila por precio/talla
+            if (product.productType == 'VARIABLE' &&
+                (product.prices?.isNotEmpty ?? false)) {
+              return _buildSearchVariableRow(
+                context,
+                product,
+                categoryName,
+                subcategoryName,
+              );
+            }
+            final PriceModel? price =
+                (product.prices?.isNotEmpty ?? false)
+                    ? product.prices!.first
+                    : null;
+            return _buildSearchSingleRow(
+              context,
+              product,
+              price,
+              categoryName,
+              subcategoryName,
+            );
+          },
+        ),
+      );
+    });
+  }
+
+  /* Fila de producto simple o combo en los resultados de busqueda */
+  Widget _buildSearchSingleRow(
+    BuildContext context,
+    ProductModel product,
+    PriceModel? price,
+    String categoryName,
+    String? subcategoryName,
+  ) {
+    final bool isCombo = product.productType == 'COMBO';
+    return Obx(() {
+      final int quantity = controller.getProductQuantity(product, price);
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Breadcrumb categoria / subcategoria
+                    Text(
+                      subcategoryName != null
+                          ? '$categoryName › $subcategoryName'
+                          : categoryName,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      product.name ?? '',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (product.description != null &&
+                        product.description!.isNotEmpty)
+                      Text(
+                        product.description!,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '\$${price?.amount?.toStringAsFixed(0) ?? '0'}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.green,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              if (isCombo)
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () =>
+                          _showComboDialog(context, product, price),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue[900],
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(80, 36),
+                        padding: const EdgeInsets.symmetric(horizontal: 12),
+                      ),
+                      child: const Text('Configurar'),
+                    ),
+                    if (quantity > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Text(
+                          '$quantity en pedido',
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Colors.blue,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                  ],
+                )
+              else
+                Row(
+                  children: [
+                    if (quantity > 0) ...[
+                      IconButton(
+                        icon: const Icon(
+                          Icons.remove_circle_outline,
+                          color: Colors.red,
+                        ),
+                        onPressed: () =>
+                            controller.decrementProduct(product, price),
+                      ),
+                      GestureDetector(
+                        onTap: () =>
+                            _showAddProductDialog(context, product, price),
+                        child: Text(
+                          '$quantity',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                    IconButton(
+                      icon: Icon(
+                        Icons.add_circle_outline,
+                        color: Colors.blue[900],
+                      ),
+                      onPressed: () =>
+                          _showAddProductDialog(context, product, price),
+                    ),
+                  ],
+                ),
+            ],
+          ),
+        ),
+      );
+    });
+  }
+
+  /* Fila de producto variable (con tallas) en los resultados de busqueda */
+  Widget _buildSearchVariableRow(
+    BuildContext context,
+    ProductModel product,
+    String categoryName,
+    String? subcategoryName,
+  ) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border(
+          bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Breadcrumb categoria / subcategoria
+            Text(
+              subcategoryName != null
+                  ? '$categoryName › $subcategoryName'
+                  : categoryName,
+              style: TextStyle(
+                fontSize: 11,
+                color: Colors.grey[500],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              product.name ?? '',
+              style: const TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            if (product.description != null && product.description!.isNotEmpty)
+              Text(
+                product.description!,
+                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+              ),
+            const SizedBox(height: 12),
+            ...product.prices!.map((PriceModel price) {
+              return Obx(() {
+                final int quantity =
+                    controller.getProductQuantity(product, price);
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0, left: 8.0),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              price.sizeLabel ?? '',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              '\$${price.amount?.toStringAsFixed(0) ?? '0'}',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          if (quantity > 0) ...[
+                            IconButton(
+                              icon: const Icon(
+                                Icons.remove_circle_outline,
+                                color: Colors.red,
+                              ),
+                              onPressed: () =>
+                                  controller.decrementProduct(product, price),
+                            ),
+                            GestureDetector(
+                              onTap: () => _showAddProductDialog(
+                                context,
+                                product,
+                                price,
+                              ),
+                              child: Text(
+                                '$quantity',
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
+                          IconButton(
+                            icon: Icon(
+                              Icons.add_circle_outline,
+                              color: Colors.blue[900],
+                            ),
+                            onPressed: () =>
+                                _showAddProductDialog(context, product, price),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                );
+              });
+            }),
+          ],
+        ),
+      ),
     );
   }
 
