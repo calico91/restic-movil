@@ -1,4 +1,4 @@
-import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:restic_movil/core/utils/printers/thermal_printer_port.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
@@ -15,7 +15,7 @@ class TransactionTicket80mm implements PrintableTicket {
   static const int _lineWidth = 48;
 
   @override
-  Future<void> printReceipt(BlueThermalPrinter printer) async {
+  Future<void> printReceipt(ThermalPrinterPort printer) async {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     final String date = transaction.issuedAt != null
         ? dateFormat.format(DateTime.parse(transaction.issuedAt!))
@@ -34,10 +34,10 @@ class TransactionTicket80mm implements PrintableTicket {
             (fiscal.taxIdDigit != null && fiscal.taxIdDigit!.trim().isNotEmpty)
                 ? '-${fiscal.taxIdDigit}'
                 : '';
-        printer.printCustom('NIT: ${fiscal.taxId}$digit'.withoutDiacritics, 1, 1);
+        printer.printCustom('NIT: ${fiscal.taxId}$digit'.withoutDiacritics, 2, 1);
       }
       if (fiscal.address != null && fiscal.address!.trim().isNotEmpty) {
-        printer.printCustom(fiscal.address!.withoutDiacritics, 1, 1);
+        printer.printCustom(fiscal.address!.withoutDiacritics, 2, 1);
       }
       String cityDept = '';
       if (fiscal.city != null && fiscal.city!.trim().isNotEmpty) {
@@ -47,10 +47,10 @@ class TransactionTicket80mm implements PrintableTicket {
         cityDept += cityDept.isEmpty ? fiscal.department! : ' - ${fiscal.department}';
       }
       if (cityDept.isNotEmpty) {
-        printer.printCustom(cityDept.withoutDiacritics, 1, 1);
+        printer.printCustom(cityDept.withoutDiacritics, 2, 1);
       }
       if (fiscal.phone != null && fiscal.phone!.trim().isNotEmpty) {
-        printer.printCustom('Tel: ${fiscal.phone}'.withoutDiacritics, 1, 1);
+        printer.printCustom('Tel: ${fiscal.phone}'.withoutDiacritics, 2, 1);
       }
       printer.printNewLine();
       if (fiscal.dianResolution != null && fiscal.dianResolution!.trim().isNotEmpty) {
@@ -80,7 +80,7 @@ class TransactionTicket80mm implements PrintableTicket {
         }
       }
       if (fiscal.taxRegime != null && fiscal.taxRegime!.trim().isNotEmpty) {
-        printer.printCustom('Regimen: ${fiscal.taxRegime}'.withoutDiacritics, 1, 1);
+        printer.printCustom('Regimen: ${fiscal.taxRegime}'.withoutDiacritics, 2, 1);
       }
     } else {
       printer.printCustom('RECIBO DE VENTA', 3, 1);
@@ -94,12 +94,12 @@ class TransactionTicket80mm implements PrintableTicket {
       1,
       0,
     );
-    printer.printCustom('Fecha: $date'.withoutDiacritics, 1, 0);
+    printer.printCustom('Fecha: $date'.withoutDiacritics, 2, 0);
     if (transaction.waiterName != null) {
-      printer.printCustom('Mesero: ${transaction.waiterName}'.withoutDiacritics, 1, 0);
+      printer.printCustom('Mesero: ${transaction.waiterName}'.withoutDiacritics, 2, 0);
     }
     if (transaction.customerName != null) {
-      printer.printCustom('Cliente: ${transaction.customerName}'.withoutDiacritics, 1, 0);
+      printer.printCustom('Cliente: ${transaction.customerName}'.withoutDiacritics, 2, 0);
     }
     if (transaction.tableNames != null && transaction.tableNames!.isNotEmpty) {
       printer.printCustom(
@@ -110,12 +110,12 @@ class TransactionTicket80mm implements PrintableTicket {
     }
 
     printer.printCustom(_sep, 1, 1);
-    printer.printCustom('PRODUCTOS', 1, 1);
+    printer.printCustom('PRODUCTOS', 2, 1);
     printer.printCustom(_sep, 1, 1);
 
     final items = transaction.items ?? [];
     for (var item in items) {
-      printer.printCustom((item.productName ?? 'Producto').withoutDiacritics, 1, 0);
+      printer.printCustom((item.productName ?? 'Producto').withoutDiacritics, 2, 0);
 
       final String qtyStr = item.quantity.toString();
       final String unitPrice = PrinterUtils.formatCurrency(item.unitPrice ?? 0);
@@ -134,24 +134,24 @@ class TransactionTicket80mm implements PrintableTicket {
     if ((transaction.tipAmount ?? 0) > 0) {
       PrinterUtils.printCurrencyRow(printer, 'Propina:        ', transaction.tipAmount!, 1);
     }
-    PrinterUtils.printCurrencyRow(printer, 'TOTAL A PAGAR:  ', transaction.totalAmount ?? 0, 2);
+    printer.printCustom('TOTAL A PAGAR: ${PrinterUtils.formatCurrency(transaction.totalAmount ?? 0)}'.withoutDiacritics, 2, 1);
     printer.printNewLine();
     PrinterUtils.printCurrencyRow(printer, 'Total Pagado:   ', transaction.totalPaid ?? 0, 1);
     PrinterUtils.printCurrencyRow(printer, 'Cambio:         ', transaction.change ?? 0, 1);
 
     printer.printNewLine();
     if (transaction.paymentDetails != null && transaction.paymentDetails!.isNotEmpty) {
-      printer.printCustom('Metodos de pago:', 1, 1);
+      printer.printCustom('Metodos de pago:', 2, 1);
       for (var pay in transaction.paymentDetails!) {
         final String payAmount = PrinterUtils.formatCurrency(pay.amount ?? 0);
         final String methodDesc =
             pay.paymentMethodDescription ?? pay.paymentMethod ?? 'Desconocido';
-        printer.printCustom('$methodDesc: $payAmount'.withoutDiacritics, 1, 1);
+        printer.printCustom('$methodDesc: $payAmount'.withoutDiacritics, 2, 1);
       }
     }
 
     printer.printNewLine();
-    printer.printCustom('GRACIAS POR SU COMPRA!', 1, 1);
+    printer.printCustom('GRACIAS POR SU COMPRA!', 2, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

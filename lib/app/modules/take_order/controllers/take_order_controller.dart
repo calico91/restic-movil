@@ -55,6 +55,40 @@ class TakeOrderController extends GetxController {
   final Rxn<CustomerModel> selectedCustomer = Rxn<CustomerModel>();
   final RxList<OrderItemModel> currentOrder = <OrderItemModel>[].obs;
   final RxList<OrderSurchargeModel> surcharges = <OrderSurchargeModel>[].obs;
+  final RxString searchProductQuery = ''.obs;
+  final TextEditingController searchTextController = TextEditingController();
+
+  /// Retorna los productos que coincidan con la búsqueda junto a su categoría y subcategoría.
+  List<(ProductModel, String, String?)> get searchResults {
+    if (searchProductQuery.isEmpty) return [];
+    final String query = searchProductQuery.value.toLowerCase();
+    final List<(ProductModel, String, String?)> results = [];
+    for (final CategoryModel category in categories) {
+      final List subcategories = category.subcategories ?? [];
+      for (final subcategory in subcategories) {
+        for (final ProductModel product in subcategory.products ?? []) {
+          if (product.name?.toLowerCase().contains(query) ?? false) {
+            // Solo mostrar subcategoría si la categoría tiene más de una
+            final String? subName =
+                subcategories.length > 1 ? subcategory.name as String? : null;
+            results.add((product, category.name ?? '', subName));
+          }
+        }
+      }
+    }
+    return results;
+  }
+
+  /// Actualiza la consulta de búsqueda de productos.
+  void onSearchProduct(String query) {
+    searchProductQuery.value = query.trim().toLowerCase();
+  }
+
+  /// Limpia el campo y el estado de búsqueda de productos.
+  void clearProductSearch() {
+    searchTextController.clear();
+    searchProductQuery.value = '';
+  }
 
   double get totalOrderAmount {
     double detailsTotal = currentOrder.fold(0, (sum, item) => sum + item.total);
@@ -99,6 +133,12 @@ class TakeOrderController extends GetxController {
   void onReady() {
     super.onReady();
     _loadInitialData();
+  }
+
+  @override
+  void onClose() {
+    searchTextController.dispose();
+    super.onClose();
   }
 
   /*cargar clientes de la api*/
@@ -405,7 +445,8 @@ class TakeOrderController extends GetxController {
                 Get.until((route) => route.settings.name == Routes.HOME);
               },
               secondaryButtonText: 'Imprimir Orden',
-              onSecondaryAction: printerService.isConnected.value
+              onSecondaryAction: (printerService.isConnected.value ||
+                      printerService.isNetworkConnected.value)
                   ? () {
                       Get.showSnackbar(
                         const InfoSnackbar('Enviando a imprimir...'),

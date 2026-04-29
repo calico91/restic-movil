@@ -1,4 +1,4 @@
-import 'package:blue_thermal_printer/blue_thermal_printer.dart';
+import 'package:restic_movil/core/utils/printers/thermal_printer_port.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
@@ -16,7 +16,7 @@ class PrecountTicket80mm implements PrintableTicket {
   static const int _lineWidth = 48;
 
   @override
-  Future<void> printReceipt(BlueThermalPrinter printer) async {
+  Future<void> printReceipt(ThermalPrinterPort printer) async {
     final dateFormat = DateFormat('dd/MM/yyyy HH:mm');
     String dateStr;
     if (order.openingDate != null) {
@@ -36,11 +36,11 @@ class PrecountTicket80mm implements PrintableTicket {
     printer.printNewLine();
 
     // INFO DE LA ORDEN
-    printer.printCustom('Orden: #${order.orderNumber ?? ''}'.withoutDiacritics, 1, 0);
-    printer.printCustom('Fecha: $dateStr'.withoutDiacritics, 1, 0);
+    printer.printCustom('Orden: #${order.orderNumber ?? ''}'.withoutDiacritics, 2, 0);
+    printer.printCustom('Fecha: $dateStr'.withoutDiacritics, 2, 0);
 
     if (order.customer != null && order.customer!.fullName.isNotEmpty) {
-      printer.printCustom('Cliente: ${order.customer!.fullName}'.withoutDiacritics, 1, 0);
+      printer.printCustom('Cliente: ${order.customer!.fullName}'.withoutDiacritics, 2, 0);
     }
     if (order.tables != null && order.tables!.isNotEmpty) {
       final tableNames = order.tables!.map((e) => e.name).toList();
@@ -48,7 +48,7 @@ class PrecountTicket80mm implements PrintableTicket {
     }
 
     printer.printCustom(_sep, 1, 1);
-    printer.printCustom('PRODUCTOS', 1, 1);
+    printer.printCustom('PRODUCTOS', 2, 1);
     printer.printCustom(_sep, 1, 1);
 
     final details = order.details ?? [];
@@ -59,7 +59,7 @@ class PrecountTicket80mm implements PrintableTicket {
       final String rawName = item.sizeLabel != null
           ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}'
           : (item.productName ?? 'Producto');
-      printer.printCustom(rawName.withoutDiacritics, 1, 0);
+      printer.printCustom(rawName.withoutDiacritics, 2, 0);
 
       // Cantidad x Precio unitario | Subtotal alineado a la derecha
       final String qtyStr = item.quantity.toString();
@@ -86,11 +86,11 @@ class PrecountTicket80mm implements PrintableTicket {
 
     final String tipLabel = 'Servicio (${tipPercentage.toStringAsFixed(0)}%):'.padRight(16);
     PrinterUtils.printCurrencyRow(printer, tipLabel, tipAmount, 1);
-    PrinterUtils.printCurrencyRow(printer, 'TOTAL A PAGAR:  ', total, 2);
+    printer.printCustom('TOTAL A PAGAR: ${PrinterUtils.formatCurrency(total)}'.withoutDiacritics, 2, 1);
 
     printer.printNewLine();
     printer.printCustom('Revise su consumo antes de pagar.', 1, 1);
-    printer.printCustom('GRACIAS POR SU VISITA!', 1, 1);
+    printer.printCustom('GRACIAS POR SU VISITA!', 2, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

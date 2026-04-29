@@ -3,6 +3,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get/get.dart';
 import '../models/customer_model.dart';
 import '../models/login_response.dart';
+import '../models/network_printer_model.dart';
 
 class StorageService extends GetxService {
   final _storage = const FlutterSecureStorage();
@@ -150,6 +151,37 @@ class StorageService extends GetxService {
       };
     }
     return null;
+  }
+
+  // --------------- Impresora de red ---------------
+
+  Future<void> saveNetworkPrinter(NetworkPrinterModel printer) async {
+    await _storage.write(
+      key: 'network_printer',
+      value: jsonEncode(printer.toJson()),
+    );
+  }
+
+  Future<NetworkPrinterModel?> getNetworkPrinter() async {
+    final str = await _storage.read(key: 'network_printer');
+    if (str != null) {
+      return NetworkPrinterModel.fromJson(
+        jsonDecode(str) as Map<String, dynamic>,
+      );
+    }
+    return null;
+  }
+
+  Future<void> deleteNetworkPrinter() async {
+    await _storage.delete(key: 'network_printer');
+  }
+
+  Future<void> saveConnectionType(String type) async {
+    await _storage.write(key: 'printer_connection_type', value: type);
+  }
+
+  Future<String?> getConnectionType() async {
+    return await _storage.read(key: 'printer_connection_type');
   }
 
   Future<void> saveDefaultTipPercentage(String percentage) async {

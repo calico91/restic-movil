@@ -1,8 +1,13 @@
+import 'dart:io';
 import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:logger/logger.dart';
+import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
+import 'package:restic_movil/core/utils/printers/bluetooth_printer_port.dart';
+import 'package:restic_movil/core/utils/printers/network_printer_port.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
 class PrinterService extends GetxService with WidgetsBindingObserver {
@@ -16,12 +21,19 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   RxBool isBluetoothOn = false.obs;
   RxString printerSize = '58mm'.obs;
 
+  // Estado de impresora de red
+  Rx<NetworkPrinterModel?> networkConfig = Rx<NetworkPrinterModel?>(null);
+  RxBool isNetworkConnected = false.obs;
+  Rx<PrinterConnectionType> connectionType =
+      PrinterConnectionType.bluetooth.obs;
+
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
     _loadPrinterSize();
     initBluetooth();
+    _autoConnectNetwork();
   }
 
   @override
@@ -137,6 +149,11 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   /* conectar a un dispositivo especÃ­fico */
   Future<bool> connect(BluetoothDevice device) async {
+    // Si hay una conexión de red activa, desconectarla primero
+    if (isNetworkConnected.value) {
+      _logger.i('Desconectando impresora de red antes de conectar por Bluetooth...');
+      await disconnectNetwork();
+    }
     try {
       if (await bluetooth.isConnected == true) {
         await bluetooth.disconnect();
@@ -211,23 +228,151 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* imprimir cualquier tipo de ticket */
+  /* imprimir cualquier tipo de ticket despachando al puerto activo (Bluetooth o Red) */
   Future<void> printTicket(PrintableTicket ticket) async {
-    if (await bluetooth.isConnected != true) {
-      _logger.w("La impresora no está conectada");
-      isConnected.value = false;
-      return;
-    }
-
-    try {
-      await ticket.printReceipt(bluetooth);
-    } catch (e) {
-      _logger.e("Error imprimiendo: $e");
-      // Forzar reset de estado si falla, ya que la conexión real probablemente se rompió
-      isConnected.value = false;
+    if (connectionType.value == PrinterConnectionType.network) {
+      final config = networkConfig.value;
+      if (config == null) {
+        _logger.w('No hay configuración de impresora de red');
+        return;
+      }
+      NetworkPrinterPort? port;
       try {
-        await bluetooth.disconnect();
-      } catch (_) {}
+        port = await NetworkPrinterPort.connect(config.ip, config.port);
+        await ticket.printReceipt(port);
+        await port.close();
+      } catch (e) {
+        _logger.e('Error imprimiendo por red: $e');
+        isNetworkConnected.value = false;
+        try {
+          await port?.close();
+        } catch (_) {}
+      }
+    } else {
+      if (await bluetooth.isConnected != true) {
+        _logger.w('La impresora Bluetooth no está conectada');
+        isConnected.value = false;
+        return;
+      }
+      try {
+        final BluetoothPrinterPort port = BluetoothPrinterPort(bluetooth);
+        await ticket.printReceipt(port);
+      } catch (e) {
+        _logger.e('Error imprimiendo: $e');
+        isConnected.value = false;
+        try {
+          await bluetooth.disconnect();
+        } catch (_) {}
+      }
+    }
+  }
+
+  /* conectar una impresora por red TCP: desconecta BT si está activo, prueba la conexión y persiste la configuración */
+  Future<bool> connectNetwork(NetworkPrinterModel config) async {
+    // Si hay una conexión Bluetooth activa, desconectarla primero
+    if (isConnected.value) {
+      _logger.i('Desconectando Bluetooth antes de conectar por red...');
+      await disconnect();
+    }
+    try {
+      final Socket socket = await Socket.connect(
+        config.ip,
+        config.port,
+        timeout: const Duration(seconds: 5),
+      );
+      await socket.close();
+      networkConfig.value = config;
+      isNetworkConnected.value = true;
+      connectionType.value = PrinterConnectionType.network;
+      await _storageService.saveNetworkPrinter(config);
+      await _storageService.saveConnectionType('network');
+      _logger.i('Impresora de red conectada: ${config.ip}:${config.port}');
+      return true;
+    } catch (e) {
+      _logger.e('Error conectando impresora de red: $e');
+      isNetworkConnected.value = false;
+      return false;
+    }
+  }
+
+  /* desconectar la impresora de red y restaurar Bluetooth como transporte activo */
+  Future<void> disconnectNetwork() async {
+    isNetworkConnected.value = false;
+    networkConfig.value = null;
+    connectionType.value = PrinterConnectionType.bluetooth;
+    await _storageService.saveConnectionType('bluetooth');
+  }
+
+  /* reconexión automática de la impresora de red guardada al iniciar la app */
+  Future<void> _autoConnectNetwork() async {
+    try {
+      final String? savedType = await _storageService.getConnectionType();
+      if (savedType == 'network') {
+        final NetworkPrinterModel? saved =
+            await _storageService.getNetworkPrinter();
+        if (saved != null) {
+          final Socket socket = await Socket.connect(
+            saved.ip,
+            saved.port,
+            timeout: const Duration(seconds: 3),
+          );
+          await socket.close();
+          networkConfig.value = saved;
+          isNetworkConnected.value = true;
+          connectionType.value = PrinterConnectionType.network;
+          _logger.i('Auto-conexión de red exitosa: ${saved.ip}:${saved.port}');
+        }
+      }
+    } catch (e) {
+      _logger.e('Error en auto-conexión de red: $e');
+      isNetworkConnected.value = false;
+    }
+  }
+
+  /* imprimir página de prueba para verificar la conexión activa */
+  Future<void> printTestPage() async {
+    if (connectionType.value == PrinterConnectionType.network) {
+      final config = networkConfig.value;
+      if (config == null) throw Exception('Sin configuración de red');
+      NetworkPrinterPort? port;
+      try {
+        port = await NetworkPrinterPort.connect(config.ip, config.port);
+        port.printNewLine();
+        port.printCustom('PRUEBA DE IMPRESION', 3, 1);
+        port.printNewLine();
+        port.printCustom('Impresora de red OK', 1, 1);
+        port.printCustom('${config.ip}:${config.port}', 1, 1);
+        port.printNewLine();
+        port.printCustom('--------------------------------', 1, 1);
+        port.printNewLine();
+        port.printNewLine();
+        port.printNewLine();
+        port.paperCut();
+        await port.close();
+      } catch (e) {
+        try {
+          await port?.close();
+        } catch (_) {}
+        rethrow;
+      }
+    } else {
+      if (await bluetooth.isConnected != true) {
+        throw Exception('La impresora Bluetooth no está conectada');
+      }
+      final BluetoothPrinterPort port = BluetoothPrinterPort(bluetooth);
+      port.printNewLine();
+      port.printCustom('PRUEBA DE IMPRESION', 3, 1);
+      port.printNewLine();
+      port.printCustom('Impresora Bluetooth OK', 1, 1);
+      if (selectedDevice.value?.name != null) {
+        port.printCustom(selectedDevice.value!.name!, 1, 1);
+      }
+      port.printNewLine();
+      port.printCustom('--------------------------------', 1, 1);
+      port.printNewLine();
+      port.printNewLine();
+      port.printNewLine();
+      port.paperCut();
     }
   }
 }
