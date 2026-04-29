@@ -1,26 +1,28 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:restic_movil/app/data/models/product_model.dart';import 'package:restic_movil/app/data/models/price_model.dart';import 'package:restic_movil/app/data/models/order_item_model.dart';
+import 'package:restic_movil/app/data/models/price_model.dart';
+import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/take_order_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/salon/table_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/take_away_delivery/customer_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/add_product_dialog.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/order_summary/order_summary_sheet.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/search/product_search_bar.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/search/product_search_results_widget.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
-import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
-import 'package:flutter/services.dart';
-import 'package:restic_movil/core/utils/formatters/thousands_separator_input_formatter.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
   Permite seleccionar el origen del pedido, mesas o clientes, y agregar productos al pedido.
-  Muestra un resumen del pedido con opción para confirmar.
+  Muestra un resumen del pedido con opcion para confirmar.
 */
 class TakeOrderView extends GetView<TakeOrderController> {
   const TakeOrderView({super.key});
@@ -31,20 +33,20 @@ class TakeOrderView extends GetView<TakeOrderController> {
       title: 'Tomar Pedido',
       showBackButton: true,
       onBack: controller.goBack,
+      resizeToAvoidBottomInset: true,
       actions: [
         Obx(() {
-          final printerService = Get.find<PrinterService>();
-          final isConnected = printerService.isConnected.value ||
+          final PrinterService printerService = Get.find<PrinterService>();
+          final bool isConnected = printerService.isConnected.value ||
               printerService.isNetworkConnected.value;
           return ActionIconButton(
             icon: Icons.print,
             color: isConnected ? Colors.greenAccent : Colors.redAccent,
-            tooltip: 'Configuración de impresora',
+            tooltip: 'Configuracion de impresora',
             onPressed: () => Get.toNamed(Routes.PRINTER_SETTINGS),
           );
         }),
       ],
-      resizeToAvoidBottomInset: true,
       floatingActionButton: _buildFloatingActionButton(context),
       body: SingleChildScrollView(
         padding: const EdgeInsets.only(
@@ -70,18 +72,15 @@ class TakeOrderView extends GetView<TakeOrderController> {
     );
   }
 
-  /* El botón de acción flotante solo se muestra si hay productos en el pedido actual. 
-Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
+  /* Boton flotante que abre el resumen del pedido cuando hay items. */
   Widget _buildFloatingActionButton(BuildContext context) {
     return Obx(() {
-      /*El botón de acción flotante solo se muestra si hay productos en 
-        el pedido actual.*/
       if (controller.currentOrder.isEmpty) return const SizedBox.shrink();
       return FloatingActionButton.extended(
         onPressed: () => _showOrderSummary(context),
         label: Text(
           'Ver Pedido (${controller.currentOrder.length})',
-          style: TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white),
         ),
         icon: const Icon(Icons.shopping_cart, color: Colors.white),
         backgroundColor: Colors.blue[900],
@@ -89,61 +88,7 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     });
   }
 
-  /* Dependiendo del origen del pedido, se muestra la sección de mesas o clientes.
-     Si el origen es "SALON", se muestran las mesas disponibles para seleccionar. */
-  Widget _buildSelectionSection() {
-    return StreamBuilder(
-      stream: controller.form.control('origin').valueChanges,
-      builder: (context, snapshot) {
-        final origin = controller.form.control('origin').value;
-        if (origin == null) return const SizedBox.shrink();
-
-        return Column(
-          children: [
-            const ExpandableSection(
-              title: 'Cliente',
-              icon: Icons.person,
-              initiallyExpanded: true,
-              content: CustomerCardWidget(),
-            ),
-            if (origin == 'SALON')
-              Obx(() {
-                if (controller.tables.isNotEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.only(top: 20),
-                    child: ExpandableSection(
-                      title: 'Mesas Disponibles',
-                      icon: Icons.table_restaurant,
-                      initiallyExpanded: true,
-                      content: GridView.builder(
-                        padding: EdgeInsets.zero,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
-                              crossAxisSpacing: 10,
-                              mainAxisSpacing: 10,
-                              childAspectRatio: 1.0,
-                            ),
-                        itemCount: controller.tables.length,
-                        itemBuilder: (context, index) {
-                          final table = controller.tables[index];
-                          return TableCardWidget(table: table);
-                        },
-                      ),
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              }),
-          ],
-        );
-      },
-    );
-  }
-
-  /*muestra informacion sobre el origen del pedido  */
+  /* Seccion de radios para seleccionar el origen del pedido. */
   Widget _buildOriginSection() {
     return ExpandableSection(
       title: 'Origen de pedido',
@@ -175,33 +120,91 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     );
   }
 
-  /*muestra la seccion de productos con campo de busqueda */
+  /* Seccion de cliente y mesas segun el origen seleccionado. */
+  Widget _buildSelectionSection() {
+    return StreamBuilder(
+      stream: controller.form.control('origin').valueChanges,
+      builder: (context, snapshot) {
+        final String? origin = controller.form.control('origin').value;
+        if (origin == null) return const SizedBox.shrink();
+
+        return Column(
+          children: [
+            const ExpandableSection(
+              title: 'Cliente',
+              icon: Icons.person,
+              initiallyExpanded: true,
+              content: CustomerCardWidget(),
+            ),
+            if (origin == 'SALON')
+              Obx(() {
+                if (controller.tables.isNotEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.only(top: 20),
+                    child: ExpandableSection(
+                      title: 'Mesas Disponibles',
+                      icon: Icons.table_restaurant,
+                      initiallyExpanded: true,
+                      content: GridView.builder(
+                        padding: EdgeInsets.zero,
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 10,
+                              mainAxisSpacing: 10,
+                              childAspectRatio: 1.0,
+                            ),
+                        itemCount: controller.tables.length,
+                        itemBuilder: (context, index) =>
+                            TableCardWidget(table: controller.tables[index]),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              }),
+          ],
+        );
+      },
+    );
+  }
+
+  /* Seccion de busqueda y listado de productos. */
   Widget _buildProductsSection() {
     return StreamBuilder(
       stream: controller.form.control('origin').valueChanges,
       builder: (context, snapshot) {
         return Obx(() {
-          final origin = controller.form.control('origin').value;
+          final String? origin = controller.form.control('origin').value;
 
-          // if (controller.categories.isEmpty || origin == null) {
-          if (controller.categories.isEmpty) {
+          if (controller.categories.isEmpty) return const SizedBox.shrink();
+
+          if (origin == 'SALON' && controller.tables.isEmpty) {
             return const SizedBox.shrink();
-          }
-
-          if (origin == 'SALON') {
-            if (controller.tables.isEmpty) {
-              return const SizedBox.shrink();
-            }
           } else if (origin == null) {
             return const SizedBox.shrink();
           }
 
           return Column(
             children: [
-              _buildSearchBar(),
+              const ProductSearchBar(),
               const SizedBox(height: 12),
               if (controller.searchProductQuery.isNotEmpty)
-                _buildSearchResultsList(context)
+                ProductSearchResultsWidget(
+                  onIncrement: (product, price) {
+                    if (product.productType == 'COMBO') {
+                      _showComboDialog(context, product, price);
+                    } else {
+                      _showAddProductDialog(context, product, price);
+                    }
+                  },
+                  onDecrement: (product, price) =>
+                      controller.decrementProduct(product, price),
+                  onEdit: (product, price) =>
+                      _showAddProductDialog(context, product, price),
+                )
               else
                 ProductSelectionWidget(
                   categories: controller.categories,
@@ -213,9 +216,8 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
                       controller.incrementProduct(product, price);
                     }
                   },
-                  onDecrement: (product, price) {
-                    controller.decrementProduct(product, price);
-                  },
+                  onDecrement: (product, price) =>
+                      controller.decrementProduct(product, price),
                   onEdit: (product, price) {
                     if (product.productType == 'COMBO') {
                       _showComboDialog(context, product, price);
@@ -231,421 +233,47 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     );
   }
 
-  /* Campo de busqueda de productos por nombre */
-  Widget _buildSearchBar() {
-    return Obx(() {
-      return TextField(
-        controller: controller.searchTextController,
-        onChanged: controller.onSearchProduct,
-        decoration: InputDecoration(
-          hintText: 'Buscar producto...',
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: controller.searchProductQuery.isNotEmpty
-              ? IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: controller.clearProductSearch,
-                )
-              : null,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-          contentPadding: const EdgeInsets.symmetric(
-            horizontal: 16,
-            vertical: 12,
-          ),
-        ),
-      );
-    });
-  }
-
-  /* Lista plana de productos filtrados por el texto de busqueda */
-  Widget _buildSearchResultsList(BuildContext context) {
-    return Obx(() {
-      final List<(ProductModel, String, String?)> results =
-          controller.searchResults;
-
-      if (results.isEmpty) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 24),
-          child: Center(
-            child: Text(
-              'No se encontraron productos.',
-              style: TextStyle(color: Colors.grey, fontStyle: FontStyle.italic),
-            ),
-          ),
-        );
-      }
-
-      return ExpandableSection(
-        title: 'Resultados (${results.length})',
-        icon: Icons.search,
-        initiallyExpanded: true,
-        content: ListView.builder(
-          padding: EdgeInsets.zero,
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: results.length,
-          itemBuilder: (context, index) {
-            final (ProductModel product, String categoryName, String? subcategoryName) =
-                results[index];
-            // Productos VARIABLE: una fila por precio/talla
-            if (product.productType == 'VARIABLE' &&
-                (product.prices?.isNotEmpty ?? false)) {
-              return _buildSearchVariableRow(
-                context,
-                product,
-                categoryName,
-                subcategoryName,
-              );
-            }
-            final PriceModel? price =
-                (product.prices?.isNotEmpty ?? false)
-                    ? product.prices!.first
-                    : null;
-            return _buildSearchSingleRow(
-              context,
-              product,
-              price,
-              categoryName,
-              subcategoryName,
-            );
-          },
-        ),
-      );
-    });
-  }
-
-  /* Fila de producto simple o combo en los resultados de busqueda */
-  Widget _buildSearchSingleRow(
+  /* Abre el dialogo de configuracion de combo. */
+  void _showComboDialog(
     BuildContext context,
     ProductModel product,
     PriceModel? price,
-    String categoryName,
-    String? subcategoryName,
   ) {
-    final bool isCombo = product.productType == 'COMBO';
-    return Obx(() {
-      final int quantity = controller.getProductQuantity(product, price);
-      return Container(
-        margin: const EdgeInsets.only(bottom: 8),
-        decoration: BoxDecoration(
-          border: Border(
-            bottom: BorderSide(color: Colors.grey[200]!, width: 1),
-          ),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Breadcrumb categoria / subcategoria
-                    Text(
-                      subcategoryName != null
-                          ? '$categoryName › $subcategoryName'
-                          : categoryName,
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[500],
-                        fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Text(
-                      product.name ?? '',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    if (product.description != null &&
-                        product.description!.isNotEmpty)
-                      Text(
-                        product.description!,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '\$${price?.amount?.toStringAsFixed(0) ?? '0'}',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              if (isCombo)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () =>
-                          _showComboDialog(context, product, price),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue[900],
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(80, 36),
-                        padding: const EdgeInsets.symmetric(horizontal: 12),
-                      ),
-                      child: const Text('Configurar'),
-                    ),
-                    if (quantity > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 4),
-                        child: Text(
-                          '$quantity en pedido',
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                  ],
-                )
-              else
-                Row(
-                  children: [
-                    if (quantity > 0) ...[
-                      IconButton(
-                        icon: const Icon(
-                          Icons.remove_circle_outline,
-                          color: Colors.red,
-                        ),
-                        onPressed: () =>
-                            controller.decrementProduct(product, price),
-                      ),
-                      GestureDetector(
-                        onTap: () =>
-                            _showAddProductDialog(context, product, price),
-                        child: Text(
-                          '$quantity',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ],
-                    IconButton(
-                      icon: Icon(
-                        Icons.add_circle_outline,
-                        color: Colors.blue[900],
-                      ),
-                      onPressed: () =>
-                          _showAddProductDialog(context, product, price),
-                    ),
-                  ],
-                ),
-            ],
-          ),
-        ),
-      );
-    });
-  }
-
-  /* Fila de producto variable (con tallas) en los resultados de busqueda */
-  Widget _buildSearchVariableRow(
-    BuildContext context,
-    ProductModel product,
-    String categoryName,
-    String? subcategoryName,
-  ) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.grey[200]!, width: 1),
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Breadcrumb categoria / subcategoria
-            Text(
-              subcategoryName != null
-                  ? '$categoryName › $subcategoryName'
-                  : categoryName,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.grey[500],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              product.name ?? '',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (product.description != null && product.description!.isNotEmpty)
-              Text(
-                product.description!,
-                style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-              ),
-            const SizedBox(height: 12),
-            ...product.prices!.map((PriceModel price) {
-              return Obx(() {
-                final int quantity =
-                    controller.getProductQuantity(product, price);
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12.0, left: 8.0),
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              price.sizeLabel ?? '',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              '\$${price.amount?.toStringAsFixed(0) ?? '0'}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green,
-                                fontSize: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      Row(
-                        children: [
-                          if (quantity > 0) ...[
-                            IconButton(
-                              icon: const Icon(
-                                Icons.remove_circle_outline,
-                                color: Colors.red,
-                              ),
-                              onPressed: () =>
-                                  controller.decrementProduct(product, price),
-                            ),
-                            GestureDetector(
-                              onTap: () => _showAddProductDialog(
-                                context,
-                                product,
-                                price,
-                              ),
-                              child: Text(
-                                '$quantity',
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          ],
-                          IconButton(
-                            icon: Icon(
-                              Icons.add_circle_outline,
-                              color: Colors.blue[900],
-                            ),
-                            onPressed: () =>
-                                _showAddProductDialog(context, product, price),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                );
-              });
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /* Mostrar dialogo de seleccion de combo */
-  void _showComboDialog(BuildContext context, ProductModel product, PriceModel? price) {
     Get.dialog(
       ComboSelectionDialog(
         product: product,
         price: price,
-        onConfirm:
-            (product, selectedPrice, quantity, comment, comboSelections, additionalPrice) {
-              controller.addToOrder(
-                product,
-                quantity,
-                comment,
-                price: selectedPrice,
-                comboSelections: comboSelections,
-                additionalPrice: additionalPrice,
-              );
-            },
+        onConfirm: (p, selectedPrice, quantity, comment, comboSelections,
+                additionalPrice) =>
+            controller.addToOrder(
+          p,
+          quantity,
+          comment,
+          price: selectedPrice,
+          comboSelections: comboSelections,
+          additionalPrice: additionalPrice,
+        ),
       ),
     );
   }
 
-  /*muestra el dialogo para agregar producto al pedido */
-  void _showAddProductDialog(BuildContext context, ProductModel product, PriceModel? price) {
-    final quantityControl = FormControl<int>(value: 1);
-    final commentControl = FormControl<String>(value: '');
-
+  /* Abre el dialogo para especificar cantidad y comentarios de un producto. */
+  void _showAddProductDialog(
+    BuildContext context,
+    ProductModel product,
+    PriceModel? price,
+  ) {
     Get.dialog(
-      AlertDialog(
-        title: Text(
-          product.productType == 'VARIABLE' && price?.sizeLabel != null
-              ? 'Producto: ${product.name} - ${price!.sizeLabel}'
-              : 'Producto: ${product.name}',
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomReactiveTextField(
-              formControl: quantityControl,
-              keyboardType: TextInputType.number,
-              labelText: 'Cantidad',
-            ),
-            const SizedBox(height: 10),
-            CustomReactiveTextField(
-              formControl: commentControl,
-              labelText: 'Comentarios',
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              controller.addToOrder(
-                product,
-                quantityControl.value ?? 1,
-                commentControl.value,
-                price: price,
-              );
-            },
-            child: const Text('Agregar'),
-          ),
-        ],
+      AddProductDialog(
+        product: product,
+        price: price,
+        onConfirm: (quantity, comment) =>
+            controller.addToOrder(product, quantity, comment, price: price),
       ),
     );
   }
 
-  /*muestra el resumen del pedido */
+  /* Valida y abre el bottom sheet con el resumen del pedido. */
   void _showOrderSummary(BuildContext context) {
     if (controller.selectedCustomer.value == null) {
       Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar un cliente.'));
@@ -659,363 +287,8 @@ Al hacer tap, muestra un resumen del pedido con opción para confirmar. */
     }
 
     Get.bottomSheet(
-      Container(
-        padding: const EdgeInsets.all(20),
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Resumen del Pedido',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                Obx(
-                  () => Text(
-                    'Total: \$${controller.totalOrderAmount.toStringAsFixed(0)}',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.green,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const Divider(),
-
-            // INFORMACIÓN DEL CLIENTE Y MESAS
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      const Icon(Icons.person, size: 18, color: Colors.grey),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Cliente: ${controller.selectedCustomer.value?.fullName ?? "No seleccionado"}',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (controller.form.control('origin').value == 'SALON' &&
-                      controller.selectedTableIds.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.table_restaurant,
-                          size: 18,
-                          color: Colors.grey,
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'Mesa(s): ${controller.tables.where((t) => controller.selectedTableIds.contains(t.id)).map((t) => t.name).join(', ')}',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const Divider(),
-
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10),
-              child: ReactiveForm(
-                formGroup: controller.form,
-                child: const CustomReactiveTextField(
-                  formControlName: 'observations',
-                  labelText: 'Observaciones generales del pedido',
-                  prefixIcon: Icon(Icons.comment),
-                  maxLines: 2,
-                ),
-              ),
-            ),
-            Flexible(
-              child: Obx(() {
-                return ListView(
-                  shrinkWrap: true,
-                  children: [
-                    ListView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      shrinkWrap: true,
-                      itemCount: controller.currentOrder.length,
-                      itemBuilder: (context, index) {
-                        final item = controller.currentOrder[index];
-                        final comboDetails = _buildComboDetails(item);
-
-                        final productName = item.productName;
-
-                        return ListTile(
-                          title: Text(
-                            '$productName (x${item.quantity})',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle:
-                              (comboDetails.isNotEmpty ||
-                                  (item.comment != null &&
-                                      item.comment!.isNotEmpty))
-                              ? Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    if (comboDetails.isNotEmpty)
-                                      Text(
-                                        comboDetails,
-                                        style: TextStyle(
-                                          color: Colors.grey[800],
-                                          fontSize: 13,
-                                        ),
-                                      ),
-                                    if (item.comment != null &&
-                                        item.comment!.isNotEmpty)
-                                      Text(
-                                        'Nota: ${item.comment}',
-                                        style: const TextStyle(
-                                          fontStyle: FontStyle.italic,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
-                                  ],
-                                )
-                              : null,
-                          trailing: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text('\$${item.total.toStringAsFixed(0)}'),
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.delete,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () {
-                                  controller.removeFromOrder(item);
-                                  if (controller.currentOrder.isEmpty) {
-                                    Get.back();
-                                  }
-                                },
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
-                    const Divider(),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const Text(
-                          'Cargos Adicionales',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                          ),
-                        ),
-                        TextButton.icon(
-                          onPressed: () => _showAddSurchargeDialog(context),
-                          icon: const Icon(Icons.add_circle_outline, size: 20),
-                          label: const Text('Agregar'),
-                        ),
-                      ],
-                    ),
-                    if (controller.surcharges.isEmpty)
-                      const Padding(
-                        padding: EdgeInsets.symmetric(
-                          vertical: 8.0,
-                          horizontal: 16.0,
-                        ),
-                        child: Text(
-                          'No hay cargos adicionales.',
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontStyle: FontStyle.italic,
-                          ),
-                        ),
-                      ),
-                    ...controller.surcharges.asMap().entries.map((entry) {
-                      final index = entry.key;
-                      final surcharge = entry.value;
-                      return ListTile(
-                        dense: true,
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16.0,
-                          vertical: 0.0,
-                        ),
-                        title: Text(surcharge.description),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              '\$${surcharge.amount.toStringAsFixed(0)}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.remove_circle_outline,
-                                color: Colors.red,
-                                size: 20,
-                              ),
-                              onPressed: () {
-                                controller.removeSurcharge(index);
-                              },
-                            ),
-                          ],
-                        ),
-                      );
-                    }),
-                  ],
-                );
-              }),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue[900],
-                  padding: const EdgeInsets.symmetric(vertical: 15),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                ),
-                onPressed: () {
-                  controller.createOrder();
-                },
-                child: const Text(
-                  'Confirmar Pedido',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
+      const OrderSummarySheet(),
       isScrollControlled: true,
-    );
-  }
-
-  String _buildComboDetails(OrderItemModel item) {
-    if (item.comboSelections == null || item.comboSelections!.isEmpty) {
-      return '';
-    }
-
-    final Map<String, int> counts = {};
-    for (var selection in item.comboSelections!) {
-      final id = selection['comboOptionId'];
-      if (id != null) {
-        counts[id] = (counts[id] ?? 0) + 1;
-      }
-    }
-
-    List<String> details = [];
-    if (item.product.comboGroups != null) {
-      for (var group in item.product.comboGroups!) {
-        if (group.options != null) {
-          for (var option in group.options!) {
-            if (counts.containsKey(option.id)) {
-              final count = counts[option.id];
-              final name = option.productName ?? 'Opción';
-              details.add('$name ($count)');
-            }
-          }
-        }
-      }
-    }
-    return details.join(' - ');
-  }
-
-  void _showAddSurchargeDialog(BuildContext context) {
-    final descriptionController = TextEditingController();
-    final amountController = TextEditingController();
-
-    Get.dialog(
-      AlertDialog(
-        title: const Text('Agregar Cargo Adicional'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: descriptionController,
-              decoration: const InputDecoration(
-                labelText: 'Descripción (ej. Domicilio, Empaque)',
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.sentences,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: amountController,
-              decoration: const InputDecoration(
-                labelText: 'Monto',
-                border: OutlineInputBorder(),
-                prefixText: '\$ ',
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [
-                FilteringTextInputFormatter.digitsOnly,
-                ThousandsSeparatorInputFormatter(),
-              ],
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final description = descriptionController.text.trim();
-              final amountStr = amountController.text.trim();
-              if (description.isNotEmpty && amountStr.isNotEmpty) {
-                final amount = double.tryParse(amountStr.replaceAll('.', '').replaceAll(',', ''));
-                if (amount != null && amount > 0) {
-                  controller.addSurcharge(description, amount);
-                  Get.back();
-                } else {
-                  Get.snackbar(
-                    'Error',
-                    'Ingrese un monto válido mayor a 0',
-                    snackPosition: SnackPosition.BOTTOM,
-                    backgroundColor: Colors.red[100],
-                    colorText: Colors.red[900],
-                  );
-                }
-              } else {
-                Get.snackbar(
-                  'Error',
-                  'Complete ambos campos',
-                  snackPosition: SnackPosition.BOTTOM,
-                  backgroundColor: Colors.red[100],
-                  colorText: Colors.red[900],
-                );
-              }
-            },
-            child: const Text('Agregar'),
-          ),
-        ],
-      ),
     );
   }
 }
