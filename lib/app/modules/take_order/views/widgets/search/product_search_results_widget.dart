@@ -198,6 +198,15 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                         Icons.add_circle_outline,
                         color: Colors.blue[900],
                       ),
+                      onPressed: () => onIncrement(product, price),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.comment_outlined,
+                        color: Colors.grey[600],
+                        size: 20,
+                      ),
+                      tooltip: 'Agregar con comentario',
                       onPressed: () => onEdit(product, price),
                     ),
                   ],
@@ -310,6 +319,15 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                               Icons.add_circle_outline,
                               color: Colors.blue[900],
                             ),
+                            onPressed: () => onIncrement(product, price),
+                          ),
+                          IconButton(
+                            icon: Icon(
+                              Icons.comment_outlined,
+                              color: Colors.grey[600],
+                              size: 20,
+                            ),
+                            tooltip: 'Agregar con comentario',
                             onPressed: () => onEdit(product, price),
                           ),
                         ],

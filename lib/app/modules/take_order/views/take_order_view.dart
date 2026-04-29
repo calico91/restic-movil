@@ -197,7 +197,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
                     if (product.productType == 'COMBO') {
                       _showComboDialog(context, product, price);
                     } else {
-                      _showAddProductDialog(context, product, price);
+                      controller.incrementProduct(product, price);
                     }
                   },
                   onDecrement: (product, price) =>
