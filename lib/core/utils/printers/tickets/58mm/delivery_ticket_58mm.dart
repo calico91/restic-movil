@@ -21,11 +21,12 @@ class DeliveryTicket58mm implements PrintableTicket {
         : dateFormat.format(DateTime.now());
 
     printer.printNewLine();
-    printer.printCustom('REPARTO / DELIVERY', 3, 1);
-    printer.printNewLine();
 
     printer.printCustom('Orden: #${order.orderNumber}'.withoutDiacritics, 2, 0);
     printer.printCustom('Fecha: $date'.withoutDiacritics, 1, 0);
+    if (order.createdBy != null) {
+      printer.printCustom('Creado por: ${order.createdBy!.fullName}'.withoutDiacritics, 1, 0);
+    }
 
     printer.printCustom(_sep, 1, 1);
     printer.printCustom('Cliente: ${order.customer?.fullName ?? 'N/A'}'.withoutDiacritics, 1, 0);
@@ -79,6 +80,8 @@ class DeliveryTicket58mm implements PrintableTicket {
 
     printer.printNewLine();
     printer.printCustom('Gracias por su compra!', 1, 1);
+    printer.printNewLine();
+    printer.printCustom('REPARTO / DELIVERY', 3, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

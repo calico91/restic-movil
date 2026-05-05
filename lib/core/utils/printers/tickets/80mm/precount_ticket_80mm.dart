@@ -44,7 +44,7 @@ class PrecountTicket80mm implements PrintableTicket {
     }
     if (order.tables != null && order.tables!.isNotEmpty) {
       final tableNames = order.tables!.map((e) => e.name).toList();
-      printer.printCustom('Mesas: ${tableNames.join(', ')}'.withoutDiacritics, 1, 0);
+      printer.printCustom('Mesas: ${tableNames.join(', ')}'.withoutDiacritics, 2, 0);
     }
 
     printer.printCustom(_sep, 1, 1);

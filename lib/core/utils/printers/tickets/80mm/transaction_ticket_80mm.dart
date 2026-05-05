@@ -91,12 +91,12 @@ class TransactionTicket80mm implements PrintableTicket {
     // INFO DE LA TRANSACCION
     printer.printCustom(
       'FACTURA DE VENTA: ${transaction.transactionNumber ?? ''}'.withoutDiacritics,
-      1,
+      2,
       0,
     );
     printer.printCustom('Fecha: $date'.withoutDiacritics, 2, 0);
     if (transaction.waiterName != null) {
-      printer.printCustom('Mesero: ${transaction.waiterName}'.withoutDiacritics, 2, 0);
+      printer.printCustom('Creado por: ${transaction.waiterName}'.withoutDiacritics, 2, 0);
     }
     if (transaction.customerName != null) {
       printer.printCustom('Cliente: ${transaction.customerName}'.withoutDiacritics, 2, 0);
@@ -104,7 +104,7 @@ class TransactionTicket80mm implements PrintableTicket {
     if (transaction.tableNames != null && transaction.tableNames!.isNotEmpty) {
       printer.printCustom(
         'Mesas: ${transaction.tableNames!.join(', ')}'.withoutDiacritics,
-        1,
+        2,
         0,
       );
     }

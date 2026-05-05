@@ -3,6 +3,7 @@ import 'package:restic_movil/app/data/models/table_model.dart';
 import 'package:restic_movil/app/data/models/customer_model.dart';
 import 'package:restic_movil/app/data/models/origin_type.dart';
 import 'package:restic_movil/app/data/models/order_surcharge_model.dart';
+import 'package:restic_movil/app/data/models/user_summary_model.dart';
 
 class OrderModel {
   final String? id;
@@ -13,6 +14,7 @@ class OrderModel {
   final OriginType? originType;
   final List<TableModel>? tables;
   final CustomerModel? customer;
+  final UserSummaryModel? createdBy;
   final String? observations;
   final double? subtotal;
   final double? total;
@@ -30,6 +32,7 @@ class OrderModel {
     this.originType,
     this.tables,
     this.customer,
+    this.createdBy,
     this.observations,
     this.subtotal,
     this.total,
@@ -54,6 +57,9 @@ class OrderModel {
           : null,
       customer: json['customer'] != null
           ? CustomerModel.fromJson(json['customer'])
+          : null,
+      createdBy: json['createdBy'] != null
+          ? UserSummaryModel.fromJson(json['createdBy'])
           : null,
       observations: json['observations'],
       subtotal: (json['subtotal'] as num?)?.toDouble(),
@@ -83,6 +89,7 @@ class OrderModel {
       'originType': originType?.toJson(),
       'tables': tables?.map((i) => i.toJson()).toList(),
       'customer': customer?.toJson(),
+      'createdBy': createdBy?.toJson(),
       'observations': observations,
       'subtotal': subtotal,
       'total': total,

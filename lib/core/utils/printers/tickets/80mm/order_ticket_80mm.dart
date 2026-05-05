@@ -26,11 +26,13 @@ class OrderTicket80mm implements PrintableTicket {
     // INFO DE LA ORDEN
     printer.printCustom('Orden: #${order.orderNumber}'.withoutDiacritics, 2, 0);
     printer.printCustom('Fecha: $date'.withoutDiacritics, 2, 0);
-    printer.printCustom('Origen: ${order.originType?.description ?? 'N/A'}'.withoutDiacritics, 2, 0);
+    if (order.createdBy != null) {
+      printer.printCustom('Creado por: ${order.createdBy!.fullName}'.withoutDiacritics, 2, 0);
+    }
 
     if (order.originType?.code == 'SALON') {
       final tables = order.tables?.map((e) => e.name).join(', ') ?? 'N/A';
-      printer.printCustom('Mesas: $tables'.withoutDiacritics, 1, 0);
+      printer.printCustom('Mesas: $tables'.withoutDiacritics, 2, 0);
       if (order.customer != null) {
         printer.printCustom('Cliente: ${order.customer!.fullName}'.withoutDiacritics, 2, 0);
       }
@@ -38,7 +40,7 @@ class OrderTicket80mm implements PrintableTicket {
         order.originType?.code == 'TAKE_AWAY') {
       printer.printCustom('Cliente: ${order.customer?.fullName ?? 'N/A'}'.withoutDiacritics, 2, 0);
       if (order.customer?.address != null && order.customer!.address!.isNotEmpty) {
-        printer.printCustom('Direccion: ${order.customer!.address}'.withoutDiacritics, 1, 0);
+        printer.printCustom('Direccion: ${order.customer!.address}'.withoutDiacritics, 2, 0);
       }
       if (order.customer?.phone != null && order.customer!.phone!.isNotEmpty) {
         printer.printCustom('Telefono: ${order.customer!.phone}'.withoutDiacritics, 2, 0);
@@ -81,6 +83,7 @@ class OrderTicket80mm implements PrintableTicket {
     }
 
     printer.printCustom(_sep, 1, 1);
+    printer.printCustom('Origen: ${order.originType?.description ?? 'N/A'}'.withoutDiacritics, 2, 0);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

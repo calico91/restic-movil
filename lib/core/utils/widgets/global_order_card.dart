@@ -188,6 +188,7 @@ class GlobalOrderCard extends StatelessWidget {
               ),
             ),
             _buildInfoRow('Cliente:', order.customer?.fullName ?? 'Sin información'),
+            _buildInfoRow('Mesero:', order.createdBy?.fullName ?? 'Sin información'),
             if (order.tables != null && order.tables!.isNotEmpty)
               _buildInfoRow('Mesa:', order.tables!.map((t) => t.name).join(', ')),
             _buildInfoRow('Fecha y hora:', dateText),
