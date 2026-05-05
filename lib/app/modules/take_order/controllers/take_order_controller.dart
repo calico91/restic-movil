@@ -11,18 +11,12 @@ import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/customer_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
-import 'package:restic_movil/app/data/services/printer_service.dart';
-import 'package:restic_movil/core/utils/printers/tickets/58mm/order_ticket_58mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/58mm/delivery_ticket_58mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/80mm/delivery_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/modals/order_success_modal.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
-import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 
 class TakeOrderController extends GetxController {
@@ -433,34 +427,13 @@ class TakeOrderController extends GetxController {
             Get.find<OrdersController>().loadOrders(withOverlay: false);
           }
 
-          final printerService = Get.find<PrinterService>();
-
           Get.dialog(
-            ModalInfo(
+            OrderSuccessModal(
               title: 'Pedido Creado!',
               message: 'El pedido ha sido creado exitosamente.',
-              icon: Icons.check_circle,
+              order: newOrder,
               buttonText: 'Ir a Pedidos',
-              onClose: () {
-                Get.until((route) => route.settings.name == Routes.HOME);
-              },
-              secondaryButtonText: 'Imprimir Orden',
-              onSecondaryAction: (printerService.isConnected.value ||
-                      printerService.isNetworkConnected.value)
-                  ? () {
-                      Get.showSnackbar(
-                        const InfoSnackbar('Enviando a imprimir...'),
-                      );
-                      if (newOrder.originType?.code == 'DELIVERY') {
-                        final bool is80mm = printerService.printerSize.value == '80mm';
-                        printerService.printTicket(is80mm ? DeliveryTicket80mm(order: newOrder) : DeliveryTicket58mm(order: newOrder));
-                      } else {
-                        final bool is80mm = printerService.printerSize.value == '80mm';
-                        printerService.printTicket(is80mm ? OrderTicket80mm(order: newOrder) : OrderTicket58mm(order: newOrder));
-                      }
-                      Get.until((route) => route.settings.name == Routes.HOME);
-                    }
-                  : null,
+              onClose: () => Get.until((route) => route.settings.name == Routes.HOME),
             ),
             barrierDismissible: false,
           );
