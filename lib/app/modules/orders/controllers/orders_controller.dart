@@ -58,6 +58,7 @@ class OrdersController extends GetxController {
     searchController.addListener(_filterOrders);
     _loadStatuses();
     _connectWebSocket();
+    _loadCategories();
   }
 
   /*conectar al websocket */
