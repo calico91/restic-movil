@@ -8,10 +8,8 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/printers/tickets/58mm/added_items_ticket_58mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/58mm/delivery_ticket_58mm.dart';
 import 'package:restic_movil/core/utils/printers/tickets/58mm/order_ticket_58mm.dart';
 import 'package:restic_movil/core/utils/printers/tickets/80mm/added_items_ticket_80mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/80mm/delivery_ticket_80mm.dart';
 import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
@@ -83,15 +81,8 @@ class OrderSuccessModal extends StatelessWidget {
                         : AddedItemsTicket58mm(order: order, items: addedItems!),
                   );
                 }
-              } else if (order.originType?.code == 'DELIVERY') {
-                // Delivery no usa enrutamiento por categoria (siempre impresora principal)
-                printerService.printTicket(
-                  is80mm
-                      ? DeliveryTicket80mm(order: order)
-                      : DeliveryTicket58mm(order: order),
-                );
               } else {
-                // Orden completa (salon / take-away)
+                // Orden completa (salon / take-away / domicilio)
                 if (hasMultiPrinter) {
                   printerService.printComandaMultiPrinter(
                     order: order,

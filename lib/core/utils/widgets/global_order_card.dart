@@ -8,9 +8,7 @@ import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 import 'package:restic_movil/core/utils/printers/tickets/58mm/order_ticket_58mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/58mm/delivery_ticket_58mm.dart';
 import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.dart';
-import 'package:restic_movil/core/utils/printers/tickets/80mm/delivery_ticket_80mm.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
@@ -139,29 +137,22 @@ class GlobalOrderCard extends StatelessWidget {
                                 onPrintCustomAction!();
                               } else {
                                 final bool is80mm = printerService.printerSize.value == '80mm';
-                                if (order.originType?.code == 'DELIVERY') {
-                                  // Delivery siempre va a la impresora principal
-                                  printerService.printTicket(
-                                    is80mm ? DeliveryTicket80mm(order: order) : DeliveryTicket58mm(order: order),
+                                final List<OrderDetailModel>? details = order.details;
+                                final List<CategoryModel>? cats = categories;
+                                // Usar multi-printer si hay categorias con IP configurada y detalles disponibles
+                                if (cats != null && cats.isNotEmpty && details != null && details.isNotEmpty) {
+                                  printerService.printComandaMultiPrinterFromDetails(
+                                    order: order,
+                                    details: details,
+                                    categories: cats,
+                                    ticketBuilder: (o, filteredDetails) => is80mm
+                                        ? OrderTicket80mm(order: o, filteredDetails: filteredDetails)
+                                        : OrderTicket58mm(order: o, filteredDetails: filteredDetails),
                                   );
                                 } else {
-                                  final List<OrderDetailModel>? details = order.details;
-                                  final List<CategoryModel>? cats = categories;
-                                  // Usar multi-printer si hay categorias con IP configurada y detalles disponibles
-                                  if (cats != null && cats.isNotEmpty && details != null && details.isNotEmpty) {
-                                    printerService.printComandaMultiPrinterFromDetails(
-                                      order: order,
-                                      details: details,
-                                      categories: cats,
-                                      ticketBuilder: (o, filteredDetails) => is80mm
-                                          ? OrderTicket80mm(order: o, filteredDetails: filteredDetails)
-                                          : OrderTicket58mm(order: o, filteredDetails: filteredDetails),
-                                    );
-                                  } else {
-                                    printerService.printTicket(
-                                      is80mm ? OrderTicket80mm(order: order) : OrderTicket58mm(order: order),
-                                    );
-                                  }
+                                  printerService.printTicket(
+                                    is80mm ? OrderTicket80mm(order: order) : OrderTicket58mm(order: order),
+                                  );
                                 }
                               }
                             }
