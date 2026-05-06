@@ -12,6 +12,7 @@ import 'package:restic_movil/app/modules/orders/views/widgets/add_products_sheet
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
+import 'package:restic_movil/core/utils/modals/order_success_modal.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
@@ -416,7 +417,9 @@ class OrdersController extends GetxController {
   Future<void> confirmAddProducts(OrderModel order) async {
     if (tempAdditionalOrderItems.isEmpty) return;
 
-    final itemsToAdd = tempAdditionalOrderItems.map((item) {
+    final List<OrderItemModel> addedItems = tempAdditionalOrderItems.toList();
+
+    final itemsToAdd = addedItems.map((item) {
       final detail = {
         'productId': item.product.id,
         'productName': item.productName,
@@ -437,13 +440,20 @@ class OrdersController extends GetxController {
         try {
           await ordersRepository.addOrderItems(order.id!, itemsToAdd);
 
-          Get.back();
-          Get.back();
-
-          Get.showSnackbar(
-            const InfoSnackbar('Productos agregados correctamente'),
-          );
+          Get.back(); // cerrar bottom sheet
+          Get.back(); // cerrar modal padre si existe
           loadOrders(withOverlay: false);
+
+          Get.dialog(
+            OrderSuccessModal(
+              title: '¡Productos Agregados!',
+              message: 'Se agregaron ${addedItems.length} producto(s) al pedido #${order.orderNumber}.',
+              order: order,
+              addedItems: addedItems,
+              onClose: () => Get.back(),
+            ),
+            barrierDismissible: false,
+          );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
           Get.showSnackbar(ErrorSnackbar(errorMessage));

@@ -26,7 +26,9 @@ class OrderTicket58mm implements PrintableTicket {
     // INFO DE LA ORDEN
     printer.printCustom('Orden: #${order.orderNumber}'.withoutDiacritics, 1, 0);
     printer.printCustom('Fecha: $date'.withoutDiacritics, 1, 0);
-    printer.printCustom('Origen: ${order.originType?.description ?? 'N/A'}'.withoutDiacritics, 1, 0);
+    if (order.createdBy != null) {
+      printer.printCustom('Creado por: ${order.createdBy!.fullName}'.withoutDiacritics, 1, 0);
+    }
 
     if (order.originType?.code == 'SALON') {
       final tables = order.tables?.map((e) => e.name).join(', ') ?? 'N/A';
@@ -83,6 +85,7 @@ class OrderTicket58mm implements PrintableTicket {
     }
 
     printer.printCustom(_sep, 1, 1);
+    printer.printCustom('Origen: ${order.originType?.description ?? 'N/A'}'.withoutDiacritics, 1, 0);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

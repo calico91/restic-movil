@@ -96,7 +96,7 @@ class TransactionTicket58mm implements PrintableTicket {
     );
     printer.printCustom('Fecha: $date'.withoutDiacritics, 1, 0);
     if (transaction.waiterName != null) {
-      printer.printCustom('Mesero: ${transaction.waiterName}'.withoutDiacritics, 1, 0);
+      printer.printCustom('Creado por: ${transaction.waiterName}'.withoutDiacritics, 1, 0);
     }
     if (transaction.customerName != null) {
       printer.printCustom('Cliente: ${transaction.customerName}'.withoutDiacritics, 1, 0);
