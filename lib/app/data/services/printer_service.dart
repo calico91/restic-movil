@@ -5,6 +5,7 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:logger/logger.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/network_printer_model.dart';
+import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -411,6 +412,30 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         CategoryPrinterResolver.groupItemsByPrinter(sourceItems, categories);
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderItemModel>> entry in groups.entries) {
+      final PrintableTicket ticket = ticketBuilder(order, entry.value);
+
+      if (entry.key != null) {
+        // Impresora especifica de categoria
+        await printTicketToSpecificNetwork(ticket, entry.key!.ip, entry.key!.port);
+      } else {
+        // Impresora por defecto
+        await printTicket(ticket);
+      }
+    }
+  }
+
+  /* imprimir comandas de una orden existente distribuyendo por categoria (reimpresion) */
+  Future<void> printComandaMultiPrinterFromDetails({
+    required OrderModel order,
+    required List<OrderDetailModel> details,
+    required List<CategoryModel> categories,
+    required PrintableTicket Function(OrderModel, List<OrderDetailModel>) ticketBuilder,
+  }) async {
+    // Agrupar detalles por impresora destino usando categoryId del backend
+    final Map<NetworkPrinterModel?, List<OrderDetailModel>> groups =
+        CategoryPrinterResolver.groupDetailsByPrinter(details, categories);
+
+    for (final MapEntry<NetworkPrinterModel?, List<OrderDetailModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);
 
       if (entry.key != null) {
