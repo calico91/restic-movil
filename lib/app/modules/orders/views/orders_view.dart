@@ -165,6 +165,7 @@ class OrdersView extends GetView<OrdersController> {
             final order = ordersList[index];
             return GlobalOrderCard(
               order: order,
+              categories: controller.categories,
               detailsText: 'Ver Detalles',
               onDetailsPressed: controller.currentTab.value == 0
                   ? () => _showOrderDetails(context, order)

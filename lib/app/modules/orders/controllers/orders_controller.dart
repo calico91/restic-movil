@@ -58,6 +58,7 @@ class OrdersController extends GetxController {
     searchController.addListener(_filterOrders);
     _loadStatuses();
     _connectWebSocket();
+    _loadCategories();
   }
 
   /*conectar al websocket */
@@ -450,6 +451,7 @@ class OrdersController extends GetxController {
               message: 'Se agregaron ${addedItems.length} producto(s) al pedido #${order.orderNumber}.',
               order: order,
               addedItems: addedItems,
+              categories: categories,
               onClose: () => Get.back(),
             ),
             barrierDismissible: false,

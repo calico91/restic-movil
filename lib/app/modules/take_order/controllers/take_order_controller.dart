@@ -415,6 +415,10 @@ class TakeOrderController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
+          // Capturar snapshot de items y categorias antes de limpiar el formulario
+          final List<OrderItemModel> orderItemsSnapshot = List.from(currentOrder);
+          final List<CategoryModel> categoriesSnapshot = List.from(categories);
+
           final newOrder = await ordersRepository.createOrder(orderData);
           _clearForm();
           // Cerrar el resumen
@@ -432,6 +436,8 @@ class TakeOrderController extends GetxController {
               title: 'Pedido Creado!',
               message: 'El pedido ha sido creado exitosamente.',
               order: newOrder,
+              sourceItems: orderItemsSnapshot,
+              categories: categoriesSnapshot,
               buttonText: 'Ir a Pedidos',
               onClose: () => Get.until((route) => route.settings.name == Routes.HOME),
             ),

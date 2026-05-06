@@ -49,6 +49,7 @@ class UrlPaths {
   static const String getCategories = 'categories/all';
   static const String createCategories = 'categories/create';
   static const String updateCategory = 'categories/update'; // /:id
+  static const String updateCategoryPrinter = 'categories'; // /:id/printer
 
   // Subcategories
   static const String createSubcategories = 'subcategories/create';

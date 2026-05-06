@@ -1,5 +1,6 @@
 import 'package:restic_movil/core/utils/printers/thermal_printer_port.dart';
 import 'package:intl/intl.dart';
+import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
@@ -7,8 +8,10 @@ import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
 // Ticket de pedido/cocina para impresora de 58mm (32 chars por línea)
 class OrderTicket58mm implements PrintableTicket {
   final OrderModel order;
+  // Si se especifica, se imprimen solo estos detalles (para enrutamiento por categoria)
+  final List<OrderDetailModel>? filteredDetails;
 
-  OrderTicket58mm({required this.order});
+  OrderTicket58mm({required this.order, this.filteredDetails});
 
   static const String _sep = '--------------------------------'; // 32 chars
 
@@ -60,7 +63,7 @@ class OrderTicket58mm implements PrintableTicket {
     printer.printCustom('CANT.   PRODUCTO', 2, 0);
     printer.printCustom(_sep, 1, 1);
 
-    final details = order.details ?? [];
+    final details = filteredDetails ?? order.details ?? [];
     for (var item in details) {
       final pName = item.sizeLabel != null
           ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}'

@@ -45,6 +45,13 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
                 content: _buildNetworkSection(),
               ),
             ),
+            const SizedBox(height: 4),
+            ExpandableSection(
+              title: 'Impresoras por Categoría',
+              icon: Icons.category_outlined,
+              initiallyExpanded: false,
+              content: _buildCategoryPrinterSection(),
+            ),
             const SizedBox(height: 16),
           ],
         ),
@@ -475,5 +482,183 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
       ),
     );
   }
-}
 
+  /* construir la seccion de impresoras asignadas por categoria */
+  Widget _buildCategoryPrinterSection() {
+    return Obx(() {
+      if (controller.isLoadingCategories.value) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+
+      if (controller.categories.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            'No hay categorías disponibles.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              'Asigna una impresora de red específica por categoría.\n'
+              'Los productos sin categoría específica se imprimirán en la impresora por defecto.',
+              style: TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ),
+          ...controller.categories.map((cat) => _buildCategoryPrinterCard(cat)),
+        ],
+      );
+    });
+  }
+
+  /* construir tarjeta de configuracion de impresora para una categoria */
+  Widget _buildCategoryPrinterCard(dynamic cat) {
+    final String? catId = cat.id;
+    if (catId == null) return const SizedBox.shrink();
+
+    final bool hasSpecificPrinter =
+        cat.printerIp != null && (cat.printerIp as String).isNotEmpty;
+    final List<TextEditingController>? controllers =
+        controller.categoryControllers[catId];
+    if (controllers == null) return const SizedBox.shrink();
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 10),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: hasSpecificPrinter
+              ? const Color(0xFF0D47A1).withValues(alpha: 0.5)
+              : Colors.transparent,
+          width: hasSpecificPrinter ? 1.5 : 0,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(14),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.category,
+                  size: 20,
+                  color: hasSpecificPrinter
+                      ? const Color(0xFF0D47A1)
+                      : Colors.grey,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    cat.name ?? 'Categoría',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 14,
+                      color: hasSpecificPrinter
+                          ? const Color(0xFF0D47A1)
+                          : Colors.black87,
+                    ),
+                  ),
+                ),
+                if (hasSpecificPrinter)
+                  Chip(
+                    label: const Text('Configurada'),
+                    backgroundColor:
+                        const Color(0xFF0D47A1).withValues(alpha: 0.1),
+                    labelStyle: const TextStyle(
+                      fontSize: 11,
+                      color: Color(0xFF0D47A1),
+                    ),
+                    padding: EdgeInsets.zero,
+                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: controllers[0],
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'IP Impresora',
+                hintText: '192.168.1.101',
+                prefixIcon: const Icon(Icons.router_outlined, size: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: controllers[1],
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'Puerto',
+                hintText: '9100',
+                prefixIcon: const Icon(Icons.settings_ethernet_outlined, size: 20),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => controller.saveCategoryPrinter(catId),
+                    icon: const Icon(Icons.save_outlined, size: 18),
+                    label: const Text('Guardar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF0D47A1),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      textStyle: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ),
+                if (hasSpecificPrinter) ...[
+                  const SizedBox(width: 8),
+                  OutlinedButton.icon(
+                    onPressed: () => controller.removeCategoryPrinter(catId),
+                    icon: const Icon(Icons.link_off, size: 18),
+                    label: const Text('Quitar'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.red,
+                      side: const BorderSide(color: Colors.red),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 10,
+                        horizontal: 12,
+                      ),
+                      textStyle: const TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
