@@ -5,6 +5,8 @@ class OrderDetailModel {
   final String? productId;
   final String? productName;
   final String? productType;
+  final String? categoryId;
+  final String? categoryName;
   final double? unitPrice;
   final int? quantity;
   final double? subtotal;
@@ -21,6 +23,8 @@ class OrderDetailModel {
     this.productId,
     this.productName,
     this.productType,
+    this.categoryId,
+    this.categoryName,
     this.unitPrice,
     this.quantity,
     this.subtotal,
@@ -39,6 +43,8 @@ class OrderDetailModel {
       productId: json['productId'],
       productName: json['productName'],
       productType: json['productType'],
+      categoryId: json['categoryId'],
+      categoryName: json['categoryName'],
       unitPrice: (json['unitPrice'] as num?)?.toDouble(),
       quantity: json['quantity'],
       subtotal: (json['subtotal'] as num?)?.toDouble(),
@@ -70,6 +76,8 @@ class OrderDetailModel {
       'addedAt': addedAt,
       'preparedAt': preparedAt,
       'servedAt': servedAt,
+      'categoryId': categoryId,
+      'categoryName': categoryName,
       'selected_size_label': sizeLabel,
       'comboSelections': comboSelections?.map((i) => i.toJson()).toList(),
     };

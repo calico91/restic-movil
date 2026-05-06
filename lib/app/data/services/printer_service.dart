@@ -3,10 +3,14 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:logger/logger.dart';
+import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/network_printer_model.dart';
+import 'package:restic_movil/app/data/models/order_item_model.dart';
+import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
 import 'package:restic_movil/core/utils/printers/bluetooth_printer_port.dart';
+import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
 import 'package:restic_movil/core/utils/printers/network_printer_port.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
@@ -373,6 +377,49 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       port.printNewLine();
       port.printNewLine();
       port.paperCut();
+    }
+  }
+
+  /* imprimir un ticket en una impresora de red especifica sin alterar la configuracion activa */
+  Future<void> printTicketToSpecificNetwork(
+    PrintableTicket ticket,
+    String ip,
+    int port,
+  ) async {
+    NetworkPrinterPort? printerPort;
+    try {
+      printerPort = await NetworkPrinterPort.connect(ip, port);
+      await ticket.printReceipt(printerPort);
+      await printerPort.close();
+    } catch (e) {
+      _logger.e('Error imprimiendo en impresora especifica $ip:$port — $e');
+      try {
+        await printerPort?.close();
+      } catch (_) {}
+    }
+  }
+
+  /* imprimir una comanda distribuyendo items a cada impresora segun la categoria */
+  Future<void> printComandaMultiPrinter({
+    required OrderModel order,
+    required List<OrderItemModel> sourceItems,
+    required List<CategoryModel> categories,
+    required PrintableTicket Function(OrderModel, List<OrderItemModel>) ticketBuilder,
+  }) async {
+    // Agrupar items por impresora destino segun la categoria del producto
+    final Map<NetworkPrinterModel?, List<OrderItemModel>> groups =
+        CategoryPrinterResolver.groupItemsByPrinter(sourceItems, categories);
+
+    for (final MapEntry<NetworkPrinterModel?, List<OrderItemModel>> entry in groups.entries) {
+      final PrintableTicket ticket = ticketBuilder(order, entry.value);
+
+      if (entry.key != null) {
+        // Impresora especifica de categoria
+        await printTicketToSpecificNetwork(ticket, entry.key!.ip, entry.key!.port);
+      } else {
+        // Impresora por defecto
+        await printTicket(ticket);
+      }
     }
   }
 }
