@@ -37,7 +37,12 @@ class AddedItemsTicket80mm implements PrintableTicket {
     printer.printCustom(_sep, 1, 1);
 
     for (final OrderItemModel item in items) {
-      printer.printCustom('${item.quantity}x  ${item.productName}'.withoutDiacritics, 2, 0);
+      // Para COMBINADO efectivamente combinado: mostrar "P1 + P2"; si es individual, solo el nombre base
+      final String displayName = item.combinedWith != null
+          ? '${item.productName} + ${item.combinedWith!.name ?? ""}'
+          : item.productName;
+
+      printer.printCustom('${item.quantity}x  $displayName'.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
         for (final Map<String, String> combo in item.comboSelections!) {
@@ -51,7 +56,13 @@ class AddedItemsTicket80mm implements PrintableTicket {
         }
       }
 
-      if (item.comment != null && item.comment!.trim().isNotEmpty) {
+      // Mostrar [COMBINADO] solo cuando hay acompañante real + nota si la hay
+      if (item.combinedWith != null) {
+        printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
+        if (item.comment != null && item.comment!.isNotEmpty) {
+          printer.printCustom('    [Nota: ${item.comment}]'.withoutDiacritics, 1, 0);
+        }
+      } else if (item.comment != null && item.comment!.trim().isNotEmpty) {
         printer.printCustom('    [Nota: ${item.comment}]'.withoutDiacritics, 1, 0);
       }
 

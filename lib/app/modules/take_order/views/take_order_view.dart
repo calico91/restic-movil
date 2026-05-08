@@ -9,6 +9,7 @@ import 'package:restic_movil/app/modules/take_order/controllers/take_order_contr
 import 'package:restic_movil/app/modules/take_order/views/widgets/salon/table_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/take_away_delivery/customer_card_widget.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/combination_selection_dialog.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/add_product_dialog.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/order_summary/order_summary_sheet.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/search/product_search_bar.dart';
@@ -194,6 +195,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
               if (controller.searchProductQuery.isNotEmpty)
                 ProductSearchResultsWidget(
                   onIncrement: (product, price) {
+                    // COMBO abre su diálogo; COMBINADO y el resto se agregan individualmente
                     if (product.productType == 'COMBO') {
                       _showComboDialog(context, product, price);
                     } else {
@@ -204,12 +206,17 @@ class TakeOrderView extends GetView<TakeOrderController> {
                       controller.decrementProduct(product, price),
                   onEdit: (product, price) =>
                       _showAddProductDialog(context, product, price),
+                  onCombine: (product, siblings) =>
+                      _showCombinationDialog(context, product, siblings),
+                  onDecrementCombination: controller.decrementCombination,
+                  getCombinationQuantity: controller.getCombinationQuantity,
                 )
               else
                 ProductSelectionWidget(
                   categories: controller.categories,
                   getQuantity: controller.getProductQuantity,
                   onIncrement: (product, price) {
+                    // COMBO abre su diálogo; COMBINADO y el resto se agregan individualmente
                     if (product.productType == 'COMBO') {
                       _showComboDialog(context, product, price);
                     } else {
@@ -225,6 +232,10 @@ class TakeOrderView extends GetView<TakeOrderController> {
                       _showAddProductDialog(context, product, price);
                     }
                   },
+                  onCombine: (product, siblings) =>
+                      _showCombinationDialog(context, product, siblings),
+                  onDecrementCombination: controller.decrementCombination,
+                  getCombinationQuantity: controller.getCombinationQuantity,
                 ),
             ],
           );
@@ -253,6 +264,21 @@ class TakeOrderView extends GetView<TakeOrderController> {
           comboSelections: comboSelections,
           additionalPrice: additionalPrice,
         ),
+      ),
+    );
+  }
+
+  /* Abre el dialogo para seleccionar el acompañante de una combinacion 2x1. */
+  void _showCombinationDialog(
+    BuildContext context,
+    ProductModel product,
+    List<ProductModel> siblings,
+  ) {
+    Get.dialog(
+      CombinationSelectionDialog(
+        product: product,
+        siblings: siblings,
+        onConfirm: (p1, p2, comment) => controller.addCombination(p1, p2, comment),
       ),
     );
   }

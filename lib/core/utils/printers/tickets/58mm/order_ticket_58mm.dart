@@ -65,9 +65,28 @@ class OrderTicket58mm implements PrintableTicket {
 
     final details = filteredDetails ?? order.details ?? [];
     for (var item in details) {
-      final pName = item.sizeLabel != null
+      // Parsear observations primero para poder incluir el acompañante en el nombre impreso.
+      // Cubre el caso en que el backend devuelve solo el nombre base del producto (sin el "+Plato2").
+      final String afterPrefix = (item.observations != null &&
+              item.observations!.startsWith('COMBINADO: '))
+          ? item.observations!.substring('COMBINADO: '.length)
+          : '';
+      final int sepIdx = afterPrefix.indexOf(' | ');
+      final String companion = sepIdx >= 0
+          ? afterPrefix.substring(0, sepIdx).trim()
+          : afterPrefix.trim();
+      final String comboNote = sepIdx >= 0
+          ? afterPrefix.substring(sepIdx + 3).trim()
+          : '';
+
+      // Si el nombre base no contiene ya al acompañante, lo agrega para que siempre sea visible.
+      final String baseName = item.sizeLabel != null
           ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}'
           : (item.productName ?? 'Producto');
+      final String pName = (companion.isNotEmpty && !baseName.contains(companion))
+          ? '$baseName + $companion'
+          : baseName;
+
       printer.printCustom('${item.quantity}x  $pName'.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
@@ -80,7 +99,12 @@ class OrderTicket58mm implements PrintableTicket {
         }
       }
 
-      if (item.observations != null && item.observations!.trim().isNotEmpty) {
+      if (companion.isNotEmpty) {
+        printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
+        if (comboNote.isNotEmpty) {
+          printer.printCustom('    [Nota: $comboNote]'.withoutDiacritics, 1, 0);
+        }
+      } else if (item.observations != null && item.observations!.trim().isNotEmpty) {
         printer.printCustom('    [Nota: ${item.observations}]'.withoutDiacritics, 1, 0);
       }
 

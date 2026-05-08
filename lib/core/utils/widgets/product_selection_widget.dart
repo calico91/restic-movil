@@ -9,6 +9,12 @@ class ProductSelectionWidget extends StatelessWidget {
   final void Function(ProductModel, PriceModel?) onIncrement;
   final void Function(ProductModel, PriceModel?) onDecrement;
   final void Function(ProductModel, PriceModel?) onEdit;
+  // Callback para productos COMBINADO: producto seleccionado + lista de hermanos posibles
+  final void Function(ProductModel, List<ProductModel>)? onCombine;
+  // Callback para decrementar combinaciones COMBINADO
+  final void Function(ProductModel)? onDecrementCombination;
+  // Callback para obtener la cantidad de combinaciones activas
+  final int Function(ProductModel)? getCombinationQuantity;
   final bool initiallyExpanded;
 
   const ProductSelectionWidget({
@@ -18,6 +24,9 @@ class ProductSelectionWidget extends StatelessWidget {
     required this.onIncrement,
     required this.onDecrement,
     required this.onEdit,
+    this.onCombine,
+    this.onDecrementCombination,
+    this.getCombinationQuantity,
     this.initiallyExpanded = true,
   });
 
@@ -51,11 +60,12 @@ class ProductSelectionWidget extends StatelessWidget {
       final singleSub = subcategories.first;
       final products = singleSub.products ?? [];
       childrenWidgets = products.map((product) {
-        return _buildProductRow(product);
+        return _buildProductRow(product, products);
       }).toList();
     } else if (subcategories.length > 1) {
       // Si hay múltiples subcategorías, mantener los ExpansionTile
       childrenWidgets = subcategories.map((subcategory) {
+        final subProducts = subcategory.products ?? [];
         return ExpansionTile(
           title: Text(
             subcategory.name ?? '',
@@ -64,10 +74,9 @@ class ProductSelectionWidget extends StatelessWidget {
           subtitle: Text(subcategory.description ?? ''),
           childrenPadding: const EdgeInsets.only(left: 16),
           children:
-              subcategory.products?.map((product) {
-                return _buildProductRow(product);
-              }).toList() ??
-              [],
+              subProducts.map((product) {
+                return _buildProductRow(product, subProducts);
+              }).toList(),
         );
       }).toList();
     }
@@ -82,8 +91,15 @@ class ProductSelectionWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildProductRow(ProductModel product) {
-    if (product.productType == 'VARIABLE' && (product.prices?.isNotEmpty ?? false)) {
+  // Construye la fila para un producto según su tipo; recibe los productos del mismo subcategory
+  Widget _buildProductRow(ProductModel product, List<ProductModel> subcategoryProducts) {
+    if (product.productType == 'COMBINADO') {
+      // Hermanos = todos los COMBINADO del mismo subcategoryId excepto el actual
+      final List<ProductModel> siblings = subcategoryProducts
+          .where((p) => p.productType == 'COMBINADO' && p.id != product.id)
+          .toList();
+      return _buildCombinadoProductRow(product, siblings);
+    } else if (product.productType == 'VARIABLE' && (product.prices?.isNotEmpty ?? false)) {
       return _buildVariableProductRow(product);
     } else {
       final price = (product.prices?.isNotEmpty ?? false) ? product.prices!.first : null;
@@ -284,6 +300,168 @@ class ProductSelectionWidget extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  // Fila especial para productos COMBINADO: controles individuales estándar + botón opcional de combinación 2×1.
+  // Usa un único Obx para todo el bloque de controles, garantizando que getQuantity registre
+  // la dependencia reactiva en currentOrder incluso cuando no hay combinaciones activas.
+  Widget _buildCombinadoProductRow(ProductModel product, List<ProductModel> siblings) {
+    final PriceModel? price =
+        product.prices?.isNotEmpty == true ? product.prices!.first : null;
+    final double priceAmount = price?.amount ?? 0;
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        border: Border(bottom: BorderSide(color: Colors.grey[200]!, width: 1)),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Info del producto: nombre, descripción, precio y chip COMBINADO
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    product.name ?? '',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  ),
+                  if (product.description != null && product.description!.isNotEmpty)
+                    Text(
+                      product.description!,
+                      style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '\$${priceAmount.toStringAsFixed(0)}',
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                          fontSize: 14,
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            // Único Obx que cubre cantidad individual Y combinaciones para garantizar
+            // que getQuantity registre la dependencia reactiva en currentOrder.
+            Obx(() {
+              final int qty = getQuantity(product, price);
+              final int comboQty = getCombinationQuantity?.call(product) ?? 0;
+
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Controles estándar: editar, decrementar, cantidad, incrementar
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => onEdit(product, price),
+                        icon: const Icon(Icons.edit_note, color: Colors.orange),
+                        tooltip: 'Agregar con notas',
+                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.grey[100],
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Row(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.remove, color: Colors.red, size: 20),
+                              onPressed: () => onDecrement(product, price),
+                              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                              padding: EdgeInsets.zero,
+                            ),
+                            Text(
+                              '$qty',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.add, color: Colors.green, size: 20),
+                              onPressed: () => onIncrement(product, price),
+                              constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+                              padding: EdgeInsets.zero,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Sección de combinación 2×1 (solo si existen hermanos combinables)
+                  if (siblings.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    if (comboQty > 0)
+                      // Hay combinaciones activas: muestra [-][qty 2×1][🔗]
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          IconButton(
+                            icon: const Icon(Icons.link_off, color: Colors.red, size: 18),
+                            onPressed: () => onDecrementCombination?.call(product),
+                            constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                            padding: EdgeInsets.zero,
+                            tooltip: 'Quitar combinación',
+                          ),
+                          Text(
+                            '$comboQty',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          // Agregar otra combinación
+                          ElevatedButton.icon(
+                            onPressed: onCombine != null
+                                ? () => onCombine!(product, siblings)
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[900],
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(36, 28),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            icon: const Icon(Icons.link, size: 14),
+                            label: const SizedBox.shrink(),
+                          ),
+                        ],
+                      )
+                    else
+                      // Sin combinaciones activas: botón opcional para combinar
+                      ElevatedButton.icon(
+                        onPressed: onCombine != null
+                            ? () => onCombine!(product, siblings)
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[900],
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(80, 28),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        icon: const Icon(Icons.link, size: 14),
+                        label: const Text('Combinar', style: TextStyle(fontSize: 12)),
+                      ),
+                  ],
+                ],
+              );
+            }),
+          ],
+        ),
+      ),
     );
   }
 }

@@ -30,6 +30,17 @@ class MockHomeController extends GetxController implements HomeController {
   Future<String> getBranchName() async => 'Sucursal Central';
 
   @override
+  final RxList<String> userRoles = <String>[].obs;
+
+  @override
+  final RxBool waiterViewOwnOrdersOnly = false.obs;
+
+  @override
+  Future<void> setWaiterViewOwnOrdersOnly(bool value) async {
+    waiterViewOwnOrdersOnly.value = value;
+  }
+
+  @override
   Future<void> logout() async {}
 
 }

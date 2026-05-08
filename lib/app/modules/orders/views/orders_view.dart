@@ -166,20 +166,19 @@ class OrdersView extends GetView<OrdersController> {
             return GlobalOrderCard(
               order: order,
               categories: controller.categories,
+              showCommandaButton: true,
               detailsText: 'Ver Detalles',
               onDetailsPressed: controller.currentTab.value == 0
                   ? () => _showOrderDetails(context, order)
                   : null,
               actionText: 'Agregar',
               onActionPressed: () => controller.startAddProducts(order),
-              onManageSurchargesPressed: controller.currentTab.value == 0
-                  ? () => Get.bottomSheet(
-                        ManageSurchargesSheet(order: order),
-                        isScrollControlled: true,
-                        backgroundColor: Colors.transparent,
-                        enableDrag: true,
-                      )
-                  : null,
+              onManageSurchargesPressed: () => Get.bottomSheet(
+                    ManageSurchargesSheet(order: order),
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    enableDrag: true,
+                  ),
               printTooltip: 'Imprimir pedido',
             );
           },

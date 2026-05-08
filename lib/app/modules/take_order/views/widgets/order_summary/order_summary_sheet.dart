@@ -136,16 +136,46 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
             itemBuilder: (context, index) {
               final OrderItemModel item = controller.currentOrder[index];
               final String comboDetails = _buildComboDetails(item);
+              final bool isCombinado = item.combinedWith != null;
               return ListTile(
                 title: Text(
                   '${item.productName} (x${item.quantity})',
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
-                subtitle: (comboDetails.isNotEmpty ||
+                subtitle: (isCombinado ||
+                        comboDetails.isNotEmpty ||
                         (item.comment != null && item.comment!.isNotEmpty))
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Plato acompañante de la combinacion 2x1
+                          if (isCombinado) ...[
+                            Text(
+                              '+ ${item.combinedWith!.name ?? ''}',
+                              style: TextStyle(
+                                color: Colors.blue[800],
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.blue[200]!),
+                              ),
+                              child: Text(
+                                '🔗 COMBINADO 2×1',
+                                style: TextStyle(
+                                  color: Colors.blue[900],
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ],
                           if (comboDetails.isNotEmpty)
                             Text(
                               comboDetails,
@@ -154,7 +184,16 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
                                 fontSize: 13,
                               ),
                             ),
-                          if (item.comment != null && item.comment!.isNotEmpty)
+                          if (!isCombinado && item.comment != null && item.comment!.isNotEmpty)
+                            Text(
+                              'Nota: ${item.comment}',
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          // Nota del item combinado (si fue ingresada al combinar)
+                          if (isCombinado && item.comment != null && item.comment!.isNotEmpty)
                             Text(
                               'Nota: ${item.comment}',
                               style: const TextStyle(

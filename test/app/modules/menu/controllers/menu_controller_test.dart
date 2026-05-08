@@ -46,6 +46,11 @@ class MockCategoriesRepository implements CategoriesRepository {
   Future<void> updateProduct(String id, Map<String, dynamic> data) async {}
 
   Future<void> deleteProduct(String id) async {}
+
+  @override
+  Future<CategoryModel> updateCategoryPrinter(String id, {required String? printerIp, required int? printerPort}) async {
+    return CategoryModel(id: id, name: '', subcategories: []);
+  }
 }
 
 // Sobrescribimos el onReady para no colgar el flujo de prueba

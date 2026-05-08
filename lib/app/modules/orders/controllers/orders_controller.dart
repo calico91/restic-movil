@@ -30,6 +30,11 @@ class OrdersController extends GetxController {
   final RxList<OrderModel> _allOrders = <OrderModel>[].obs;
   final RxList<OrderModel> orders = <OrderModel>[].obs;
 
+  // Filtro de pedidos por mesero
+  bool _waiterFilterEnabled = false;
+  String? _currentUserId;
+  List<String> _userRoles = [];
+
   // Tab Handling
   final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
   final RxList<OrderModel> _allFinalizedOrders = <OrderModel>[].obs;
@@ -59,6 +64,19 @@ class OrdersController extends GetxController {
     _loadStatuses();
     _connectWebSocket();
     _loadCategories();
+    _loadWaiterFilterConfig();
+  }
+
+  /*cargar configuración del filtro de pedidos por mesero*/
+  Future<void> _loadWaiterFilterConfig() async {
+    final user = await _storageService.getUser();
+    if (user == null) return;
+    _currentUserId = user.id;
+    _userRoles = user.roles ?? [];
+    final branchId = await _storageService.getBranchId();
+    final branch = user.branches?.firstWhereOrNull((b) => b.id == branchId);
+    _waiterFilterEnabled = branch?.waiterViewOwnOrdersOnly ?? false;
+    await _storageService.saveWaiterViewOwnOrdersOnly(_waiterFilterEnabled);
   }
 
   /*conectar al websocket */
@@ -279,19 +297,29 @@ class OrdersController extends GetxController {
     );
   }
 
-  /*filtrar pedidos por mesa o cliente*/
+  /*filtrar pedidos por mesa o cliente, y por mesero si el filtro está activo*/
   void _filterOrders() {
     final query = searchController.text.toLowerCase();
 
     // Determinar qué lista filtrar basada en el tab actual
-    final sourceList = currentTab.value == 0 ? _allOrders : _allFinalizedOrders;
+    final List<OrderModel> sourceList =
+        currentTab.value == 0 ? _allOrders : _allFinalizedOrders;
     final targetList = currentTab.value == 0 ? orders : finalizedOrders;
 
+    // Aplicar filtro por mesero: solo si está habilitado y el usuario es MESERO
+    List<OrderModel> filtered = _waiterFilterEnabled &&
+            _userRoles.contains('MESERO') &&
+            !_userRoles.any((r) => r == 'SUPER' || r == 'ADMINISTRADOR')
+        ? sourceList
+            .where((o) => o.createdBy?.id == _currentUserId)
+            .toList()
+        : sourceList.toList();
+
     if (query.isEmpty) {
-      targetList.assignAll(sourceList);
+      targetList.assignAll(filtered);
     } else {
       targetList.assignAll(
-        sourceList.where((order) {
+        filtered.where((order) {
           final tableNames =
               order.tables?.map((t) => t.name?.toLowerCase() ?? '').toList() ??
               [];
@@ -308,6 +336,12 @@ class OrdersController extends GetxController {
         }).toList(),
       );
     }
+  }
+
+  /* Actualizar configuración del filtro de mesero en caliente */
+  void updateWaiterFilter(bool enabled) {
+    _waiterFilterEnabled = enabled;
+    _filterOrders();
   }
 
   /* Cargar categorias */
@@ -414,6 +448,83 @@ class OrdersController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
+  /* Agregar una combinación 2x1: el más caro se registra con el acompañante */
+  void addTempCombination(ProductModel p1, ProductModel p2, String? comment) {
+    final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
+    final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
+    final ProductModel expensive = price1 >= price2 ? p1 : p2;
+    final ProductModel cheap = price1 >= price2 ? p2 : p1;
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
+
+    // Solo agrupar si no tiene comentario; combinaciones con nota se tratan como ítems únicos
+    final int index = normalizedComment == null
+        ? tempAdditionalOrderItems.indexWhere(
+            (item) =>
+                item.combinedWith != null &&
+                item.product.id == expensive.id &&
+                item.combinedWith!.id == cheap.id &&
+                item.comment == null,
+          )
+        : -1;
+
+    if (index != -1) {
+      tempAdditionalOrderItems[index].quantity++;
+      tempAdditionalOrderItems.refresh();
+    } else {
+      tempAdditionalOrderItems.add(
+        OrderItemModel(
+          product: expensive,
+          quantity: 1,
+          combinedWith: cheap,
+          comment: normalizedComment,
+        ),
+      );
+    }
+
+    if (Get.isDialogOpen ?? false) Get.back();
+  }
+
+  /* Decrementar o eliminar una combinación temporal que incluya el producto indicado */
+  void decrementTempCombination(ProductModel product) {
+    final int index = tempAdditionalOrderItems.lastIndexWhere(
+      (item) => item.combinedWith != null && item.product.id == product.id,
+    );
+    if (index != -1) {
+      if (tempAdditionalOrderItems[index].quantity > 1) {
+        tempAdditionalOrderItems[index].quantity--;
+        tempAdditionalOrderItems.refresh();
+      } else {
+        tempAdditionalOrderItems.removeAt(index);
+      }
+    }
+  }
+
+  /* Obtener cantidad total de combinaciones activas donde el producto es el más caro */
+  int getTempCombinationQuantity(ProductModel product) {
+    return tempAdditionalOrderItems
+        .where((item) => item.combinedWith != null && item.product.id == product.id)
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  /* Obtener productos COMBINADO del mismo subcategoryId, excluyendo el producto actual */
+  List<ProductModel> getCombinadoSiblings(ProductModel product) {
+    final List<ProductModel> siblings = [];
+    for (final CategoryModel category in categories) {
+      for (final subcategory in category.subcategories ?? []) {
+        for (final ProductModel p in subcategory.products ?? []) {
+          if (p.productType == 'COMBINADO' &&
+              p.subcategoryId == product.subcategoryId &&
+              p.id != product.id) {
+            siblings.add(p);
+          }
+        }
+      }
+    }
+    return siblings;
+  }
+
   /* Confirmar adición de productos al pedido */
   Future<void> confirmAddProducts(OrderModel order) async {
     if (tempAdditionalOrderItems.isEmpty) return;
@@ -421,12 +532,22 @@ class OrdersController extends GetxController {
     final List<OrderItemModel> addedItems = tempAdditionalOrderItems.toList();
 
     final itemsToAdd = addedItems.map((item) {
+      // Para COMBINADO combinado: el nombre y observaciones reflejan ambos platos
+      final String productName = item.combinedWith != null
+          ? '${item.productName} + ${item.combinedWith!.name ?? ""}'
+          : item.productName;
+      final String observations = item.combinedWith != null
+          ? (item.comment != null && item.comment!.isNotEmpty
+              ? 'COMBINADO: ${item.combinedWith!.name ?? ""} | ${item.comment}'
+              : 'COMBINADO: ${item.combinedWith!.name ?? ""}')
+          : (item.comment ?? '');
+
       final detail = {
         'productId': item.product.id,
-        'productName': item.productName,
+        'productName': productName,
         'quantity': item.quantity,
         'selectedPriceId': item.selectedPrice?.id,
-        'observations': item.comment ?? '',
+        'observations': observations,
       };
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {

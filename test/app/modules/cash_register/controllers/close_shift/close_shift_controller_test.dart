@@ -163,6 +163,12 @@ class MockStorageService extends GetxService implements StorageService {
 
   @override
   Future<String?> getConnectionType() async => null;
+
+  @override
+  Future<bool> getWaiterViewOwnOrdersOnly() async => false;
+
+  @override
+  Future<void> saveWaiterViewOwnOrdersOnly(bool value) async {}
 }
 
 void main() {

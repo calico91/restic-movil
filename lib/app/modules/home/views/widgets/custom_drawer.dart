@@ -97,8 +97,11 @@ class CustomDrawer extends GetView<HomeController> {
                   final hasFiscal = controller.modules.contains(
                     'CONFIGURACION_DATOS_FISCALES',
                   );
+                  final isAdminOrSuper =
+                      controller.userRoles.contains('ADMINISTRADOR') ||
+                      controller.userRoles.contains('SUPER');
 
-                  if (!hasPrinter && !hasFiscal) {
+                  if (!hasPrinter && !hasFiscal && !isAdminOrSuper) {
                     return const SizedBox.shrink();
                   }
 
@@ -115,6 +118,23 @@ class CustomDrawer extends GetView<HomeController> {
                         _buildDrawerSubItem(
                           title: 'Datos Fiscales',
                           onTap: () => Get.toNamed(Routes.FISCAL_DATA),
+                        ),
+                      if (isAdminOrSuper)
+                        Obx(
+                          () => SwitchListTile(
+                            contentPadding: const EdgeInsets.only(left: 56.0, right: 16.0),
+                            title: const Text(
+                              'Solo ver mis pedidos (meseros)',
+                              style: TextStyle(
+                                color: Colors.black87,
+                                fontWeight: FontWeight.w400,
+                                fontSize: 14,
+                              ),
+                            ),
+                            value: controller.waiterViewOwnOrdersOnly.value,
+                            onChanged: (val) =>
+                                controller.setWaiterViewOwnOrdersOnly(val),
+                          ),
                         ),
                     ],
                   );
