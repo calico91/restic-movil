@@ -8,6 +8,8 @@ class OrderItemModel {
   String? comment;
   List<Map<String, String>>? comboSelections;
   double additionalPrice;
+  // Para productos COMBINADO: el plato acompañante (el de menor precio)
+  final ProductModel? combinedWith;
 
   OrderItemModel({
     required this.product,
@@ -16,6 +18,7 @@ class OrderItemModel {
     this.comment,
     this.comboSelections,
     this.additionalPrice = 0,
+    this.combinedWith,
   });
 
   String get productName => product.productType == 'VARIABLE' && selectedPrice?.sizeLabel != null

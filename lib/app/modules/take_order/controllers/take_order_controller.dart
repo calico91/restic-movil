@@ -340,6 +340,81 @@ class TakeOrderController extends GetxController {
         .where((item) => item.product.id == product.id && item.selectedPrice?.id == price?.id)
         .fold(0, (sum, item) => sum + item.quantity);
   }
+
+  /*agregar una combinacion 2x1: determina el producto mas caro y lo registra con el acompañante*/
+  void addCombination(ProductModel p1, ProductModel p2) {
+    // Determinar cuál es el producto más caro (el que se cobra)
+    final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
+    final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
+    final ProductModel expensive = price1 >= price2 ? p1 : p2;
+    final ProductModel cheap = price1 >= price2 ? p2 : p1;
+
+    // Buscar si ya existe la misma combinación
+    final int index = currentOrder.indexWhere(
+      (item) =>
+          item.combinedWith != null &&
+          item.product.id == expensive.id &&
+          item.combinedWith!.id == cheap.id,
+    );
+
+    if (index != -1) {
+      currentOrder[index].quantity++;
+      currentOrder.refresh();
+    } else {
+      currentOrder.add(
+        OrderItemModel(
+          product: expensive,
+          quantity: 1,
+          combinedWith: cheap,
+        ),
+      );
+    }
+
+    if (Get.isDialogOpen ?? false) {
+      Get.back();
+    }
+  }
+
+  /*decrementar o eliminar una combinacion que incluya el producto indicado*/
+  void decrementCombination(ProductModel product) {
+    // Buscar la última combinación donde este producto es el expensive
+    final int index = currentOrder.lastIndexWhere(
+      (item) => item.combinedWith != null && item.product.id == product.id,
+    );
+
+    if (index != -1) {
+      if (currentOrder[index].quantity > 1) {
+        currentOrder[index].quantity--;
+        currentOrder.refresh();
+      } else {
+        currentOrder.removeAt(index);
+      }
+    }
+  }
+
+  /*obtener la cantidad total de combinaciones activas donde el producto es el expensive*/
+  int getCombinationQuantity(ProductModel product) {
+    return currentOrder
+        .where((item) => item.combinedWith != null && item.product.id == product.id)
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  /*obtener los productos COMBINADO del mismo subcategoryId, excluyendo el producto actual*/
+  List<ProductModel> getCombinadoSiblings(ProductModel product) {
+    final List<ProductModel> siblings = [];
+    for (final CategoryModel category in categories) {
+      for (final subcategory in category.subcategories ?? []) {
+        for (final ProductModel p in subcategory.products ?? []) {
+          if (p.productType == 'COMBINADO' &&
+              p.subcategoryId == product.subcategoryId &&
+              p.id != product.id) {
+            siblings.add(p);
+          }
+        }
+      }
+    }
+    return siblings;
+  }
   // Agregar recargo al pedido
   void addSurcharge(String description, double amount) {
     surcharges.add(OrderSurchargeModel(description: description, amount: amount));
@@ -380,12 +455,20 @@ class TakeOrderController extends GetxController {
 
     final Map<String, dynamic> orderData = {
       "details": currentOrder.map((item) {
+        // Para COMBINADO: el nombre y las observaciones reflejan ambos platos
+        final String productName = item.combinedWith != null
+            ? '${item.productName} + ${item.combinedWith!.name ?? ""}'
+            : item.productName;
+        final String observations = item.combinedWith != null
+            ? 'COMBINADO: ${item.combinedWith!.name ?? ""}'
+            : (item.comment ?? '');
+
         final detail = {
           "productId": item.product.id,
           "selectedPriceId": item.selectedPrice?.id,
-          "productName": item.productName,
+          "productName": productName,
           "quantity": item.quantity,
-          "observations": item.comment ?? "",
+          "observations": observations,
         };
 
         if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {

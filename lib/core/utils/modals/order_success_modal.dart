@@ -122,10 +122,16 @@ class OrderSuccessModal extends StatelessWidget {
 
       return OrderDetailModel(
         productId: item.product.id,
-        productName: item.productName,
+        // Para COMBINADO: el nombre refleja ambos platos
+        productName: item.combinedWith != null
+            ? '${item.productName} + ${item.combinedWith!.name ?? ''}'
+            : item.productName,
         productType: item.product.productType,
         quantity: item.quantity,
-        observations: item.comment,
+        // Para COMBINADO: observations indica el plato acompañante
+        observations: item.combinedWith != null
+            ? 'COMBINADO: ${item.combinedWith!.name ?? ''}'
+            : item.comment,
         sizeLabel: item.selectedPrice?.sizeLabel,
         comboSelections: combos,
       );

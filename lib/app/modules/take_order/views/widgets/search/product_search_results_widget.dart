@@ -10,12 +10,19 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
   final void Function(ProductModel, PriceModel?) onIncrement;
   final void Function(ProductModel, PriceModel?) onDecrement;
   final void Function(ProductModel, PriceModel?) onEdit;
+  // Callbacks opcionales para la funcionalidad de combinación 2×1
+  final void Function(ProductModel, List<ProductModel>)? onCombine;
+  final void Function(ProductModel)? onDecrementCombination;
+  final int Function(ProductModel)? getCombinationQuantity;
 
   const ProductSearchResultsWidget({
     super.key,
     required this.onIncrement,
     required this.onDecrement,
     required this.onEdit,
+    this.onCombine,
+    this.onDecrementCombination,
+    this.getCombinationQuantity,
   });
 
   @override
@@ -66,6 +73,20 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                 (product.prices?.isNotEmpty ?? false)
                     ? product.prices!.first
                     : null;
+
+            // COMBINADO: misma fila que el resto pero con botón opcional de combinación
+            if (product.productType == 'COMBINADO') {
+              final List<ProductModel> siblings =
+                  controller.getCombinadoSiblings(product);
+              return _buildCombinadoRow(
+                context,
+                product,
+                price,
+                categoryName,
+                subcategoryName,
+                siblings,
+              );
+            }
 
             return _buildSingleRow(
               context,
@@ -336,5 +357,211 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
         ),
       ),
     );
+  }
+
+  /// Fila para producto COMBINADO: controles individuales estándar + botón opcional de combinación 2×1.
+  Widget _buildCombinadoRow(
+    BuildContext context,
+    ProductModel product,
+    PriceModel? price,
+    String categoryName,
+    String? subcategoryName,
+    List<ProductModel> siblings,
+  ) {
+    return Obx(() {
+      final int quantity = controller.getProductQuantity(product, price);
+      final int comboQty = getCombinationQuantity?.call(product) ?? 0;
+
+      return Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: Colors.grey[200]!, width: 1),
+          ),
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Nombre, descripción, precio y chip COMBINADO
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      subcategoryName != null
+                          ? '$categoryName › $subcategoryName'
+                          : categoryName,
+                      style: TextStyle(
+                        fontSize: 11,
+                        color: Colors.grey[500],
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      product.name ?? '',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (product.description != null &&
+                        product.description!.isNotEmpty)
+                      Text(
+                        product.description!,
+                        style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                      ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Text(
+                          '\$${price?.amount?.toStringAsFixed(0) ?? '0'}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        // Chip identificador de tipo COMBINADO
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 6,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[900],
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Text(
+                            '2×1',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              // Controles: estándar (individual) + combinación opcional
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  // Controles estándar de producto individual
+                  Row(
+                    children: [
+                      if (quantity > 0) ...[
+                        IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            color: Colors.red,
+                          ),
+                          onPressed: () => onDecrement(product, price),
+                        ),
+                        GestureDetector(
+                          onTap: () => onEdit(product, price),
+                          child: Text(
+                            '$quantity',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                      IconButton(
+                        icon: Icon(
+                          Icons.add_circle_outline,
+                          color: Colors.blue[900],
+                        ),
+                        onPressed: () => onIncrement(product, price),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.edit_note, color: Colors.orange),
+                        tooltip: 'Agregar con comentario',
+                        onPressed: () => onEdit(product, price),
+                      ),
+                    ],
+                  ),
+                  // Botón opcional de combinación 2×1 (solo si hay hermanos)
+                  if (siblings.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    if (comboQty > 0)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Decrementar una combinación activa
+                          IconButton(
+                            icon: const Icon(
+                              Icons.link_off,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                            onPressed: () =>
+                                onDecrementCombination?.call(product),
+                            constraints: const BoxConstraints(
+                              minWidth: 32,
+                              minHeight: 32,
+                            ),
+                            padding: EdgeInsets.zero,
+                            tooltip: 'Quitar combinación',
+                          ),
+                          Text(
+                            '$comboQty 2×1',
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          // Agregar otra combinación
+                          ElevatedButton.icon(
+                            onPressed: onCombine != null
+                                ? () => onCombine!(product, siblings)
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue[900],
+                              foregroundColor: Colors.white,
+                              minimumSize: const Size(36, 28),
+                              padding: const EdgeInsets.symmetric(horizontal: 8),
+                            ),
+                            icon: const Icon(Icons.link, size: 14),
+                            label: const SizedBox.shrink(),
+                          ),
+                        ],
+                      )
+                    else
+                      // Sin combinaciones activas: botón para combinar opcionalmente
+                      ElevatedButton.icon(
+                        onPressed: onCombine != null
+                            ? () => onCombine!(product, siblings)
+                            : null,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[900],
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(80, 28),
+                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                        ),
+                        icon: const Icon(Icons.link, size: 14),
+                        label: const Text(
+                          '2×1',
+                          style: TextStyle(fontSize: 12),
+                        ),
+                      ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+      );
+    });
   }
 }
