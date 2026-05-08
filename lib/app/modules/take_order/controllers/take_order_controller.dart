@@ -11,6 +11,7 @@ import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/customer_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/repositories/tables_repository.dart';
+import 'package:restic_movil/core/utils/modals/modal_warning.dart';
 import 'package:restic_movil/core/utils/modals/order_success_modal.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
@@ -438,8 +439,26 @@ class TakeOrderController extends GetxController {
     currentOrder.remove(item);
   }
 
+  /* Vuelve atrás; si hay productos en el pedido, solicita confirmación al usuario */
   void goBack() {
-    Get.back();
+    if (currentOrder.isEmpty) {
+      Get.back();
+      return;
+    }
+    Get.dialog(
+      ModalWarning(
+        title: 'Salir sin completar',
+        message: 'Tienes productos agregados al pedido. ¿Deseas salir y perder los cambios?',
+        icon: Icons.shopping_cart_outlined,
+        iconColor: Colors.orange,
+        buttonText: 'Cancelar',
+        secondaryButtonText: 'Salir',
+        onSecondaryAction: () {
+          Get.back(); // cierra el dialog
+          Get.back(); // regresa a la pantalla anterior
+        },
+      ),
+    );
   }
 
   /*crear nuevo pedido*/
