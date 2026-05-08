@@ -5,10 +5,13 @@ import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/buttons/card_buttons.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 import 'package:restic_movil/core/utils/printers/tickets/58mm/order_ticket_58mm.dart';
 import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/58mm/precount_ticket_58mm.dart';
+import 'package:restic_movil/core/utils/printers/tickets/80mm/precount_ticket_80mm.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
@@ -25,6 +28,7 @@ class GlobalOrderCard extends StatelessWidget {
   final String printTooltip;
   final VoidCallback? onCancelPressed;
   final bool showPrintButton;
+  final bool showCommandaButton;
   // Categorias con configuracion de impresora para enrutamiento multi-printer
   final List<CategoryModel>? categories;
 
@@ -40,6 +44,7 @@ class GlobalOrderCard extends StatelessWidget {
     this.printTooltip = 'Imprimir pedido',
     this.onCancelPressed,
     this.showPrintButton = true,
+    this.showCommandaButton = false,
     this.categories,
   });
 
@@ -121,48 +126,118 @@ class GlobalOrderCard extends StatelessWidget {
                     final printerService = Get.find<PrinterService>();
                     final isConnected = printerService.isConnected.value ||
                         printerService.isNetworkConnected.value;
-                    return ActionIconButton(
-                      icon: Icons.print,
-                      color: isConnected ? Colors.green : Colors.red,
-                      size: 24,
-                      tooltip: isConnected
-                          ? printTooltip
-                          : 'Impresora no conectada',
-                      onPressed: isConnected
-                          ? () {
-                              Get.showSnackbar(
-                                const InfoSnackbar('Enviando a imprimir...'),
-                              );
-                              if (onPrintCustomAction != null) {
-                                onPrintCustomAction!();
-                              } else {
-                                final bool is80mm = printerService.printerSize.value == '80mm';
-                                final List<OrderDetailModel>? details = order.details;
-                                final List<CategoryModel>? cats = categories;
-                                // Usar multi-printer si hay categorias con IP configurada y detalles disponibles
-                                if (cats != null && cats.isNotEmpty && details != null && details.isNotEmpty) {
-                                  printerService.printComandaMultiPrinterFromDetails(
-                                    order: order,
-                                    details: details,
-                                    categories: cats,
-                                    ticketBuilder: (o, filteredDetails) => is80mm
-                                        ? OrderTicket80mm(order: o, filteredDetails: filteredDetails)
-                                        : OrderTicket58mm(order: o, filteredDetails: filteredDetails),
+
+                    // Imprime la comanda de cocina
+                    void printComanda() {
+                      Get.showSnackbar(
+                        const InfoSnackbar('Enviando comanda a imprimir...'),
+                      );
+                      if (onPrintCustomAction != null) {
+                        onPrintCustomAction!();
+                      } else {
+                        final bool is80mm =
+                            printerService.printerSize.value == '80mm';
+                        final List<OrderDetailModel>? details = order.details;
+                        final List<CategoryModel>? cats = categories;
+                        if (cats != null &&
+                            cats.isNotEmpty &&
+                            details != null &&
+                            details.isNotEmpty) {
+                          printerService.printComandaMultiPrinterFromDetails(
+                            order: order,
+                            details: details,
+                            categories: cats,
+                            ticketBuilder: (o, filteredDetails) => is80mm
+                                ? OrderTicket80mm(
+                                    order: o,
+                                    filteredDetails: filteredDetails,
+                                  )
+                                : OrderTicket58mm(
+                                    order: o,
+                                    filteredDetails: filteredDetails,
+                                  ),
+                          );
+                        } else {
+                          printerService.printTicket(
+                            is80mm
+                                ? OrderTicket80mm(order: order)
+                                : OrderTicket58mm(order: order),
+                          );
+                        }
+                      }
+                    }
+
+                    // Imprime la precuenta con el porcentaje de propina guardado
+                    Future<void> printPrecount() async {
+                      final storageService = Get.find<StorageService>();
+                      final tipStr =
+                          await storageService.getDefaultTipPercentage() ?? '0';
+                      final double tip = double.tryParse(tipStr) ?? 0.0;
+                      final bool is80mm =
+                          printerService.printerSize.value == '80mm';
+                      printerService.printTicket(
+                        is80mm
+                            ? PrecountTicket80mm(
+                                order: order,
+                                tipPercentage: tip,
+                              )
+                            : PrecountTicket58mm(
+                                order: order,
+                                tipPercentage: tip,
+                              ),
+                      );
+                    }
+
+                    return Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Botón de imprimir comanda de cocina (solo si showCommandaButton)
+                        if (showCommandaButton) ...[
+                          ActionIconButton(
+                            icon: Icons.kitchen,
+                            color: isConnected ? Colors.green : Colors.red,
+                            size: 24,
+                            tooltip: isConnected
+                                ? 'Imprimir comanda'
+                                : 'Impresora no conectada',
+                            onPressed: isConnected
+                                ? printComanda
+                                : () => Get.showSnackbar(
+                                      const ErrorSnackbar(
+                                        'Impresora no conectada',
+                                      ),
+                                    ),
+                            constraints: const BoxConstraints(),
+                            padding: EdgeInsets.zero,
+                          ),
+                          const SizedBox(width: 4),
+                        ],
+                        // Botón de imprimir precuenta
+                        ActionIconButton(
+                          icon: Icons.receipt_long,
+                          color: isConnected ? Colors.orange : Colors.red,
+                          size: 24,
+                          tooltip: isConnected
+                              ? 'Imprimir precuenta'
+                              : 'Impresora no conectada',
+                          onPressed: isConnected
+                              ? () {
+                                  Get.showSnackbar(
+                                    const InfoSnackbar(
+                                      'Enviando precuenta a imprimir...',
+                                    ),
                                   );
-                                } else {
-                                  printerService.printTicket(
-                                    is80mm ? OrderTicket80mm(order: order) : OrderTicket58mm(order: order),
-                                  );
+                                  printPrecount();
                                 }
-                              }
-                            }
-                          : () {
-                              Get.showSnackbar(
-                                const ErrorSnackbar('Impresora no conectada'),
-                              );
-                            },
-                      constraints: const BoxConstraints(),
-                      padding: EdgeInsets.zero,
+                              : () => Get.showSnackbar(
+                                    const ErrorSnackbar(
+                                      'Impresora no conectada',
+                                    ),
+                                  ),
+                          constraints: const BoxConstraints(),
+                          padding: EdgeInsets.zero,
+                        ),
+                      ],
                     );
                   }),
                 if (onCancelPressed != null) ...[
