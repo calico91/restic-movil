@@ -56,9 +56,12 @@ class AddedItemsTicket58mm implements PrintableTicket {
         }
       }
 
-      // Mostrar [COMBINADO] solo cuando hay acompañante real; si no, la nota normal
+      // Mostrar [COMBINADO] solo cuando hay acompañante real + nota si la hay
       if (item.combinedWith != null) {
         printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
+        if (item.comment != null && item.comment!.isNotEmpty) {
+          printer.printCustom('    [Nota: ${item.comment}]'.withoutDiacritics, 1, 0);
+        }
       } else if (item.comment != null && item.comment!.trim().isNotEmpty) {
         printer.printCustom('    [Nota: ${item.comment}]'.withoutDiacritics, 1, 0);
       }

@@ -415,25 +415,37 @@ class OrdersController extends GetxController {
   }
 
   /* Agregar una combinación 2x1: el más caro se registra con el acompañante */
-  void addTempCombination(ProductModel p1, ProductModel p2) {
+  void addTempCombination(ProductModel p1, ProductModel p2, String? comment) {
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
     final ProductModel expensive = price1 >= price2 ? p1 : p2;
     final ProductModel cheap = price1 >= price2 ? p2 : p1;
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
 
-    final int index = tempAdditionalOrderItems.indexWhere(
-      (item) =>
-          item.combinedWith != null &&
-          item.product.id == expensive.id &&
-          item.combinedWith!.id == cheap.id,
-    );
+    // Solo agrupar si no tiene comentario; combinaciones con nota se tratan como ítems únicos
+    final int index = normalizedComment == null
+        ? tempAdditionalOrderItems.indexWhere(
+            (item) =>
+                item.combinedWith != null &&
+                item.product.id == expensive.id &&
+                item.combinedWith!.id == cheap.id &&
+                item.comment == null,
+          )
+        : -1;
 
     if (index != -1) {
       tempAdditionalOrderItems[index].quantity++;
       tempAdditionalOrderItems.refresh();
     } else {
       tempAdditionalOrderItems.add(
-        OrderItemModel(product: expensive, quantity: 1, combinedWith: cheap),
+        OrderItemModel(
+          product: expensive,
+          quantity: 1,
+          combinedWith: cheap,
+          comment: normalizedComment,
+        ),
       );
     }
 
@@ -491,7 +503,9 @@ class OrdersController extends GetxController {
           ? '${item.productName} + ${item.combinedWith!.name ?? ""}'
           : item.productName;
       final String observations = item.combinedWith != null
-          ? 'COMBINADO: ${item.combinedWith!.name ?? ""}'
+          ? (item.comment != null && item.comment!.isNotEmpty
+              ? 'COMBINADO: ${item.combinedWith!.name ?? ""} | ${item.comment}'
+              : 'COMBINADO: ${item.combinedWith!.name ?? ""}')
           : (item.comment ?? '');
 
       final detail = {

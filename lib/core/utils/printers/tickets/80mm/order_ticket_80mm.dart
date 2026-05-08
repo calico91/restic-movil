@@ -79,16 +79,26 @@ class OrderTicket80mm implements PrintableTicket {
           );
         }
       }
-      // Extraer el nombre del acompañante desde observations.
+      // Para COMBINADO: extraer acompañante y nota opcional del campo observations.
+      // Formato: "COMBINADO: Nombre" o "COMBINADO: Nombre | nota del usuario"
       // Solo se muestra [COMBINADO] cuando hay un nombre real después del prefijo.
-      // Si el plato es de tipo COMBINADO pero no fue combinado, observations es null/vacío.
-      final String companion = (item.observations != null &&
+      final String _afterPrefix = (item.observations != null &&
               item.observations!.startsWith('COMBINADO: '))
-          ? item.observations!.substring('COMBINADO: '.length).trim()
+          ? item.observations!.substring('COMBINADO: '.length)
+          : '';
+      final int _sepIdx = _afterPrefix.indexOf(' | ');
+      final String companion = _sepIdx >= 0
+          ? _afterPrefix.substring(0, _sepIdx).trim()
+          : _afterPrefix.trim();
+      final String comboNote = _sepIdx >= 0
+          ? _afterPrefix.substring(_sepIdx + 3).trim()
           : '';
 
       if (companion.isNotEmpty) {
         printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
+        if (comboNote.isNotEmpty) {
+          printer.printCustom('    [Nota: $comboNote]'.withoutDiacritics, 1, 0);
+        }
       } else if (item.observations != null && item.observations!.trim().isNotEmpty) {
         printer.printCustom('    [Nota: ${item.observations}]'.withoutDiacritics, 1, 0);
       }

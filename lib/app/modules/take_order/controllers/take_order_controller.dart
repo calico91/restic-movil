@@ -342,20 +342,26 @@ class TakeOrderController extends GetxController {
   }
 
   /*agregar una combinacion 2x1: determina el producto mas caro y lo registra con el acompañante*/
-  void addCombination(ProductModel p1, ProductModel p2) {
+  void addCombination(ProductModel p1, ProductModel p2, String? comment) {
     // Determinar cuál es el producto más caro (el que se cobra)
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
     final ProductModel expensive = price1 >= price2 ? p1 : p2;
     final ProductModel cheap = price1 >= price2 ? p2 : p1;
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
 
-    // Buscar si ya existe la misma combinación
-    final int index = currentOrder.indexWhere(
-      (item) =>
-          item.combinedWith != null &&
-          item.product.id == expensive.id &&
-          item.combinedWith!.id == cheap.id,
-    );
+    // Solo agrupar si no tiene comentario; combinaciones con nota se tratan como ítems únicos
+    final int index = normalizedComment == null
+        ? currentOrder.indexWhere(
+            (item) =>
+                item.combinedWith != null &&
+                item.product.id == expensive.id &&
+                item.combinedWith!.id == cheap.id &&
+                item.comment == null,
+          )
+        : -1;
 
     if (index != -1) {
       currentOrder[index].quantity++;
@@ -366,6 +372,7 @@ class TakeOrderController extends GetxController {
           product: expensive,
           quantity: 1,
           combinedWith: cheap,
+          comment: normalizedComment,
         ),
       );
     }
@@ -460,7 +467,9 @@ class TakeOrderController extends GetxController {
             ? '${item.productName} + ${item.combinedWith!.name ?? ""}'
             : item.productName;
         final String observations = item.combinedWith != null
-            ? 'COMBINADO: ${item.combinedWith!.name ?? ""}'
+            ? (item.comment != null && item.comment!.isNotEmpty
+                ? 'COMBINADO: ${item.combinedWith!.name ?? ""} | ${item.comment}'
+                : 'COMBINADO: ${item.combinedWith!.name ?? ""}')
             : (item.comment ?? '');
 
         final detail = {

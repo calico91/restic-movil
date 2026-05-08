@@ -128,9 +128,11 @@ class OrderSuccessModal extends StatelessWidget {
             : item.productName,
         productType: item.product.productType,
         quantity: item.quantity,
-        // Para COMBINADO: observations indica el plato acompañante
+        // Para COMBINADO: observations incluye acompañante y nota opcional
         observations: item.combinedWith != null
-            ? 'COMBINADO: ${item.combinedWith!.name ?? ''}'
+            ? (item.comment != null && item.comment!.isNotEmpty
+                ? 'COMBINADO: ${item.combinedWith!.name ?? ''} | ${item.comment}'
+                : 'COMBINADO: ${item.combinedWith!.name ?? ''}')
             : item.comment,
         sizeLabel: item.selectedPrice?.sizeLabel,
         comboSelections: combos,

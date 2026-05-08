@@ -4,10 +4,11 @@ import 'package:restic_movil/app/data/models/product_model.dart';
 
 // Diálogo para seleccionar el plato acompañante de una combinación 2x1 COMBINADO.
 // Muestra una lista de productos del mismo grupo con su precio y un preview del costo final.
+// Permite agregar un comentario opcional a la combinación.
 class CombinationSelectionDialog extends StatefulWidget {
   final ProductModel product;
   final List<ProductModel> siblings;
-  final void Function(ProductModel, ProductModel) onConfirm;
+  final void Function(ProductModel, ProductModel, String?) onConfirm;
 
   const CombinationSelectionDialog({
     super.key,
@@ -22,6 +23,13 @@ class CombinationSelectionDialog extends StatefulWidget {
 
 class _CombinationSelectionDialogState extends State<CombinationSelectionDialog> {
   ProductModel? _selected;
+  final TextEditingController _commentController = TextEditingController();
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
 
   // Obtiene el precio de un producto (primer precio disponible)
   double _priceOf(ProductModel p) =>
@@ -135,6 +143,25 @@ class _CombinationSelectionDialogState extends State<CombinationSelectionDialog>
                 ),
               ),
             ],
+            // Campo de comentario opcional
+            const SizedBox(height: 12),
+            TextField(
+              controller: _commentController,
+              decoration: InputDecoration(
+                labelText: 'Comentario (opcional)',
+                hintText: 'Ej: Sin picante, término medio...',
+                prefixIcon: const Icon(Icons.edit_note, color: Colors.orange),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+              maxLines: 2,
+              textCapitalization: TextCapitalization.sentences,
+            ),
           ],
         ),
       ),
@@ -146,7 +173,12 @@ class _CombinationSelectionDialogState extends State<CombinationSelectionDialog>
         ElevatedButton(
           onPressed: _selected == null
               ? null
-              : () => widget.onConfirm(widget.product, _selected!),
+              : () {
+                  final String? comment = _commentController.text.trim().isEmpty
+                      ? null
+                      : _commentController.text.trim();
+                  widget.onConfirm(widget.product, _selected!, comment);
+                },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue[900],
             foregroundColor: Colors.white,

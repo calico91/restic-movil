@@ -346,23 +346,7 @@ class ProductSelectionWidget extends StatelessWidget {
                           fontSize: 14,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Chip identificador de tipo COMBINADO
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: Colors.blue[900],
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: const Text(
-                          '2×1 COMBINADO',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
+
                     ],
                   ),
                 ],
@@ -432,7 +416,7 @@ class ProductSelectionWidget extends StatelessWidget {
                             tooltip: 'Quitar combinación',
                           ),
                           Text(
-                            '$comboQty 2×1',
+                            '$comboQty',
                             style: const TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
@@ -469,7 +453,7 @@ class ProductSelectionWidget extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                         ),
                         icon: const Icon(Icons.link, size: 14),
-                        label: const Text('2×1', style: TextStyle(fontSize: 12)),
+                        label: const Text('Combinar', style: TextStyle(fontSize: 12)),
                       ),
                   ],
                 ],

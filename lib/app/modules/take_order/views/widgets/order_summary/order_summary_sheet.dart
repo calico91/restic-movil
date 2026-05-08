@@ -192,6 +192,15 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
                                 color: Colors.grey,
                               ),
                             ),
+                          // Nota del item combinado (si fue ingresada al combinar)
+                          if (isCombinado && item.comment != null && item.comment!.isNotEmpty)
+                            Text(
+                              'Nota: ${item.comment}',
+                              style: const TextStyle(
+                                fontStyle: FontStyle.italic,
+                                color: Colors.grey,
+                              ),
+                            ),
                         ],
                       )
                     : null,
