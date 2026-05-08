@@ -47,14 +47,23 @@ class LoginResponse {
 class Branch {
   final String? id;
   final String? name;
+  final bool waiterViewOwnOrdersOnly;
 
-  Branch({this.id, this.name});
+  Branch({this.id, this.name, this.waiterViewOwnOrdersOnly = false});
 
   factory Branch.fromJson(Map<String, dynamic> json) {
-    return Branch(id: json['id'], name: json['name']);
+    return Branch(
+      id: json['id'],
+      name: json['name'],
+      waiterViewOwnOrdersOnly: json['waiterViewOwnOrdersOnly'] ?? false,
+    );
   }
 
   Map<String, dynamic> toJson() {
-    return {'id': id, 'name': name};
+    return {
+      'id': id,
+      'name': name,
+      'waiterViewOwnOrdersOnly': waiterViewOwnOrdersOnly,
+    };
   }
 }

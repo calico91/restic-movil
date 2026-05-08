@@ -220,4 +220,14 @@ class StorageService extends GetxService {
   Future<void> deleteDefaultCustomer() async {
     await _storage.delete(key: 'default_customer');
   }
+
+  // --------------- Filtro de pedidos por mesero ---------------
+
+  Future<void> saveWaiterViewOwnOrdersOnly(bool value) async {
+    await _storage.write(key: 'waiter_view_own_orders_only', value: value.toString());
+  }
+
+  Future<bool> getWaiterViewOwnOrdersOnly() async {
+    return (await _storage.read(key: 'waiter_view_own_orders_only')) == 'true';
+  }
 }

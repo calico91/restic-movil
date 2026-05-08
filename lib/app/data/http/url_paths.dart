@@ -92,4 +92,8 @@ class UrlPaths {
   static const String getSalesReport = 'reports/sales';
   static const String getSalesReportByDateTime = 'reports/sales/datetime';
   static const String getSalesReportByShift = 'reports/sales/shift';
+
+  // Branches
+  static const String updateBranch = 'branches'; // put /{id}
+  static const String updateBranchWaiterFilter = 'branches'; // patch /{id}/waiter-filter
 }
