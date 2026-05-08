@@ -37,21 +37,32 @@ class CategoryPrinterResolver {
   }
 
   /// Agrupa [OrderDetailModel] (reprints de ordenes existentes) por impresora destino.
-  /// Usa el categoryId que viene directamente del backend en cada detalle.
+  /// Intenta resolver por categoryId top-level y, si no encuentra, por subcategoryId.
   static Map<NetworkPrinterModel?, List<OrderDetailModel>> groupDetailsByPrinter(
     List<OrderDetailModel> details,
     List<CategoryModel> categories,
   ) {
-    // Construir mapa categoryId -> CategoryModel para busqueda eficiente
+    // Mapa categoryId top-level -> CategoryModel
     final Map<String, CategoryModel> catMap = {
       for (final CategoryModel c in categories)
         if (c.id != null) c.id!: c,
     };
 
+    // Mapa subcategoryId -> CategoryModel padre (para cuando el backend envía el ID de subcategoria)
+    final Map<String, CategoryModel> subToCategory = {};
+    for (final CategoryModel cat in categories) {
+      for (final sub in cat.subcategories ?? []) {
+        if (sub.id != null) subToCategory[sub.id!] = cat;
+      }
+    }
+
     final Map<NetworkPrinterModel?, List<OrderDetailModel>> result = {};
 
     for (final OrderDetailModel detail in details) {
-      final CategoryModel? cat = detail.categoryId != null ? catMap[detail.categoryId!] : null;
+      // Buscar primero por categoria directa, luego por subcategoria padre
+      final CategoryModel? cat = detail.categoryId != null
+          ? (catMap[detail.categoryId!] ?? subToCategory[detail.categoryId!])
+          : null;
       final NetworkPrinterModel? printer = _printerFromCategory(cat);
 
       result.putIfAbsent(printer, () => []).add(detail);

@@ -30,7 +30,13 @@ class TakeOrderView extends GetView<TakeOrderController> {
 
   @override
   Widget build(BuildContext context) {
-    return CustomScaffold(
+    return PopScope(
+      // Delegar la decisión al controller; false bloquea el pop nativo
+      canPop: false,
+      onPopInvokedWithResult: (bool didPop, _) {
+        if (!didPop) controller.goBack();
+      },
+      child: CustomScaffold(
       title: 'Tomar Pedido',
       showBackButton: true,
       onBack: controller.goBack,
@@ -69,6 +75,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
             _buildProductsSection(),
           ],
         ),
+      ),
       ),
     );
   }

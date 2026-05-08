@@ -104,7 +104,7 @@ class OrderSuccessModal extends StatelessWidget {
                 }
               }
 
-              onClose?.call();
+              Get.back(); // cierra el dialog al imprimir
             }
           : null,
     );
