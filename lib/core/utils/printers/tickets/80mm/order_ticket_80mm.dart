@@ -65,9 +65,28 @@ class OrderTicket80mm implements PrintableTicket {
 
     final details = filteredDetails ?? order.details ?? [];
     for (var item in details) {
-      final pName = item.sizeLabel != null
+      // Parsear observations primero para poder incluir el acompañante en el nombre impreso.
+      // Cubre el caso en que el backend devuelve solo el nombre base del producto (sin el "+Plato2").
+      final String afterPrefix = (item.observations != null &&
+              item.observations!.startsWith('COMBINADO: '))
+          ? item.observations!.substring('COMBINADO: '.length)
+          : '';
+      final int sepIdx = afterPrefix.indexOf(' | ');
+      final String companion = sepIdx >= 0
+          ? afterPrefix.substring(0, sepIdx).trim()
+          : afterPrefix.trim();
+      final String comboNote = sepIdx >= 0
+          ? afterPrefix.substring(sepIdx + 3).trim()
+          : '';
+
+      // Si el nombre base no contiene ya al acompañante, lo agrega para que siempre sea visible.
+      final String baseName = item.sizeLabel != null
           ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}'
           : (item.productName ?? 'Producto');
+      final String pName = (companion.isNotEmpty && !baseName.contains(companion))
+          ? '$baseName + $companion'
+          : baseName;
+
       printer.printCustom('${item.quantity}x  $pName'.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
@@ -79,21 +98,6 @@ class OrderTicket80mm implements PrintableTicket {
           );
         }
       }
-      // Para COMBINADO: extraer acompañante y nota opcional del campo observations.
-      // Formato: "COMBINADO: Nombre" o "COMBINADO: Nombre | nota del usuario"
-      // Solo se muestra [COMBINADO] cuando hay un nombre real después del prefijo.
-      final String _afterPrefix = (item.observations != null &&
-              item.observations!.startsWith('COMBINADO: '))
-          ? item.observations!.substring('COMBINADO: '.length)
-          : '';
-      final int _sepIdx = _afterPrefix.indexOf(' | ');
-      final String companion = _sepIdx >= 0
-          ? _afterPrefix.substring(0, _sepIdx).trim()
-          : _afterPrefix.trim();
-      final String comboNote = _sepIdx >= 0
-          ? _afterPrefix.substring(_sepIdx + 3).trim()
-          : '';
-
       if (companion.isNotEmpty) {
         printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
         if (comboNote.isNotEmpty) {

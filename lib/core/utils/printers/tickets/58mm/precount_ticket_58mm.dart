@@ -51,22 +51,54 @@ class PrecountTicket58mm implements PrintableTicket {
     printer.printCustom('PRODUCTOS', 1, 1);
     printer.printCustom(_sep, 1, 1);
 
-    final details = order.details ?? [];
-    for (var item in details) {
+    // Construye el nombre visible incluyendo acompañante si el ítem es COMBINADO
+    final String Function(String?, String?, String?) buildDisplayName =
+        (pName, sizeLabel, obs) {
+      final String after = (obs != null && obs.startsWith('COMBINADO: '))
+          ? obs.substring('COMBINADO: '.length)
+          : '';
+      final int si = after.indexOf(' | ');
+      final String companion =
+          si >= 0 ? after.substring(0, si).trim() : after.trim();
+      final String base = sizeLabel != null
+          ? '${pName ?? 'Producto'} - $sizeLabel'
+          : (pName ?? 'Producto');
+      return (companion.isNotEmpty && !base.contains(companion))
+          ? '$base + $companion'
+          : base;
+    };
+
+    // Agrupar ítems por nombre visible + precio unitario para consolidar filas en la precuenta
+    final Map<String, Map<String, Object>> grouped = {};
+    for (final item in order.details ?? []) {
       if (item.status == 'Anulado') continue;
+      final String name =
+          buildDisplayName(item.productName, item.sizeLabel, item.observations);
+      final double up = item.unitPrice ?? 0;
+      final String key = '$name|$up';
+      if (grouped.containsKey(key)) {
+        grouped[key]!['qty'] = (grouped[key]!['qty'] as int) + (item.quantity ?? 1);
+        grouped[key]!['sub'] =
+            (grouped[key]!['sub'] as double) + (item.subtotal ?? 0.0);
+      } else {
+        grouped[key] = {
+          'name': name,
+          'qty': item.quantity ?? 1,
+          'unitPrice': up,
+          'sub': item.subtotal ?? 0.0,
+        };
+      }
+    }
 
-      // Nombre con talla si aplica
-      final String rawName = item.sizeLabel != null
-          ? '${item.productName ?? 'Producto'} - ${item.sizeLabel}'
-          : (item.productName ?? 'Producto');
-      printer.printCustom(rawName.withoutDiacritics, 1, 0);
-
-      // Cantidad x Precio unitario | Subtotal alineado a la derecha
-      final String qtyStr = item.quantity.toString();
-      final String unitPriceStr = PrinterUtils.formatCurrency(item.unitPrice ?? 0);
-      final String subtotalStr = PrinterUtils.formatCurrency(item.subtotal ?? 0);
+    for (final row in grouped.values) {
+      printer.printCustom((row['name'] as String).withoutDiacritics, 1, 0);
+      final String qtyStr = (row['qty'] as int).toString();
+      final String unitPriceStr =
+          PrinterUtils.formatCurrency(row['unitPrice'] as double);
+      final String subtotalStr = PrinterUtils.formatCurrency(row['sub'] as double);
       final String lineLeft = '  $qtyStr x $unitPriceStr';
-      final int spaces = (_lineWidth - (lineLeft.length + subtotalStr.length)).clamp(1, _lineWidth);
+      final int spaces =
+          (_lineWidth - (lineLeft.length + subtotalStr.length)).clamp(1, _lineWidth);
       printer.printCustom(
         (lineLeft + (' ' * spaces) + subtotalStr).withoutDiacritics,
         1,
