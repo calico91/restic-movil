@@ -62,6 +62,17 @@ class MockHomeController extends GetxController implements HomeController {
   final RxString appVersion = 'Versión 1.0.0 (1)'.obs;
 
   @override
+  final RxList<String> userRoles = <String>[].obs;
+
+  @override
+  final RxBool waiterViewOwnOrdersOnly = false.obs;
+
+  @override
+  Future<void> setWaiterViewOwnOrdersOnly(bool value) async {
+    waiterViewOwnOrdersOnly.value = value;
+  }
+
+  @override
   Future<void> logout() async {}
   @override
   void changePage(int index) {}

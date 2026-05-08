@@ -52,8 +52,7 @@ class PrecountTicket58mm implements PrintableTicket {
     printer.printCustom(_sep, 1, 1);
 
     // Construye el nombre visible incluyendo acompañante si el ítem es COMBINADO
-    final String Function(String?, String?, String?) buildDisplayName =
-        (pName, sizeLabel, obs) {
+    String buildDisplayName(String? pName, String? sizeLabel, String? obs) {
       final String after = (obs != null && obs.startsWith('COMBINADO: '))
           ? obs.substring('COMBINADO: '.length)
           : '';
@@ -66,7 +65,7 @@ class PrecountTicket58mm implements PrintableTicket {
       return (companion.isNotEmpty && !base.contains(companion))
           ? '$base + $companion'
           : base;
-    };
+    }
 
     // Agrupar ítems por nombre visible + precio unitario para consolidar filas en la precuenta
     final Map<String, Map<String, Object>> grouped = {};

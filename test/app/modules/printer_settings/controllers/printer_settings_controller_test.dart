@@ -3,10 +3,15 @@ import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/network_printer_model.dart';
+import 'package:restic_movil/app/data/models/order_detail_model.dart';
+import 'package:restic_movil/app/data/models/order_item_model.dart';
+import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
+import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
 
 class MockPrinterService extends GetxService implements PrinterService {
   @override
@@ -81,6 +86,25 @@ class MockPrinterService extends GetxService implements PrinterService {
 
   @override
   Future<void> printTestPage() async {}
+
+  @override
+  Future<void> printTicketToSpecificNetwork(PrintableTicket ticket, String ip, int port) async {}
+
+  @override
+  Future<void> printComandaMultiPrinter({
+    required OrderModel order,
+    required List<OrderItemModel> sourceItems,
+    required List<CategoryModel> categories,
+    required PrintableTicket Function(OrderModel, List<OrderItemModel>) ticketBuilder,
+  }) async {}
+
+  @override
+  Future<void> printComandaMultiPrinterFromDetails({
+    required OrderModel order,
+    required List<OrderDetailModel> details,
+    required List<CategoryModel> categories,
+    required PrintableTicket Function(OrderModel, List<OrderDetailModel>) ticketBuilder,
+  }) async {}
 
   // Dummy Methods
   @override

@@ -79,29 +79,31 @@ class _CombinationSelectionDialogState extends State<CombinationSelectionDialog>
             else
               // Lista de opciones para combinar
               Flexible(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: widget.siblings.map((sibling) {
-                    return RadioListTile<ProductModel>(
-                      value: sibling,
-                      groupValue: _selected,
-                      activeColor: Colors.blue[900],
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(
-                        sibling.name ?? '',
-                        style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                      ),
-                      subtitle: Text(
-                        '\$${_priceOf(sibling).toStringAsFixed(0)}',
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: Colors.green,
-                          fontWeight: FontWeight.bold,
+                child: RadioGroup<ProductModel>(
+                  groupValue: _selected,
+                  onChanged: (val) => setState(() => _selected = val),
+                  child: ListView(
+                    shrinkWrap: true,
+                    children: widget.siblings.map((sibling) {
+                      return RadioListTile<ProductModel>(
+                        value: sibling,
+                        activeColor: Colors.blue[900],
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(
+                          sibling.name ?? '',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                         ),
-                      ),
-                      onChanged: (val) => setState(() => _selected = val),
-                    );
-                  }).toList(),
+                        subtitle: Text(
+                          '\$${_priceOf(sibling).toStringAsFixed(0)}',
+                          style: const TextStyle(
+                            fontSize: 13,
+                            color: Colors.green,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  ),
                 ),
               ),
             // Preview del costo cuando hay selección
