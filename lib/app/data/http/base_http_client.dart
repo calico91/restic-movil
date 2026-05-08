@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:flutter/rendering.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
@@ -28,10 +27,6 @@ class BaseHttpClient {
     dynamic body,
     Map<String, String>? parameters,
   }) async {
-    debugPrint(
-      'POST request to $path with body: $body and parameters: $parameters',
-    );
-
     return _executeRequest(() async {
       final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
@@ -48,10 +43,6 @@ class BaseHttpClient {
     dynamic body,
     Map<String, String>? parameters,
   }) async {
-    debugPrint(
-      'PUT request to $path with body: $body and parameters: $parameters',
-    );
-
     return _executeRequest(() async {
       final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
@@ -68,10 +59,6 @@ class BaseHttpClient {
     dynamic body,
     Map<String, String>? parameters,
   }) async {
-    debugPrint(
-      'PATCH request to $path with body: $body and parameters: $parameters',
-    );
-
     return _executeRequest(() async {
       final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
@@ -163,9 +150,6 @@ class BaseHttpClient {
 
         if (response.statusCode >= 500 && wakeUpAttempts < maxWakeUpAttempts) {
           wakeUpAttempts++;
-          debugPrint(
-            '⚠️ Servidor reportó ${response.statusCode}, intento de recuperación $wakeUpAttempts/$maxWakeUpAttempts',
-          );
           
           if (attempt == maxAttempts) attempt--; // Evita salir del loop normal si seguimos reintentando el 500
           
@@ -204,13 +188,6 @@ class BaseHttpClient {
     final statusCode = response.statusCode;
     final jsonResponse = _decodeBody(response.body);
     final url = response.request?.url.toString() ?? '';
-
-    debugPrint('=== API RESPONSE ===');
-    debugPrint('URL: $url');
-    debugPrint('Method: ${response.request?.method}');
-    debugPrint('Status Code: $statusCode');
-    debugPrint('Response Body: $jsonResponse');
-    debugPrint('====================');
 
     if (statusCode >= 200 && statusCode < 300) {
       return jsonResponse;
