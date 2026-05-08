@@ -6,6 +6,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/combination_selection_dialog.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
@@ -61,6 +62,7 @@ class AddProductsSheet extends GetView<OrdersController> {
                   categories: controller.categories.toList(),
                   getQuantity: controller.getTempProductQuantity,
                   onIncrement: (product, price) {
+                    // COMBO abre su diálogo; COMBINADO y el resto se agregan individualmente
                     if (product.productType == 'COMBO') {
                       _showComboDialog(context, product, price);
                     } else {
@@ -75,6 +77,10 @@ class AddProductsSheet extends GetView<OrdersController> {
                       _showAddProductDialog(product, price);
                     }
                   },
+                  onCombine: (product, siblings) =>
+                      _showCombinationDialog(context, product, siblings),
+                  onDecrementCombination: controller.decrementTempCombination,
+                  getCombinationQuantity: controller.getTempCombinationQuantity,
                 );
               }),
             ),
@@ -188,6 +194,17 @@ class AddProductsSheet extends GetView<OrdersController> {
             child: const Text('Agregar'),
           ),
         ],
+      ),
+    );
+  }
+
+  /* Mostrar dialogo de seleccion de combinacion 2x1 */
+  void _showCombinationDialog(BuildContext context, ProductModel product, List<ProductModel> siblings) {
+    Get.dialog(
+      CombinationSelectionDialog(
+        product: product,
+        siblings: siblings,
+        onConfirm: (p1, p2) => controller.addTempCombination(p1, p2),
       ),
     );
   }

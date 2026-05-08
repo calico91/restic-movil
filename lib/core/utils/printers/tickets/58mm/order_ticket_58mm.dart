@@ -81,7 +81,7 @@ class OrderTicket58mm implements PrintableTicket {
       }
 
       // Extraer el nombre del acompañante desde observations.
-      // Solo se muestra [COMBINADO 2x1] cuando hay un nombre real después del prefijo.
+      // Solo se muestra [COMBINADO] cuando hay un nombre real después del prefijo.
       // Si el plato es de tipo COMBINADO pero no fue combinado, observations es null/vacío.
       final String companion = (item.observations != null &&
               item.observations!.startsWith('COMBINADO: '))
@@ -89,7 +89,7 @@ class OrderTicket58mm implements PrintableTicket {
           : '';
 
       if (companion.isNotEmpty) {
-        printer.printCustom('    [COMBINADO 2x1]'.withoutDiacritics, 1, 0);
+        printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
       } else if (item.observations != null && item.observations!.trim().isNotEmpty) {
         printer.printCustom('    [Nota: ${item.observations}]'.withoutDiacritics, 1, 0);
       }
