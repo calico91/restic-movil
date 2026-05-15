@@ -169,6 +169,18 @@ class MockStorageService extends GetxService implements StorageService {
 
   @override
   Future<void> saveWaiterViewOwnOrdersOnly(bool value) async {}
+
+  @override
+  Future<void> saveNetworkPrinterIp(String ip) async {}
+
+  @override
+  Future<String?> getNetworkPrinterIp() async => null;
+
+  @override
+  Future<void> saveNetworkPrinterPort(int port) async {}
+
+  @override
+  Future<int?> getNetworkPrinterPort() async => null;
 }
 
 void main() {
