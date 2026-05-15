@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/rendering.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
@@ -134,6 +135,12 @@ class BaseHttpClient {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
     };
+
+    // Clave de aplicacion que identifica el origen como la app movil
+    final String apiKey = dotenv.env['APP_API_KEY'] ?? '';
+    if (apiKey.isNotEmpty) {
+      headers['X-App-Key'] = apiKey;
+    }
 
     final token = await _storageService.getToken();
     if (token != null && token.isNotEmpty) {
