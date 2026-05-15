@@ -27,22 +27,22 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
             const SizedBox(height: 16),
             Obx(
               () => ExpandableSection(
-                title: 'Conexión Bluetooth',
-                icon: Icons.bluetooth,
-                initiallyExpanded:
-                    controller.connectionType.value ==
-                    PrinterConnectionType.bluetooth,
-                content: _buildBluetoothSection(),
-              ),
-            ),
-            Obx(
-              () => ExpandableSection(
                 title: 'Conexión por Red (TCP/IP)',
                 icon: Icons.wifi,
                 initiallyExpanded:
                     controller.connectionType.value ==
                     PrinterConnectionType.network,
                 content: _buildNetworkSection(),
+              ),
+            ),
+            Obx(
+              () => ExpandableSection(
+                title: 'Conexión Bluetooth',
+                icon: Icons.bluetooth,
+                initiallyExpanded:
+                    controller.connectionType.value ==
+                    PrinterConnectionType.bluetooth,
+                content: _buildBluetoothSection(),
               ),
             ),
             const SizedBox(height: 4),
