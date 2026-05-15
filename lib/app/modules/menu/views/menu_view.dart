@@ -28,7 +28,7 @@ class MenuView extends GetView<MenuController> {
           );
         }
 
-        return DefaultTabController(
+          return DefaultTabController(
           length: controller.categories.length,
           child: Column(
             children: [
