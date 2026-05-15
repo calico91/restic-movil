@@ -20,7 +20,7 @@ class CategoryFormDialog extends StatelessWidget {
       ),
       'description': FormControl<String>(
         value: category?.description ?? '',
-        validators: [Validators.required], // ✅ @NotBlank
+        validators: [Validators.required], 
       ),
     });
 
@@ -129,12 +129,10 @@ class ProductFormDialog extends StatelessWidget {
 
   FormGroup _buildForm() {
     final String initialType = product?.productType ?? 'SIMPLE';
-    final List<dynamic> initialPrices = product?.prices ?? [];
-
-    // Si no hay precios, pre-llenar con uno vacío
-    if (initialPrices.isEmpty) {
-      initialPrices.add(null);
-    }
+    final List<PriceModel?> initialPrices =
+        product?.prices?.isNotEmpty == true
+            ? List<PriceModel?>.from(product!.prices!)
+            : [null]; // un precio vacío para productos nuevos
 
     return FormGroup({
       'name': FormControl<String>(
@@ -247,13 +245,15 @@ class ProductFormDialog extends StatelessWidget {
             ),
             items: const [
               DropdownMenuItem(value: 'SIMPLE', child: Text('Simple')),
-              DropdownMenuItem(value: 'VARIABLE', child: Text('Variable')),
+              DropdownMenuItem(value: 'COMBO', child: Text('Combo')),
+              DropdownMenuItem(value: 'VARIABLE', child: Text('Variable (por tamaño)')),
+              DropdownMenuItem(value: 'COMBINADO', child: Text('Combinado 2x1')),
             ],
             onChanged: (control) {
               final pricesControl = form.control('prices') as FormArray;
               final String type = control.value ?? 'SIMPLE';
-              if (type == 'SIMPLE' && pricesControl.controls.length > 1) {
-                // Keep only first price when changing to SIMPLE
+              // Para tipos con un solo precio, conservar solo el primero
+              if (type != 'VARIABLE' && pricesControl.controls.length > 1) {
                 while (pricesControl.controls.length > 1) {
                   pricesControl.removeAt(pricesControl.controls.length - 1);
                 }

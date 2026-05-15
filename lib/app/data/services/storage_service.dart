@@ -204,6 +204,26 @@ class StorageService extends GetxService {
     await _storage.delete(key: 'server_url');
   }
 
+  // --------------- Impresora de red – IP y Puerto ---------------
+
+  Future<void> saveNetworkPrinterIp(String ip) async {
+    await _storage.write(key: 'network_printer_ip', value: ip);
+  }
+
+  Future<String?> getNetworkPrinterIp() async {
+    return await _storage.read(key: 'network_printer_ip');
+  }
+
+  Future<void> saveNetworkPrinterPort(int port) async {
+    await _storage.write(key: 'network_printer_port', value: port.toString());
+  }
+
+  Future<int?> getNetworkPrinterPort() async {
+    final String? str = await _storage.read(key: 'network_printer_port');
+    if (str != null) return int.tryParse(str);
+    return null;
+  }
+
   Future<void> saveDefaultCustomer(CustomerModel customer) async {
     await _storage.write(
       key: 'default_customer',

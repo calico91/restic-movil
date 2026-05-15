@@ -132,15 +132,21 @@ class ComboSelectionController extends GetxController {
   void submit() {
     if (!isValid) return;
 
-    // Build the list of selections for JSON
+    // Construye la lista de selecciones incluyendo el nombre del producto para impresión local
     List<Map<String, String>> comboSelectionsList = [];
     selections.forEach((groupId, options) {
+      final group = product.comboGroups?.where((g) => g.id == groupId).firstOrNull;
       options.forEach((optionId, count) {
+        final option = group?.options?.where((o) => o.id == optionId).firstOrNull;
         for (int i = 0; i < count; i++) {
-          comboSelectionsList.add({
+          final Map<String, String> entry = {
             "comboGroupId": groupId,
             "comboOptionId": optionId,
-          });
+          };
+          if (option?.productName != null) {
+            entry["selectedProductName"] = option!.productName!;
+          }
+          comboSelectionsList.add(entry);
         }
       });
     });

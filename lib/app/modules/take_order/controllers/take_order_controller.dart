@@ -53,12 +53,61 @@ class TakeOrderController extends GetxController {
   final RxString searchProductQuery = ''.obs;
   final TextEditingController searchTextController = TextEditingController();
 
+  /// Retorna las categorías filtrando los productos que son opciones de algún combo,
+  /// para que no aparezcan en el menú principal de toma de pedidos.
+  List<CategoryModel> get categoriesForDisplay {
+    // Recolectar todos los productIds que son opciones de algún combo
+    final Set<String> comboOptionIds = {};
+    for (final CategoryModel cat in categories) {
+      for (final sub in cat.subcategories ?? []) {
+        for (final ProductModel p in sub.products ?? []) {
+          for (final group in p.comboGroups ?? []) {
+            for (final option in group.options ?? []) {
+              if (option.productId != null) comboOptionIds.add(option.productId!);
+            }
+          }
+        }
+      }
+    }
+
+    // Reconstruir el árbol excluyendo esos productos
+    final List<CategoryModel> filtered = [];
+    for (final CategoryModel cat in categories) {
+      final List<SubcategoryModel> filteredSubs = [];
+      for (final sub in cat.subcategories ?? []) {
+        final List<ProductModel> filteredProducts = (sub.products ?? [])
+            .where((p) => p.id == null || !comboOptionIds.contains(p.id))
+            .toList();
+        if (filteredProducts.isNotEmpty) {
+          filteredSubs.add(SubcategoryModel(
+            id: sub.id,
+            name: sub.name,
+            description: sub.description,
+            products: filteredProducts,
+          ));
+        }
+      }
+      if (filteredSubs.isNotEmpty) {
+        filtered.add(CategoryModel(
+          id: cat.id,
+          name: cat.name,
+          description: cat.description,
+          printerIp: cat.printerIp,
+          printerPort: cat.printerPort,
+          subcategories: filteredSubs,
+        ));
+      }
+    }
+    return filtered;
+  }
+
   /// Retorna los productos que coincidan con la búsqueda junto a su categoría y subcategoría.
+  /// Solo incluye productos visibles en el menú (excluye opciones de combo).
   List<(ProductModel, String, String?)> get searchResults {
     if (searchProductQuery.isEmpty) return [];
     final String query = searchProductQuery.value.toLowerCase();
     final List<(ProductModel, String, String?)> results = [];
-    for (final CategoryModel category in categories) {
+    for (final CategoryModel category in categoriesForDisplay) {
       final List subcategories = category.subcategories ?? [];
       for (final subcategory in subcategories) {
         for (final ProductModel product in subcategory.products ?? []) {

@@ -37,8 +37,13 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
     _loadPrinterSize();
-    initBluetooth();
-    _autoConnectNetwork();
+    _initConnections();
+  }
+
+  /* inicializar conexiones en orden: red primero, Bluetooth después */
+  Future<void> _initConnections() async {
+    await _autoConnectNetwork();
+    await initBluetooth();
   }
 
   @override
@@ -180,6 +185,17 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
   /* reconexión automática de la impresora Bluetooth guardada */
   Future<void> autoConnect() async {
+    // Si la impresora de red ya está activa, no interferir con Bluetooth
+    if (isNetworkConnected.value) {
+      _logger.i('Conexión de red activa, omitiendo auto-conexión Bluetooth');
+      return;
+    }
+    // Si el último tipo guardado fue red, respetar la preferencia del usuario
+    final String? savedType = await _storageService.getConnectionType();
+    if (savedType == 'network') {
+      _logger.i('Tipo guardado es red, omitiendo auto-conexión Bluetooth');
+      return;
+    }
     try {
       final savedPrinter = await _storageService.getPrinterDevice();
       if (savedPrinter != null && savedPrinter['address'] != null) {
@@ -290,6 +306,8 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       isNetworkConnected.value = true;
       connectionType.value = PrinterConnectionType.network;
       await _storageService.saveNetworkPrinter(config);
+      await _storageService.saveNetworkPrinterIp(config.ip);
+      await _storageService.saveNetworkPrinterPort(config.port);
       await _storageService.saveConnectionType('network');
       _logger.i('Impresora de red conectada: ${config.ip}:${config.port}');
       return true;

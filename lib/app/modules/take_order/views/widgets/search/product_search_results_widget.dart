@@ -176,7 +176,7 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                         minimumSize: const Size(80, 36),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                       ),
-                      child: const Text('Configurar'),
+                      child: const Text('Armar'),
                     ),
                     if (quantity > 0)
                       Padding(

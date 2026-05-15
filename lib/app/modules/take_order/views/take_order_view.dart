@@ -220,7 +220,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
                 )
               else
                 ProductSelectionWidget(
-                  categories: controller.categories,
+                  categories: controller.categoriesForDisplay,
                   getQuantity: controller.getProductQuantity,
                   onIncrement: (product, price) {
                     // COMBO abre su diálogo; COMBINADO y el resto se agregan individualmente
