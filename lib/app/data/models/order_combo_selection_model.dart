@@ -7,6 +7,8 @@ class OrderComboSelectionModel {
   final String? selectedProductName;
   final double? additionalPrice;
   final int? quantity;
+  // Índice de la unidad del combo a la que pertenece esta selección (0-based)
+  final int? unitIndex;
 
   OrderComboSelectionModel({
     this.id,
@@ -17,6 +19,7 @@ class OrderComboSelectionModel {
     this.selectedProductName,
     this.additionalPrice,
     this.quantity,
+    this.unitIndex,
   });
 
   factory OrderComboSelectionModel.fromJson(Map<String, dynamic> json) {
@@ -29,6 +32,7 @@ class OrderComboSelectionModel {
       selectedProductName: json['selectedProductName'],
       additionalPrice: (json['additionalPrice'] as num?)?.toDouble(),
       quantity: json['quantity'] as int?,
+      unitIndex: json['unitIndex'] as int?,
     );
   }
 
@@ -42,6 +46,7 @@ class OrderComboSelectionModel {
       'selectedProductName': selectedProductName,
       'additionalPrice': additionalPrice,
       'quantity': quantity,
+      'unitIndex': unitIndex,
     };
   }
 }

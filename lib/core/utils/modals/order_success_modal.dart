@@ -117,6 +117,7 @@ class OrderSuccessModal extends StatelessWidget {
         return OrderComboSelectionModel(
           selectedProductName: m['selectedProductName'],
           quantity: int.tryParse(m['quantity'] ?? '1') ?? 1,
+          unitIndex: m['unitIndex'] != null ? int.tryParse(m['unitIndex']!) : null,
         );
       }).toList();
 

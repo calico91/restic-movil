@@ -13,148 +13,172 @@ class ComboSelectionController extends GetxController {
 
   ComboSelectionController({required this.product, this.price, required this.onConfirm});
 
-  // State
-  final RxInt quantity = 1.obs;
-  final RxMap<String, Map<String, int>> selections =
-      <String, Map<String, int>>{}.obs;
-  final commentController = TextEditingController();
+  // Lista de selecciones por unidad: índice = unidad, valor = {groupId: {optionId: count}}
+  final RxList<Map<String, Map<String, int>>> unitSelections =
+      <Map<String, Map<String, int>>>[{}].obs;
 
-  // Computed Properties
+  // Índice de la unidad actualmente visible en el diálogo
+  final RxInt currentUnit = 0.obs;
+
+  final TextEditingController commentController = TextEditingController();
+
+  /* total de unidades del combo */
+  int get quantity => unitSelections.length;
+
+  /* precio total = base × unidades + extras adicionales de todas las unidades */
   double get totalPrice {
-    double base = price?.amount ?? (product.prices?.firstOrNull?.amount ?? 0);
+    final double base = price?.amount ?? (product.prices?.firstOrNull?.amount ?? 0);
     double extras = 0;
-
-    selections.forEach((groupId, options) {
-      final group = product.comboGroups?.firstWhere((g) => g.id == groupId);
-      if (group == null) return;
-
-      options.forEach((optionId, count) {
-        final option = group.options?.firstWhere((o) => o.id == optionId);
-        if (option != null) {
-          extras += (option.additionalPrice ?? 0) * count;
-        }
+    for (final unitSel in unitSelections) {
+      unitSel.forEach((groupId, options) {
+        final ComboGroupModel? group =
+            product.comboGroups?.where((g) => g.id == groupId).firstOrNull;
+        if (group == null) return;
+        options.forEach((optionId, count) {
+          final option = group.options?.where((o) => o.id == optionId).firstOrNull;
+          if (option != null) extras += (option.additionalPrice ?? 0) * count;
+        });
       });
-    });
-
-    return (base * quantity.value) + extras;
+    }
+    return (base * unitSelections.length) + extras;
   }
 
+  /* precio adicional promedio por unidad (para el modelo de orden) */
   double get additionalPriceOnly {
     double extras = 0;
-    selections.forEach((groupId, options) {
-      final group = product.comboGroups?.firstWhere((g) => g.id == groupId);
-      if (group == null) return;
-      options.forEach((optionId, count) {
-        final option = group.options?.firstWhere((o) => o.id == optionId);
-        if (option != null) {
-          extras += (option.additionalPrice ?? 0) * count;
-        }
+    for (final unitSel in unitSelections) {
+      unitSel.forEach((groupId, options) {
+        final ComboGroupModel? group =
+            product.comboGroups?.where((g) => g.id == groupId).firstOrNull;
+        if (group == null) return;
+        options.forEach((optionId, count) {
+          final option = group.options?.where((o) => o.id == optionId).firstOrNull;
+          if (option != null) extras += (option.additionalPrice ?? 0) * count;
+        });
       });
-    });
-
-    if (quantity.value == 0) return 0;
-    return extras / quantity.value;
+    }
+    if (unitSelections.isEmpty) return 0;
+    return extras / unitSelections.length;
   }
 
+  /* valida que todas las unidades cumplan los requisitos de grupos obligatorios */
   bool get isValid {
-    if (product.comboGroups == null) return true;
-
-    for (var group in product.comboGroups!) {
-      final totalSelected = getGroupTotalCount(group.id);
-      final min = getAdjustedLimit(group.minSelections ?? 0);
-      // Validar con la cantidad seleccionada en el input, ignorando el json
-      final max = quantity.value;
-
-      if (group.required == true) {
-        if (totalSelected < min) return false;
-      }
-      if (totalSelected > max) return false;
+    for (int i = 0; i < unitSelections.length; i++) {
+      if (!isValidForUnit(i)) return false;
     }
     return true;
   }
 
-  // Methods
-  int getAdjustedLimit(int limit) {
-    return limit * quantity.value;
+  /* valida una unidad específica contra los grupos obligatorios del combo */
+  bool isValidForUnit(int unitIdx) {
+    if (product.comboGroups == null || unitIdx >= unitSelections.length) return true;
+    for (final ComboGroupModel group in product.comboGroups!) {
+      final int total = getGroupTotalCountForUnit(unitIdx, group.id);
+      final int min = group.minSelections ?? 0;
+      final int max = group.maxSelections ?? 1;
+      if (group.required == true && total < min) return false;
+      if (total > max) return false;
+    }
+    return true;
   }
 
-  int getGroupTotalCount(String? groupId) {
-    if (groupId == null) return 0;
-    final groupSelections = selections[groupId];
-    if (groupSelections == null) return 0;
-    return groupSelections.values.fold(0, (sum, count) => sum + count);
+  /* total de opciones seleccionadas en un grupo para una unidad */
+  int getGroupTotalCountForUnit(int unitIdx, String? groupId) {
+    if (groupId == null || unitIdx >= unitSelections.length) return 0;
+    final groupMap = unitSelections[unitIdx][groupId];
+    if (groupMap == null) return 0;
+    return groupMap.values.fold(0, (sum, c) => sum + c);
   }
 
-  int getOptionCount(String? groupId, String? optionId) {
-    if (groupId == null || optionId == null) return 0;
-    return selections[groupId]?[optionId] ?? 0;
+  /* cantidad seleccionada de una opción concreta en una unidad */
+  int getOptionCountForUnit(int unitIdx, String? groupId, String? optionId) {
+    if (groupId == null || optionId == null || unitIdx >= unitSelections.length) return 0;
+    return unitSelections[unitIdx][groupId]?[optionId] ?? 0;
   }
 
-  void updateQuantity(int delta) {
-    final newQuantity = quantity.value + delta;
-    if (newQuantity > 0) {
-      quantity.value = newQuantity;
+  /* agrega una nueva unidad al combo y la activa */
+  void addUnit() {
+    unitSelections.add({});
+    currentUnit.value = unitSelections.length - 1;
+  }
+
+  /* elimina la última unidad si hay más de una, ajusta la unidad activa */
+  void removeUnit() {
+    if (unitSelections.length <= 1) return;
+    unitSelections.removeLast();
+    if (currentUnit.value >= unitSelections.length) {
+      currentUnit.value = unitSelections.length - 1;
     }
   }
 
+  /* incrementa la cantidad de una opción en la unidad activa */
   void incrementOption(ComboGroupModel group, ComboOptionModel option) {
-    if (group.id == null || option.id == null) return;
-
-    final currentGroupTotal = getGroupTotalCount(group.id);
-    // Validar con la cantidad seleccionada en el input, ignorando el json
-    final max = quantity.value;
-
-    if (currentGroupTotal < max) {
-      final Map<String, int> groupMap = Map<String, int>.from(
-        selections[group.id] ?? {},
-      );
-      groupMap[option.id!] = (groupMap[option.id!] ?? 0) + 1;
-      selections[group.id!] = groupMap;
-    }
+    _incrementOptionForUnit(currentUnit.value, group, option);
   }
 
+  /* decrementa la cantidad de una opción en la unidad activa */
   void decrementOption(ComboGroupModel group, ComboOptionModel option) {
-    if (group.id == null || option.id == null) return;
-
-    final count = getOptionCount(group.id, option.id);
-    if (count > 0) {
-      final Map<String, int> groupMap = Map<String, int>.from(
-        selections[group.id] ?? {},
-      );
-      groupMap[option.id!] = count - 1;
-      if (groupMap[option.id!] == 0) {
-        groupMap.remove(option.id);
-      }
-      selections[group.id!] = groupMap;
-    }
+    _decrementOptionForUnit(currentUnit.value, group, option);
   }
 
+  void _incrementOptionForUnit(int unitIdx, ComboGroupModel group, ComboOptionModel option) {
+    if (group.id == null || option.id == null || unitIdx >= unitSelections.length) return;
+    final int max = group.maxSelections ?? 1;
+    final int currentTotal = getGroupTotalCountForUnit(unitIdx, group.id);
+    if (currentTotal >= max) return;
+
+    final Map<String, Map<String, int>> updatedUnit =
+        Map<String, Map<String, int>>.from(unitSelections[unitIdx]);
+    final Map<String, int> groupMap = Map<String, int>.from(updatedUnit[group.id!] ?? {});
+    groupMap[option.id!] = (groupMap[option.id!] ?? 0) + 1;
+    updatedUnit[group.id!] = groupMap;
+    unitSelections[unitIdx] = updatedUnit;
+    unitSelections.refresh();
+  }
+
+  void _decrementOptionForUnit(int unitIdx, ComboGroupModel group, ComboOptionModel option) {
+    if (group.id == null || option.id == null || unitIdx >= unitSelections.length) return;
+    final int count = getOptionCountForUnit(unitIdx, group.id, option.id);
+    if (count <= 0) return;
+
+    final Map<String, Map<String, int>> updatedUnit =
+        Map<String, Map<String, int>>.from(unitSelections[unitIdx]);
+    final Map<String, int> groupMap = Map<String, int>.from(updatedUnit[group.id!] ?? {});
+    groupMap[option.id!] = count - 1;
+    if (groupMap[option.id!] == 0) groupMap.remove(option.id);
+    updatedUnit[group.id!] = groupMap;
+    unitSelections[unitIdx] = updatedUnit;
+    unitSelections.refresh();
+  }
+
+  /* construye la lista de selecciones con unitIndex y llama al callback */
   void submit() {
     if (!isValid) return;
-
-    // Construye la lista de selecciones incluyendo el nombre del producto para impresión local
-    List<Map<String, String>> comboSelectionsList = [];
-    selections.forEach((groupId, options) {
-      final group = product.comboGroups?.where((g) => g.id == groupId).firstOrNull;
-      options.forEach((optionId, count) {
-        final option = group?.options?.where((o) => o.id == optionId).firstOrNull;
-        for (int i = 0; i < count; i++) {
-          final Map<String, String> entry = {
-            "comboGroupId": groupId,
-            "comboOptionId": optionId,
-          };
-          if (option?.productName != null) {
-            entry["selectedProductName"] = option!.productName!;
+    final List<Map<String, String>> comboSelectionsList = [];
+    for (int unitIdx = 0; unitIdx < unitSelections.length; unitIdx++) {
+      unitSelections[unitIdx].forEach((groupId, options) {
+        final ComboGroupModel? group =
+            product.comboGroups?.where((g) => g.id == groupId).firstOrNull;
+        options.forEach((optionId, count) {
+          final option = group?.options?.where((o) => o.id == optionId).firstOrNull;
+          for (int i = 0; i < count; i++) {
+            final Map<String, String> entry = {
+              'comboGroupId': groupId,
+              'comboOptionId': optionId,
+              'unitIndex': unitIdx.toString(),
+            };
+            if (option?.productName != null) {
+              entry['selectedProductName'] = option!.productName!;
+            }
+            comboSelectionsList.add(entry);
           }
-          comboSelectionsList.add(entry);
-        }
+        });
       });
-    });
-
+    }
     onConfirm(
       product,
       price,
-      quantity.value,
+      unitSelections.length,
       commentController.text,
       comboSelectionsList,
       additionalPriceOnly,
