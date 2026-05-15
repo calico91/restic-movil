@@ -1,5 +1,6 @@
 import 'package:restic_movil/core/utils/printers/thermal_printer_port.dart';
 import 'package:intl/intl.dart';
+import 'package:restic_movil/app/data/models/order_combo_selection_model.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
@@ -90,13 +91,7 @@ class OrderTicket80mm implements PrintableTicket {
       printer.printCustom('${item.quantity}x  $pName'.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
-        for (var combo in item.comboSelections!) {
-          printer.printCustom(
-            '    > ${combo.quantity ?? 1}x ${combo.selectedProductName ?? 'Extra'}'.withoutDiacritics,
-            1,
-            0,
-          );
-        }
+        _printComboSelections(printer, item.comboSelections!, item.quantity ?? 1);
       }
       if (companion.isNotEmpty) {
         printer.printCustom('    [COMBINADO]'.withoutDiacritics, 1, 0);
@@ -115,5 +110,44 @@ class OrderTicket80mm implements PrintableTicket {
     printer.printNewLine();
     printer.printNewLine();
     printer.paperCut();
+  }
+
+  /* imprime selecciones de combo agrupadas por unitIndex cuando hay más de una unidad */
+  void _printComboSelections(
+    ThermalPrinterPort printer,
+    List<OrderComboSelectionModel> selections,
+    int quantity,
+  ) {
+    final bool hasUnitIndex = selections.any((s) => s.unitIndex != null);
+    if (hasUnitIndex && quantity > 1) {
+      final Map<int, List<String>> byUnit = {};
+      for (final s in selections) {
+        final int unit = s.unitIndex ?? 0;
+        byUnit.putIfAbsent(unit, () => []).add(s.selectedProductName ?? 'Extra');
+      }
+      final List<int> sortedKeys = byUnit.keys.toList()..sort();
+      for (final unit in sortedKeys) {
+        printer.printCustom(
+          '  [Combo ${unit + 1}]'.withoutDiacritics,
+          1,
+          0,
+        );
+        for (final name in byUnit[unit]!) {
+          printer.printCustom(
+            '   $name'.withoutDiacritics,
+            1,
+            0,
+          );
+        }
+      }
+    } else {
+      for (final combo in selections) {
+        printer.printCustom(
+          '    > ${combo.quantity ?? 1}x ${combo.selectedProductName ?? 'Extra'}'.withoutDiacritics,
+          1,
+          0,
+        );
+      }
+    }
   }
 }

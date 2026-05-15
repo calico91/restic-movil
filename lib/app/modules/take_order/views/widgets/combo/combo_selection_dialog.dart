@@ -34,7 +34,7 @@ class ComboSelectionDialog extends StatelessWidget {
             product.name ?? 'Arma tu Combo',
             style: const TextStyle(
               fontWeight: FontWeight.bold,
-              color: Color(0xFF0D47A1), // Deep Blue del tema
+              color: Color(0xFF0D47A1),
             ),
           ),
           content: SizedBox(
@@ -53,12 +53,23 @@ class ComboSelectionDialog extends StatelessWidget {
                       ),
                     ),
 
-                  // Selector de Cantidad Global
-                  _buildQuantitySelector(controller),
+                  // Navegador de unidades por combo
+                  _buildUnitNavigator(controller),
                   const Divider(),
 
-                  ...?product.comboGroups?.map(
-                    (group) => _buildGroupSection(group, controller),
+                  // Grupos de opciones para la unidad activa
+                  Obx(
+                    () => Column(
+                      children: [
+                        ...?product.comboGroups?.map(
+                          (group) => _buildGroupSection(
+                            group,
+                            controller,
+                            controller.currentUnit.value,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
 
                   const SizedBox(height: 16),
@@ -133,113 +144,166 @@ class ComboSelectionDialog extends StatelessWidget {
     );
   }
 
-  Widget _buildQuantitySelector(ComboSelectionController controller) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        const Text(
-          'Cantidad de Combos:',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.grey[100],
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Row(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.remove, color: Color(0xFF0D47A1)),
-                onPressed: () => controller.updateQuantity(-1),
-              ),
-              Obx(
-                () => Text(
-                  '${controller.quantity.value}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 16,
-                  ),
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.add, color: Color(0xFF0D47A1)),
-                onPressed: () => controller.updateQuantity(1),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildGroupSection(
-    ComboGroupModel group,
-    ComboSelectionController controller,
-  ) {
-    final options = group.options ?? [];
-    options.sort(
-      (a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0),
-    );
-
+  /* navegador de unidades: chips numerados + botones para agregar y quitar unidades */
+  Widget _buildUnitNavigator(ComboSelectionController controller) {
     return Obx(() {
-      final currentCount = controller.getGroupTotalCount(group.id);
-      final min = controller.getAdjustedLimit(group.minSelections ?? 0);
-      // Validar con la cantidad seleccionada en el input, ignorando el json
-      final max = controller.quantity.value;
+      final int total = controller.unitSelections.length;
+      final int active = controller.currentUnit.value;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          const Text(
+            'Combos a armar:',
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
               children: [
-                Row(
-                  children: [
-                    Text(
-                      group.name ?? '',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                // Chip por cada unidad
+                ...List.generate(total, (i) {
+                  final bool isActive = i == active;
+                  final bool isUnitValid = controller.isValidForUnit(i);
+                  return GestureDetector(
+                    onTap: () => controller.currentUnit.value = i,
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.only(right: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isActive
+                            ? const Color(0xFF0D47A1)
+                            : Colors.grey[200],
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(
+                          color: (!isUnitValid && !isActive)
+                              ? Colors.red
+                              : Colors.transparent,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        '${i + 1}',
+                        style: TextStyle(
+                          color: isActive ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                    if (group.required == true && currentCount < min)
-                      const Text(' *', style: TextStyle(color: Colors.red)),
-                  ],
-                ),
-                Text(
-                  'Seleccionados: $currentCount / $max (Mínimo $min)',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: currentCount < min ? Colors.red : Colors.grey[600],
+                  );
+                }),
+
+                // Botón agregar unidad
+                IconButton(
+                  icon: const Icon(
+                    Icons.add_circle,
+                    color: Color(0xFF0D47A1),
                   ),
+                  tooltip: 'Agregar combo',
+                  onPressed: controller.addUnit,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
                 ),
+
+                // Botón quitar última unidad (solo si hay más de una)
+                if (total > 1) ...[
+                  const SizedBox(width: 4),
+                  IconButton(
+                    icon: Icon(Icons.remove_circle, color: Colors.red[700]),
+                    tooltip: 'Quitar último combo',
+                    onPressed: controller.removeUnit,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
               ],
             ),
           ),
-          ...options.map(
-            (option) =>
-                _buildOptionRow(group, option, max, currentCount, controller),
-          ),
-          const Divider(),
         ],
       );
     });
   }
 
+  /* grupos de opciones de una unidad específica */
+  Widget _buildGroupSection(
+    ComboGroupModel group,
+    ComboSelectionController controller,
+    int unitIdx,
+  ) {
+    final List<ComboOptionModel> options = group.options ?? [];
+    options.sort(
+      (a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0),
+    );
+
+    final int currentCount =
+        controller.getGroupTotalCountForUnit(unitIdx, group.id);
+    final int min = group.minSelections ?? 0;
+    final int max = group.maxSelections ?? 1;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 8.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Text(
+                    group.name ?? '',
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                  if (group.required == true && currentCount < min)
+                    const Text(' *', style: TextStyle(color: Colors.red)),
+                ],
+              ),
+              Text(
+                'Seleccionados: $currentCount / $max (Mínimo $min)',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: currentCount < min ? Colors.red : Colors.grey[600],
+                ),
+              ),
+            ],
+          ),
+        ),
+        ...options.map(
+          (option) => _buildOptionRow(
+            group,
+            option,
+            max,
+            currentCount,
+            controller,
+            unitIdx,
+          ),
+        ),
+        const Divider(),
+      ],
+    );
+  }
+
+  /* fila de una opción con controles +/− para la unidad indicada */
   Widget _buildOptionRow(
     ComboGroupModel group,
     ComboOptionModel option,
     int maxTotal,
     int currentTotal,
     ComboSelectionController controller,
+    int unitIdx,
   ) {
-    final price = option.additionalPrice ?? 0;
-
-    // Direct access to value with automatic update when parent rebuilds
-    final count = controller.getOptionCount(group.id, option.id);
-    final canIncrement = currentTotal < maxTotal;
+    final double optionPrice = option.additionalPrice ?? 0;
+    final int count =
+        controller.getOptionCountForUnit(unitIdx, group.id, option.id);
+    final bool canIncrement = currentTotal < maxTotal;
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -250,9 +314,9 @@ class ComboSelectionDialog extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(option.productName ?? ''),
-                if (price > 0)
+                if (optionPrice > 0)
                   Text(
-                    '+ \$${price.toStringAsFixed(0)}',
+                    '+ \$${optionPrice.toStringAsFixed(0)}',
                     style: const TextStyle(fontSize: 12, color: Colors.grey),
                   ),
               ],

@@ -45,15 +45,7 @@ class AddedItemsTicket58mm implements PrintableTicket {
       printer.printCustom('${item.quantity}x  $displayName'.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
-        for (final Map<String, String> combo in item.comboSelections!) {
-          final String name = combo['selectedProductName'] ?? 'Extra';
-          final String qty = combo['quantity'] ?? '1';
-          printer.printCustom(
-            '    > ${qty}x $name'.withoutDiacritics,
-            1,
-            0,
-          );
-        }
+        _printComboSelections(printer, item.comboSelections!, item.quantity);
       }
 
       // Mostrar [COMBINADO] solo cuando hay acompañante real + nota si la hay
@@ -74,5 +66,47 @@ class AddedItemsTicket58mm implements PrintableTicket {
     printer.printNewLine();
     printer.printNewLine();
     printer.paperCut();
+  }
+
+  /* imprime selecciones de combo agrupadas por unidad cuando hay más de una */
+  void _printComboSelections(
+    ThermalPrinterPort printer,
+    List<Map<String, String>> selections,
+    int quantity,
+  ) {
+    final bool hasUnitIndex = selections.any((s) => s.containsKey('unitIndex'));
+    if (hasUnitIndex && quantity > 1) {
+      // Agrupar por unitIndex
+      final Map<int, List<String>> byUnit = {};
+      for (final s in selections) {
+        final int unit = int.tryParse(s['unitIndex'] ?? '0') ?? 0;
+        byUnit.putIfAbsent(unit, () => []).add(s['selectedProductName'] ?? 'Extra');
+      }
+      final List<int> sortedKeys = byUnit.keys.toList()..sort();
+      for (final unit in sortedKeys) {
+        printer.printCustom(
+          '  [Combo ${unit + 1}]'.withoutDiacritics,
+          1,
+          0,
+        );
+        for (final name in byUnit[unit]!) {
+          printer.printCustom(
+            '   $name'.withoutDiacritics,
+            1,
+            0,
+          );
+        }
+      }
+    } else {
+      for (final combo in selections) {
+        final String name = combo['selectedProductName'] ?? 'Extra';
+        final String qty = combo['quantity'] ?? '1';
+        printer.printCustom(
+          '    > ${qty}x $name'.withoutDiacritics,
+          1,
+          0,
+        );
+      }
+    }
   }
 }
