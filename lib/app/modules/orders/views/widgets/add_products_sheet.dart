@@ -215,15 +215,17 @@ class AddProductsSheet extends GetView<OrdersController> {
       ComboSelectionDialog(
         product: product,
         price: price,
+        // Retornar el item creado; pasar previousItem para soportar edición
         onConfirm:
-            (product, selectedPrice, quantity, comment, comboSelections, additionalPrice) {
-              controller.addToTempOrder(
+            (product, selectedPrice, quantity, comment, comboSelections, additionalPrice, previousItem) {
+              return controller.addToTempOrder(
                 product,
                 quantity,
                 comment,
                 price: selectedPrice,
                 comboSelections: comboSelections,
                 additionalPrice: additionalPrice,
+                replaceItem: previousItem,
               );
             },
       ),

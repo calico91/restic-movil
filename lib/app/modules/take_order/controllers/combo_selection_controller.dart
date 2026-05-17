@@ -2,16 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/combo_group_model.dart';
 import 'package:restic_movil/app/data/models/combo_option_model.dart';
+import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/price_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 
 class ComboSelectionController extends GetxController {
+  // Registro estático de tags activos para limpiar al confirmar el pedido
+  static final Set<String> _activeTags = {};
+
   final ProductModel product;
   final PriceModel? price;
-  final Function(ProductModel, PriceModel?, int, String, List<Map<String, String>>, double)
-  onConfirm;
+  // Retorna el OrderItemModel creado/reemplazado para poder rastrear ediciones
+  final OrderItemModel? Function(
+    ProductModel,
+    PriceModel?,
+    int,
+    String,
+    List<Map<String, String>>,
+    double,
+    OrderItemModel?,
+  ) onConfirm;
 
   ComboSelectionController({required this.product, this.price, required this.onConfirm});
+
+  // Item del pedido creado en el último submit (para edición posterior)
+  OrderItemModel? _editingItem;
 
   // Lista de selecciones por unidad: índice = unidad, valor = {groupId: {optionId: count}}
   final RxList<Map<String, Map<String, int>>> unitSelections =
@@ -21,6 +36,16 @@ class ComboSelectionController extends GetxController {
   final RxInt currentUnit = 0.obs;
 
   final TextEditingController commentController = TextEditingController();
+
+  /* elimina todos los controllers de combos registrados (llamar al confirmar pedido) */
+  static void clearAll() {
+    for (final String tag in _activeTags.toList()) {
+      if (Get.isRegistered<ComboSelectionController>(tag: tag)) {
+        Get.delete<ComboSelectionController>(tag: tag, force: true);
+      }
+    }
+    _activeTags.clear();
+  }
 
   /* total de unidades del combo */
   int get quantity => unitSelections.length;
@@ -151,7 +176,8 @@ class ComboSelectionController extends GetxController {
     unitSelections.refresh();
   }
 
-  /* construye la lista de selecciones con unitIndex y llama al callback */
+  /* construye la lista de selecciones con unitIndex y llama al callback;
+     si ya existe un item previo (_editingItem), lo pasa para que sea reemplazado */
   void submit() {
     if (!isValid) return;
     final List<Map<String, String>> comboSelectionsList = [];
@@ -175,18 +201,28 @@ class ComboSelectionController extends GetxController {
         });
       });
     }
-    onConfirm(
+    // Pasar _editingItem para que el callback reemplace el item anterior en el pedido
+    _editingItem = onConfirm(
       product,
       price,
       unitSelections.length,
       commentController.text,
       comboSelectionsList,
       additionalPriceOnly,
+      _editingItem,
     );
   }
 
   @override
+  void onInit() {
+    super.onInit();
+    // Registrar el tag activo para permitir limpieza global al confirmar el pedido
+    _activeTags.add('combo_${product.id}');
+  }
+
+  @override
   void onClose() {
+    _activeTags.remove('combo_${product.id}');
     commentController.dispose();
     super.onClose();
   }

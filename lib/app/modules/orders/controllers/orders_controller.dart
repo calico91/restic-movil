@@ -371,25 +371,27 @@ class OrdersController extends GetxController {
   }
 
   /* Manipulación de items temporales */
-  void addToTempOrder(
+  /* Agregar producto al pedido temporal; si se indica replaceItem, reemplaza ese item */
+  OrderItemModel addToTempOrder(
     ProductModel product,
     int quantity,
     String? comment, {
     PriceModel? price,
     List<Map<String, String>>? comboSelections,
     double additionalPrice = 0,
+    OrderItemModel? replaceItem,
   }) {
-    final normalizedComment = (comment == null || comment.trim().isEmpty)
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
         ? null
         : comment.trim();
 
-    // Check duplication logic:
-    // If it's a combo, we might want to check if the combo selections are identical.
-    // For simplicity, for combos we can just add a new item or implement deep comparison.
-    // Here I'll mimic take_order logic: separate combos if needed.
+    // Si se reemplaza un item existente (edición de combo), eliminarlo primero
+    if (replaceItem != null) {
+      tempAdditionalOrderItems.remove(replaceItem);
+    }
 
     int index = -1;
-    if (comboSelections == null || comboSelections.isEmpty) {
+    if ((comboSelections == null || comboSelections.isEmpty) && replaceItem == null) {
       index = tempAdditionalOrderItems.indexWhere(
         (item) =>
             item.product.id == product.id &&
@@ -402,17 +404,18 @@ class OrdersController extends GetxController {
     if (index != -1) {
       tempAdditionalOrderItems[index].quantity += quantity;
       tempAdditionalOrderItems.refresh();
+      return tempAdditionalOrderItems[index];
     } else {
-      tempAdditionalOrderItems.add(
-        OrderItemModel(
-          product: product,
-          selectedPrice: price,
-          quantity: quantity,
-          comment: normalizedComment,
-          comboSelections: comboSelections,
-          additionalPrice: additionalPrice,
-        ),
+      final OrderItemModel newItem = OrderItemModel(
+        product: product,
+        selectedPrice: price,
+        quantity: quantity,
+        comment: normalizedComment,
+        comboSelections: comboSelections,
+        additionalPrice: additionalPrice,
       );
+      tempAdditionalOrderItems.add(newItem);
+      return newItem;
     }
   }
 
