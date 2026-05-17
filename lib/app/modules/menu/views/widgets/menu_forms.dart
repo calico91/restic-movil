@@ -186,11 +186,15 @@ class ProductFormDialog extends StatelessWidget {
                   ) ??
                   0.0;
 
+              // Usar inicio del día actual para evitar problemas de desfase de reloj con el servidor
+              final DateTime startOfDay = DateTime(
+                DateTime.now().year,
+                DateTime.now().month,
+                DateTime.now().day,
+              );
               final Map<String, dynamic> priceMap = {
                 "amount": amount,
-                "start_date": DateFormat(
-                  "yyyy-MM-dd'T'HH:mm:ss",
-                ).format(DateTime.now()),
+                "start_date": DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(startOfDay),
                 "end_date": null,
               };
 
