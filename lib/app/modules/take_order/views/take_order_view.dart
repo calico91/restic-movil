@@ -261,8 +261,9 @@ class TakeOrderView extends GetView<TakeOrderController> {
       ComboSelectionDialog(
         product: product,
         price: price,
+        // Retornar el item creado para que el controller pueda rastrear ediciones
         onConfirm: (p, selectedPrice, quantity, comment, comboSelections,
-                additionalPrice) =>
+                additionalPrice, previousItem) =>
             controller.addToOrder(
           p,
           quantity,
@@ -270,6 +271,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
           price: selectedPrice,
           comboSelections: comboSelections,
           additionalPrice: additionalPrice,
+          replaceItem: previousItem,
         ),
       ),
     );

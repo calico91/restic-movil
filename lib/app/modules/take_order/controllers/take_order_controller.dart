@@ -19,6 +19,7 @@ import 'package:restic_movil/app/modules/orders/controllers/orders_controller.da
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/app/modules/take_order/controllers/combo_selection_controller.dart';
 
 class TakeOrderController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -305,26 +306,29 @@ class TakeOrderController extends GetxController {
     }
   }
 
-  /*agregar producto al pedido */
-  void addToOrder(
+  /*agregar producto al pedido; si se indica replaceItem, reemplaza ese item existente */
+  OrderItemModel addToOrder(
     ProductModel product,
     int quantity,
     String? comment, {
     PriceModel? price,
     List<Map<String, String>>? comboSelections,
     double additionalPrice = 0,
+    OrderItemModel? replaceItem,
   }) {
     // Normalizar comentario: tratar vacíos o solo espacios como null
-    final normalizedComment = (comment == null || comment.trim().isEmpty)
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
         ? null
         : comment.trim();
 
-    // Verificar si ya existe el producto con el mismo comentario y precio
-    // Para combos, si hay selecciones, por ahora no agrupamos para evitar complejidad
-    // (o se podria implementar deep equality check)
-    int index = -1;
+    // Si se reemplaza un item existente (edición de combo), eliminarlo primero
+    if (replaceItem != null) {
+      currentOrder.remove(replaceItem);
+    }
 
-    if (comboSelections == null || comboSelections.isEmpty) {
+    // Agrupar con item existente solo para productos sin combo y sin reemplazo
+    int index = -1;
+    if ((comboSelections == null || comboSelections.isEmpty) && replaceItem == null) {
       index = currentOrder.indexWhere(
         (item) =>
             item.product.id == product.id &&
@@ -336,22 +340,21 @@ class TakeOrderController extends GetxController {
 
     if (index != -1) {
       currentOrder[index].quantity += quantity;
-      currentOrder.refresh(); // Refresh list to update UI
+      currentOrder.refresh();
+      if (Get.isDialogOpen ?? false) Get.back();
+      return currentOrder[index];
     } else {
-      currentOrder.add(
-        OrderItemModel(
-          product: product,
-          selectedPrice: price,
-          quantity: quantity,
-          comment: normalizedComment,
-          comboSelections: comboSelections,
-          additionalPrice: additionalPrice,
-        ),
+      final OrderItemModel newItem = OrderItemModel(
+        product: product,
+        selectedPrice: price,
+        quantity: quantity,
+        comment: normalizedComment,
+        comboSelections: comboSelections,
+        additionalPrice: additionalPrice,
       );
-    }
-
-    if (Get.isDialogOpen ?? false) {
-      Get.back();
+      currentOrder.add(newItem);
+      if (Get.isDialogOpen ?? false) Get.back();
+      return newItem;
     }
   }
 
@@ -616,6 +619,8 @@ class TakeOrderController extends GetxController {
     selectedCustomer.value = null;
     currentOrder.clear();
     surcharges.clear();
+    // Eliminar todos los controllers de combos persistidos
+    ComboSelectionController.clearAll();
     // Resetear el formulario completamnte, incluyendo el origen, dejandolo en null (estado inicial)
     form.reset();
   }
