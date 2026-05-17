@@ -35,13 +35,19 @@ class WebSocketService extends GetxService {
       return;
     }
 
-    final String baseUrlStr = serverUrl.startsWith('https')
-        ? serverUrl.replaceFirst('https', 'ws')
-        : 'ws://$serverUrl';
-    final String cleanUrl = baseUrlStr.endsWith('/')
-        ? baseUrlStr.substring(0, baseUrlStr.length - 1)
-        : baseUrlStr;
-    final String socketUrl = '$cleanUrl/ws';
+    /* Normalizar la URL: misma lógica que base_http_client (https por defecto si no tiene protocolo) */
+    final String rawUrl = serverUrl.endsWith('/')
+        ? serverUrl.substring(0, serverUrl.length - 1)
+        : serverUrl;
+    final String baseUrlStr =
+        rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
+
+    /* HTTPS → SockJS con https:// (evita el esquema wss:// no soportado en Android)
+       HTTP  → WebSocket nativo con ws:// */
+    final bool isSecure = baseUrlStr.startsWith('https');
+    final String socketUrl = isSecure
+        ? '$baseUrlStr/ws'
+        : '${baseUrlStr.replaceFirst('http', 'ws')}/ws';
 
     /* Obtener credenciales para los headers de la conexión */
     final String apiKey = dotenv.env['APP_API_KEY'] ?? '';
@@ -54,6 +60,8 @@ class WebSocketService extends GetxService {
     _client = StompClient(
       config: StompConfig(
         url: socketUrl,
+        // SockJS usa http/https directamente — evita el esquema wss:// no soportado en Android
+        useSockJS: isSecure,
         webSocketConnectHeaders: authHeaders,
         stompConnectHeaders: authHeaders,
         onConnect: (frame) => _onConnect(frame, branchId),
