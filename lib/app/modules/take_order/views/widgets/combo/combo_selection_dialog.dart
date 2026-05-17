@@ -76,6 +76,9 @@ class ComboSelectionDialog extends StatelessWidget {
                   _buildUnitNavigator(controller),
                   const Divider(),
 
+                  // Resumen de lo seleccionado para la unidad activa
+                  _buildCurrentUnitSummary(controller),
+
                   // Grupos de opciones para la unidad activa
                   Obx(
                     () => Column(
@@ -161,6 +164,84 @@ class ComboSelectionDialog extends StatelessWidget {
         );
       },
     );
+  }
+
+/* banner reactivo con los productos ya seleccionados en la unidad activa */
+  Widget _buildCurrentUnitSummary(ComboSelectionController controller) {
+    return Obx(() {
+      final int unitIdx = controller.currentUnit.value;
+      if (unitIdx >= controller.unitSelections.length) {
+        return const SizedBox.shrink();
+      }
+      final Map<String, Map<String, int>> unitSel =
+          controller.unitSelections[unitIdx];
+      if (unitSel.isEmpty) return const SizedBox.shrink();
+
+      // Construir lista de nombres con cantidad (si > 1)
+      final List<String> names = [];
+      for (final ComboGroupModel group in product.comboGroups ?? []) {
+        final Map<String, int> groupOptions = unitSel[group.id] ?? {};
+        groupOptions.forEach((String optionId, int count) {
+          if (count > 0) {
+            final ComboOptionModel? option =
+                group.options?.where((o) => o.id == optionId).firstOrNull;
+            if (option?.productName != null) {
+              names.add(
+                count > 1
+                    ? '${option!.productName!} ×$count'
+                    : option!.productName!,
+              );
+            }
+          }
+        });
+      }
+
+      if (names.isEmpty) return const SizedBox.shrink();
+
+      return Container(
+        width: double.infinity,
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: const Color(0xFFE3F2FD),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: const Color(0xFF90CAF9)),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Selección actual:',
+              style: TextStyle(
+                fontSize: 11,
+                color: Color(0xFF1565C0),
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: names
+                  .map(
+                    (String name) => Chip(
+                      label: Text(
+                        name,
+                        style: const TextStyle(fontSize: 12),
+                      ),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      visualDensity: VisualDensity.compact,
+                      backgroundColor: Colors.white,
+                      side: const BorderSide(color: Color(0xFF90CAF9)),
+                      padding: EdgeInsets.zero,
+                    ),
+                  )
+                  .toList(),
+            ),
+          ],
+        ),
+      );
+    });
   }
 
 /* navegador de unidades: chips numerados a la izquierda, botones +/- fijos a la derecha */
