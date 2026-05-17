@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -42,9 +43,19 @@ class WebSocketService extends GetxService {
         : baseUrlStr;
     final String socketUrl = '$cleanUrl/ws';
 
+    /* Obtener credenciales para los headers de la conexión */
+    final String apiKey = dotenv.env['APP_API_KEY'] ?? '';
+    final String? token = await _storageService.getToken();
+    final Map<String, String> authHeaders = {
+      if (apiKey.isNotEmpty) 'X-App-Key': apiKey,
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+
     _client = StompClient(
       config: StompConfig(
         url: socketUrl,
+        webSocketConnectHeaders: authHeaders,
+        stompConnectHeaders: authHeaders,
         onConnect: (frame) => _onConnect(frame, branchId),
         beforeConnect: () async {
           debugPrint('Connecting to WebSocket...');
