@@ -1,4 +1,4 @@
-package com.example.restic_movil
+package com.restic.app
 
 import io.flutter.embedding.android.FlutterActivity
 
