@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Política de Privacidad – Restic Movil</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f5f5f5;
+      color: #222;
+      line-height: 1.7;
+    }
+
+    header {
+      background: linear-gradient(135deg, #c0392b 0%, #1a237e 100%);
+      color: #fff;
+      padding: 48px 24px 36px;
+      text-align: center;
+    }
+
+    header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+    header p  { font-size: 0.95rem; opacity: 0.85; }
+
+    main {
+      max-width: 800px;
+      margin: 40px auto;
+      padding: 0 24px 64px;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #c0392b;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    p { margin-bottom: 10px; }
+    p:last-child { margin-bottom: 0; }
+
+    ul { padding-left: 20px; margin-top: 8px; }
+    ul li { margin-bottom: 6px; }
+
+    .badge {
+      display: inline-block;
+      background: #eaf0ff;
+      color: #1a237e;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 20px;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+
+    .highlight {
+      background: #fff8e1;
+      border-left: 4px solid #f9a825;
+      padding: 12px 16px;
+      border-radius: 0 8px 8px 0;
+      margin-top: 10px;
+      font-size: 0.92rem;
+    }
+
+    footer {
+      text-align: center;
+      color: #888;
+      font-size: 0.85rem;
+      padding: 24px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    a { color: #c0392b; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>Política de Privacidad</h1>
+  <p>Restic Movil &nbsp;·&nbsp; Maelosoft &nbsp;·&nbsp; Última actualización: 20 de mayo de 2026</p>
+</header>
+
+<main>
+
+  <div class="card">
+    <h2>1. Información General</h2>
+    <p>
+      <strong>Restic Movil</strong> es una aplicación móvil desarrollada por <strong>Maelosoft</strong>
+      (en adelante "nosotros" o "la empresa"). Esta política describe qué información recopilamos,
+      cómo la usamos y cuáles son los derechos del usuario respecto a sus datos.
+    </p>
+    <p>
+      Al usar la aplicación, el usuario acepta las prácticas descritas en este documento.
+      Si no está de acuerdo, debe dejar de usar la aplicación.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>2. Información que Recopilamos</h2>
+    <p>La aplicación <strong>no recopila ni almacena datos personales</strong> en nuestros servidores más allá de los estrictamente necesarios para el funcionamiento del servicio:</p>
+    <ul>
+      <li><strong>Credenciales de acceso:</strong> nombre de usuario y contraseña para autenticación en el sistema. Se transmiten de forma segura mediante HTTPS y no se almacenan en texto plano.</li>
+      <li><strong>Datos de sesión:</strong> token de autenticación guardado de forma segura en el almacenamiento cifrado del dispositivo (no accesible por otras apps).</li>
+      <li><strong>Datos operacionales:</strong> información relacionada con la gestión del sistema Restic (consultas, registros de operación), que pertenece exclusivamente al negocio del usuario.</li>
+    </ul>
+    <p>La aplicación <strong>no recopila</strong>: nombre real, correo electrónico, número de teléfono, ubicación GPS, ni información de contactos.</p>
+  </div>
+
+  <div class="card">
+    <h2>3. Permisos del Dispositivo</h2>
+
+    <p><span class="badge">INTERNET</span></p>
+    <p>Necesario para comunicarse con el servidor del sistema Restic a través de conexiones HTTPS cifradas. No se comparte información con terceros a través de esta conexión.</p>
+
+    <p style="margin-top:16px"><span class="badge">BLUETOOTH</span> <span class="badge">BLUETOOTH_ADMIN</span> <span class="badge">BLUETOOTH_CONNECT</span> <span class="badge">BLUETOOTH_SCAN</span></p>
+    <p>
+      Estos permisos se usan <strong>exclusivamente</strong> para detectar y conectarse a impresoras
+      térmicas Bluetooth (impresión de tickets y comprobantes). La aplicación:
+    </p>
+    <ul>
+      <li>No escanea dispositivos Bluetooth en segundo plano.</li>
+      <li>No transmite datos Bluetooth a servidores externos.</li>
+      <li>Solo se conecta a la impresora seleccionada por el usuario.</li>
+    </ul>
+    <div class="highlight">
+      Los permisos Bluetooth se solicitan en tiempo de ejecución (Android 12+) y el usuario puede revocarlos en cualquier momento desde la configuración del sistema.
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>4. Almacenamiento de Datos en el Dispositivo</h2>
+    <p>
+      La aplicación almacena localmente únicamente el token de sesión usando
+      <strong>Flutter Secure Storage</strong>, que utiliza el sistema de almacenamiento
+      cifrado de Android (Keystore). Este dato se elimina automáticamente al cerrar sesión.
+    </p>
+    <p>No se crean archivos adicionales en el almacenamiento externo del dispositivo.</p>
+  </div>
+
+  <div class="card">
+    <h2>5. Compartición con Terceros</h2>
+    <p>
+      <strong>No vendemos, alquilamos ni compartimos</strong> datos de usuarios con terceros.
+      La aplicación no integra servicios de análisis de terceros (Google Analytics, Firebase Analytics, etc.),
+      publicidad ni redes de rastreo.
+    </p>
+    <p>
+      Las únicas comunicaciones de red ocurren entre la app y el servidor de Restic
+      operado por el negocio del usuario.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>6. Seguridad</h2>
+    <p>Implementamos las siguientes medidas de seguridad:</p>
+    <ul>
+      <li>Comunicaciones cifradas mediante <strong>HTTPS/TLS</strong>.</li>
+      <li>Credenciales almacenadas con <strong>cifrado AES</strong> a través del Keystore de Android.</li>
+      <li>Sin registro de contraseñas en texto plano ni en logs de la aplicación.</li>
+    </ul>
+  </div>
+
+  <div class="card">
+    <h2>7. Menores de Edad</h2>
+    <p>
+      Restic Movil está destinada a <strong>usuarios empresariales y profesionales mayores de 18 años</strong>.
+      No recopilamos intencionalmente información de menores de 13 años. Si detectamos que un menor
+      ha proporcionado datos, los eliminaremos de inmediato.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>8. Cambios a Esta Política</h2>
+    <p>
+      Podemos actualizar esta política ocasionalmente. Notificaremos cualquier cambio significativo
+      actualizando la fecha en la parte superior de esta página. El uso continuo de la aplicación
+      después de publicar cambios implica la aceptación de los mismos.
+    </p>
+  </div>
+
+  <div class="card">
+    <h2>9. Contacto</h2>
+    <p>Si tienes preguntas o inquietudes sobre esta política de privacidad, contáctanos:</p>
+    <ul>
+      <li><strong>Empresa:</strong> Maelosoft</li>
+      <li><strong>Desarrollador:</strong> Cristian Blandon</li>
+      <li><strong>Correo:</strong> <a href="mailto:maelosoft@gmail.com">maelosoft@gmail.com</a></li>
+    </ul>
+    <p style="margin-top:12px; font-size:0.9rem; color:#666;">
+      Actualiza el correo electrónico con tu dirección real antes de publicar.
+    </p>
+  </div>
+
+</main>
+
+<footer>
+  &copy; 2026 Maelosoft · Restic Movil · Todos los derechos reservados
+</footer>
+
+</body>
+</html>
