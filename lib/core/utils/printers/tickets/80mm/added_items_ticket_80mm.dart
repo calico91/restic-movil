@@ -33,6 +33,13 @@ class AddedItemsTicket80mm implements PrintableTicket {
       printer.printCustom('Mesas: $tableNames'.withoutDiacritics, 2, 0);
     }
 
+    if (observations != null && observations!.trim().isNotEmpty) {
+      printer.printNewLine();
+      printer.printCustom('OBSERVACION GENERAL:', 2, 1);
+      printer.printCustom(observations!.trim().withoutDiacritics, 1, 1);
+      printer.printNewLine();
+    }
+
     printer.printCustom(_sep, 1, 1);
     printer.printCustom('CANT.   PRODUCTO', 2, 0);
     printer.printCustom(_sep, 1, 1);
@@ -63,10 +70,6 @@ class AddedItemsTicket80mm implements PrintableTicket {
     }
 
     printer.printCustom(_sep, 1, 1);
-
-    if (observations != null && observations!.trim().isNotEmpty) {
-      printer.printCustom('Obs: ${observations!.trim()}'.withoutDiacritics, 1, 0);
-    }
 
     printer.printNewLine();
     printer.printNewLine();
