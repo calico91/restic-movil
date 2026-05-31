@@ -459,15 +459,13 @@ class TakeOrderController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
-  /*obtener los productos COMBINADO del mismo subcategoryId, excluyendo el producto actual*/
+  /* Obtener todos los productos COMBINADO de la sucursal, excluyendo el producto actual */
   List<ProductModel> getCombinadoSiblings(ProductModel product) {
     final List<ProductModel> siblings = [];
     for (final CategoryModel category in categories) {
       for (final subcategory in category.subcategories ?? []) {
         for (final ProductModel p in subcategory.products ?? []) {
-          if (p.productType == 'COMBINADO' &&
-              p.subcategoryId == product.subcategoryId &&
-              p.id != product.id) {
+          if (p.productType == 'COMBINADO' && p.id != product.id) {
             siblings.add(p);
           }
         }
