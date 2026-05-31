@@ -53,7 +53,6 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
             _buildExternalObservationsField(),
           Flexible(child: _buildOrderList(context)),
           const SizedBox(height: 20),
-          if (!_isExternalMode) _buildSurchargesSection(context),
           _buildConfirmButton(),
         ],
       ),

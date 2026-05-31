@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
+import 'package:restic_movil/app/modules/orders/views/widgets/manage_surcharges_sheet.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
@@ -84,6 +85,17 @@ class CashRegisterView extends GetView<CashRegisterController> {
                           actionText: 'Pagar',
                           onActionPressed: controller.currentTab.value == 0
                               ? () => controller.showTransactionModal(order)
+                              : null,
+                          onManageSurchargesPressed: controller.currentTab.value == 0
+                              ? () => Get.bottomSheet(
+                                    ManageSurchargesSheet(
+                                      order: order,
+                                      onSave: controller.saveOrderSurcharges,
+                                    ),
+                                    isScrollControlled: true,
+                                    backgroundColor: Colors.transparent,
+                                    enableDrag: true,
+                                  )
                               : null,
                           printTooltip: controller.currentTab.value == 0
                               ? 'Imprimir precuenta'
