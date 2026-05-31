@@ -157,7 +157,14 @@ class LoginView extends GetView<LoginController> {
           CustomReactiveTextField<String>(
             formControlName: 'username',
             labelText: 'Usuario',
-            inputFormatters: [FilteringTextInputFormatter.deny(RegExp(r'\s'))],
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              TextInputFormatter.withFunction(
+                (oldValue, newValue) => newValue.copyWith(
+                  text: newValue.text.toLowerCase(),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 20),
           Obx(

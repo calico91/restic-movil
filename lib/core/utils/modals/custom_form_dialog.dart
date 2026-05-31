@@ -38,7 +38,10 @@ class CustomFormDialog extends StatelessWidget {
         ),
         content: SizedBox(
           width: double.maxFinite,
-          child: SingleChildScrollView(child: child),
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(top: 8),
+            child: child,
+          ),
         ),
         actions: [
           Row(
