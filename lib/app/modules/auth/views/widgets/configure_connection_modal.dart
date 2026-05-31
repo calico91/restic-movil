@@ -19,10 +19,16 @@ class ConfigureConnectionController extends GetxController {
     _loadCurrentUrl();
   }
 
+  static const String _urlSuffix = '.up.railway.app';
+
   Future<void> _loadCurrentUrl() async {
-    final currentUrl = await storageService.getServerUrl();
+    // Extrae solo el nombre del cliente quitando el sufijo del dominio
+    final String? currentUrl = await storageService.getServerUrl();
     if (currentUrl != null) {
-      serverController.text = currentUrl;
+      final String clientName = currentUrl.endsWith(_urlSuffix)
+          ? currentUrl.substring(0, currentUrl.length - _urlSuffix.length)
+          : currentUrl;
+      serverController.text = clientName;
     }
   }
 
@@ -33,13 +39,14 @@ class ConfigureConnectionController extends GetxController {
   }
 
   void saveConnection() async {
-    final url = serverController.text.trim();
-    if (url.isEmpty) {
-      Get.showSnackbar(const ErrorSnackbar('El servidor no puede estar vacío'));
+    // Concatena el sufijo del dominio al nombre del cliente antes de guardar
+    final String clientName = serverController.text.trim();
+    if (clientName.isEmpty) {
+      Get.showSnackbar(const ErrorSnackbar('El nombre del servidor no puede estar vacío'));
       return;
     }
-    
-    await storageService.saveServerUrl(url);
+    final String fullUrl = '$clientName$_urlSuffix';
+    await storageService.saveServerUrl(fullUrl);
     Get.back();
     Get.showSnackbar(const InfoSnackbar('Conexión configurada correctamente'));
   }
@@ -113,12 +120,15 @@ class ConfigureConnectionModal extends StatelessWidget {
           TextField(
             controller: controller.serverController,
             decoration: InputDecoration(
-              labelText: 'Servidor',
-              hintText: 'Ej. 192.168.0.103:8093',
+              labelText: 'Nombre del servidor',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               prefixIcon: const Icon(Icons.dns),
+              suffixStyle: const TextStyle(
+                color: Colors.grey,
+                fontSize: 12,
+              ),
             ),
             inputFormatters: [
               FilteringTextInputFormatter.deny(RegExp(r'\s')), // Evitar espacios
