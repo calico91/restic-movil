@@ -204,7 +204,7 @@ class AddProductsSheet extends GetView<OrdersController> {
       CombinationSelectionDialog(
         product: product,
         siblings: siblings,
-        onConfirm: (p1, p2, comment) => controller.addTempCombination(p1, p2, comment),
+        onConfirm: (p1, p2, quantity, comment) => controller.addTempCombination(p1, p2, quantity, comment),
       ),
     );
   }

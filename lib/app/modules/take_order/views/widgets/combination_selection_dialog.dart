@@ -8,7 +8,7 @@ import 'package:restic_movil/app/data/models/product_model.dart';
 class CombinationSelectionDialog extends StatefulWidget {
   final ProductModel product;
   final List<ProductModel> siblings;
-  final void Function(ProductModel, ProductModel, String?) onConfirm;
+  final void Function(ProductModel, ProductModel, int, String?) onConfirm;
 
   const CombinationSelectionDialog({
     super.key,
@@ -23,6 +23,7 @@ class CombinationSelectionDialog extends StatefulWidget {
 
 class _CombinationSelectionDialogState extends State<CombinationSelectionDialog> {
   ProductModel? _selected;
+  int _quantity = 1;
   final TextEditingController _commentController = TextEditingController();
 
   @override
@@ -106,6 +107,46 @@ class _CombinationSelectionDialogState extends State<CombinationSelectionDialog>
                   ),
                 ),
               ),
+            // Selector de cantidad cuando hay selección
+            if (_selected != null) ...[
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Cantidad:',
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(width: 12),
+                  IconButton(
+                    onPressed: _quantity > 1
+                        ? () => setState(() => _quantity--)
+                        : null,
+                    icon: const Icon(Icons.remove_circle_outline),
+                    color: Colors.blue[900],
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Text(
+                      '$_quantity',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    onPressed: () => setState(() => _quantity++),
+                    icon: const Icon(Icons.add_circle_outline),
+                    color: Colors.blue[900],
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                  ),
+                ],
+              ),
+            ],
             // Preview del costo cuando hay selección
             if (_selected != null) ...[
               const Divider(),
@@ -179,7 +220,7 @@ class _CombinationSelectionDialogState extends State<CombinationSelectionDialog>
                   final String? comment = _commentController.text.trim().isEmpty
                       ? null
                       : _commentController.text.trim();
-                  widget.onConfirm(widget.product, _selected!, comment);
+                  widget.onConfirm(widget.product, _selected!, _quantity, comment);
                 },
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue[900],

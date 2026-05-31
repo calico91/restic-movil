@@ -452,7 +452,7 @@ class OrdersController extends GetxController {
   }
 
   /* Agregar una combinación 2x1: el más caro se registra con el acompañante */
-  void addTempCombination(ProductModel p1, ProductModel p2, String? comment) {
+  void addTempCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
     final ProductModel expensive = price1 >= price2 ? p1 : p2;
@@ -473,13 +473,13 @@ class OrdersController extends GetxController {
         : -1;
 
     if (index != -1) {
-      tempAdditionalOrderItems[index].quantity++;
+      tempAdditionalOrderItems[index].quantity += quantity;
       tempAdditionalOrderItems.refresh();
     } else {
       tempAdditionalOrderItems.add(
         OrderItemModel(
           product: expensive,
-          quantity: 1,
+          quantity: quantity,
           combinedWith: cheap,
           comment: normalizedComment,
         ),

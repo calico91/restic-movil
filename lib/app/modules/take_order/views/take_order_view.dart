@@ -287,7 +287,7 @@ class TakeOrderView extends GetView<TakeOrderController> {
       CombinationSelectionDialog(
         product: product,
         siblings: siblings,
-        onConfirm: (p1, p2, comment) => controller.addCombination(p1, p2, comment),
+        onConfirm: (p1, p2, quantity, comment) => controller.addCombination(p1, p2, quantity, comment),
       ),
     );
   }

@@ -395,7 +395,7 @@ class TakeOrderController extends GetxController {
   }
 
   /*agregar una combinacion 2x1: determina el producto mas caro y lo registra con el acompañante*/
-  void addCombination(ProductModel p1, ProductModel p2, String? comment) {
+  void addCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     // Determinar cuál es el producto más caro (el que se cobra)
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
@@ -417,13 +417,13 @@ class TakeOrderController extends GetxController {
         : -1;
 
     if (index != -1) {
-      currentOrder[index].quantity++;
+      currentOrder[index].quantity += quantity;
       currentOrder.refresh();
     } else {
       currentOrder.add(
         OrderItemModel(
           product: expensive,
-          quantity: 1,
+          quantity: quantity,
           combinedWith: cheap,
           comment: normalizedComment,
         ),
