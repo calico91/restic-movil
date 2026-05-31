@@ -7,14 +7,14 @@ import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combination_selection_dialog.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/order_summary/order_summary_sheet.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
 /*
   Hoja modal para agregar productos adicionales a un pedido existente.
   Permite seleccionar productos, ajustar cantidades y agregar comentarios.
-  Muestra un resumen de los productos seleccionados y el total adicional.
-  Al confirmar, agrega los productos al pedido a través del controlador.
+  Muestra un botón flotante "Ver Pedido" para revisar, eliminar y confirmar los productos.
 */
 class AddProductsSheet extends GetView<OrdersController> {
   final OrderModel order;
@@ -29,118 +29,93 @@ class AddProductsSheet extends GetView<OrdersController> {
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      child: Column(
+      child: Stack(
         children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Agregar a pedido #${order.orderNumber}',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+          Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Agregar a pedido #${order.orderNumber}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.close),
+                      onPressed: () => Get.back(),
+                    ),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Get.back(),
-                ),
-              ],
-            ),
-          ),
-          const Divider(),
-          Expanded(
-            child: SingleChildScrollView(
-              child: Obx(() {
-                // Forzar reactividad
-                // ignore: unused_local_variable
-                final _ = controller.tempAdditionalOrderItems.length;
+              ),
+              const Divider(),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.only(bottom: 80),
+                  child: Obx(() {
+                    // Forzar reactividad
+                    // ignore: unused_local_variable
+                    final _ = controller.tempAdditionalOrderItems.length;
 
-                return ProductSelectionWidget(
-                  categories: controller.categories.toList(),
-                  getQuantity: controller.getTempProductQuantity,
-                  onIncrement: (product, price) {
-                    // COMBO abre su diálogo; COMBINADO y el resto se agregan individualmente
-                    if (product.productType == 'COMBO') {
-                      _showComboDialog(context, product, price);
-                    } else {
-                      controller.incrementTempProduct(product, price);
-                    }
-                  },
-                  onDecrement: controller.decrementTempProduct,
-                  onEdit: (product, price) {
-                    if (product.productType == 'COMBO') {
-                      _showComboDialog(context, product, price);
-                    } else {
-                      _showAddProductDialog(product, price);
-                    }
-                  },
-                  onCombine: (product, siblings) =>
-                      _showCombinationDialog(context, product, siblings),
-                  onDecrementCombination: controller.decrementTempCombination,
-                  getCombinationQuantity: controller.getTempCombinationQuantity,
-                );
-              }),
-            ),
+                    return ProductSelectionWidget(
+                      categories: controller.categories.toList(),
+                      getQuantity: controller.getTempProductQuantity,
+                      onIncrement: (product, price) {
+                        if (product.productType == 'COMBO') {
+                          _showComboDialog(context, product, price);
+                        } else {
+                          controller.incrementTempProduct(product, price);
+                        }
+                      },
+                      onDecrement: controller.decrementTempProduct,
+                      onEdit: (product, price) {
+                        if (product.productType == 'COMBO') {
+                          _showComboDialog(context, product, price);
+                        } else {
+                          _showAddProductDialog(product, price);
+                        }
+                      },
+                      onCombine: (product, siblings) =>
+                          _showCombinationDialog(context, product, siblings),
+                      onDecrementCombination: controller.decrementTempCombination,
+                      getCombinationQuantity: controller.getTempCombinationQuantity,
+                    );
+                  }),
+                ),
+              ),
+            ],
           ),
+          // FAB "Ver Pedido (n)" — aparece cuando hay productos seleccionados
           Obx(() {
             if (controller.tempAdditionalOrderItems.isEmpty) {
               return const SizedBox.shrink();
             }
-            return Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 10,
-                    offset: const Offset(0, -5),
+            return Positioned(
+              bottom: 20,
+              right: 20,
+              child: FloatingActionButton.extended(
+                onPressed: () => Get.bottomSheet(
+                  OrderSummarySheet(
+                    externalItems: controller.tempAdditionalOrderItems,
+                    externalTotal: () => controller.totalAdditionalAmount,
+                    externalRemoveItem: controller.removeTempItem,
+                    externalConfirm: () => controller.confirmAddProducts(order),
+                    externalConfirmLabel: 'Confirmar Agregar',
+                    externalObservationsController:
+                        controller.additionalObservationsController,
                   ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          '${controller.tempAdditionalOrderItems.length} items',
-                          style: TextStyle(color: Colors.grey[600]),
-                        ),
-                        Text(
-                          '\$${controller.totalAdditionalAmount.toStringAsFixed(0)}',
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  ElevatedButton(
-                    onPressed: () => controller.confirmAddProducts(order),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue[900],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 30,
-                        vertical: 15,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    child: const Text(
-                      'Agregar',
-                      style: TextStyle(color: Colors.white, fontSize: 16),
-                    ),
-                  ),
-                ],
+                  isScrollControlled: true,
+                ),
+                label: Text(
+                  'Ver Pedido (${controller.tempAdditionalOrderItems.length})',
+                  style: const TextStyle(color: Colors.white),
+                ),
+                icon: const Icon(Icons.shopping_cart, color: Colors.white),
+                backgroundColor: Colors.blue[900],
               ),
             );
           }),
@@ -189,7 +164,7 @@ class AddProductsSheet extends GetView<OrdersController> {
                 commentControl.value,
                 price: price,
               );
-              Get.back(); // Cerrar dialogo
+              Get.back();
             },
             child: const Text('Agregar'),
           ),
@@ -199,35 +174,37 @@ class AddProductsSheet extends GetView<OrdersController> {
   }
 
   /* Mostrar dialogo de seleccion de combinacion 2x1 */
-  void _showCombinationDialog(BuildContext context, ProductModel product, List<ProductModel> siblings) {
+  void _showCombinationDialog(
+      BuildContext context, ProductModel product, List<ProductModel> siblings) {
     Get.dialog(
       CombinationSelectionDialog(
         product: product,
         siblings: siblings,
-        onConfirm: (p1, p2, comment) => controller.addTempCombination(p1, p2, comment),
+        onConfirm: (p1, p2, quantity, comment) =>
+            controller.addTempCombination(p1, p2, quantity, comment),
       ),
     );
   }
 
   /* Mostrar dialogo de seleccion de combo */
-  void _showComboDialog(BuildContext context, ProductModel product, PriceModel? price) {
+  void _showComboDialog(
+      BuildContext context, ProductModel product, PriceModel? price) {
     Get.dialog(
       ComboSelectionDialog(
         product: product,
         price: price,
-        // Retornar el item creado; pasar previousItem para soportar edición
-        onConfirm:
-            (product, selectedPrice, quantity, comment, comboSelections, additionalPrice, previousItem) {
-              return controller.addToTempOrder(
-                product,
-                quantity,
-                comment,
-                price: selectedPrice,
-                comboSelections: comboSelections,
-                additionalPrice: additionalPrice,
-                replaceItem: previousItem,
-              );
-            },
+        onConfirm: (product, selectedPrice, quantity, comment, comboSelections,
+            additionalPrice, previousItem) {
+          return controller.addToTempOrder(
+            product,
+            quantity,
+            comment,
+            price: selectedPrice,
+            comboSelections: comboSelections,
+            additionalPrice: additionalPrice,
+            replaceItem: previousItem,
+          );
+        },
       ),
     );
   }

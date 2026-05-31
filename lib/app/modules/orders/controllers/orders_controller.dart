@@ -54,6 +54,8 @@ class OrdersController extends GetxController {
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxList<OrderItemModel> tempAdditionalOrderItems =
       <OrderItemModel>[].obs;
+  final TextEditingController additionalObservationsController =
+      TextEditingController();
   double get totalAdditionalAmount =>
       tempAdditionalOrderItems.fold(0, (sum, item) => sum + item.total);
 
@@ -108,6 +110,7 @@ class OrdersController extends GetxController {
   @override
   void onClose() {
     searchController.dispose();
+    additionalObservationsController.dispose();
     _webSocketService.disconnect();
     super.onClose();
   }
@@ -357,6 +360,7 @@ class OrdersController extends GetxController {
   /* Iniciar proceso de agregar productos */
   void startAddProducts(OrderModel order) {
     tempAdditionalOrderItems.clear();
+    additionalObservationsController.clear();
     if (categories.isEmpty) {
       Get.showOverlay(
         loadingWidget: const LoadingCharging(),
@@ -452,7 +456,7 @@ class OrdersController extends GetxController {
   }
 
   /* Agregar una combinación 2x1: el más caro se registra con el acompañante */
-  void addTempCombination(ProductModel p1, ProductModel p2, String? comment) {
+  void addTempCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
     final ProductModel expensive = price1 >= price2 ? p1 : p2;
@@ -473,13 +477,13 @@ class OrdersController extends GetxController {
         : -1;
 
     if (index != -1) {
-      tempAdditionalOrderItems[index].quantity++;
+      tempAdditionalOrderItems[index].quantity += quantity;
       tempAdditionalOrderItems.refresh();
     } else {
       tempAdditionalOrderItems.add(
         OrderItemModel(
           product: expensive,
-          quantity: 1,
+          quantity: quantity,
           combinedWith: cheap,
           comment: normalizedComment,
         ),
@@ -504,6 +508,11 @@ class OrdersController extends GetxController {
     }
   }
 
+  /* Eliminar un item temporal de la lista de productos adicionales */
+  void removeTempItem(OrderItemModel item) {
+    tempAdditionalOrderItems.remove(item);
+  }
+
   /* Obtener cantidad total de combinaciones activas donde el producto es el más caro */
   int getTempCombinationQuantity(ProductModel product) {
     return tempAdditionalOrderItems
@@ -511,15 +520,13 @@ class OrdersController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
-  /* Obtener productos COMBINADO del mismo subcategoryId, excluyendo el producto actual */
+  /* Obtener todos los productos COMBINADO de la sucursal, excluyendo el producto actual */
   List<ProductModel> getCombinadoSiblings(ProductModel product) {
     final List<ProductModel> siblings = [];
     for (final CategoryModel category in categories) {
       for (final subcategory in category.subcategories ?? []) {
         for (final ProductModel p in subcategory.products ?? []) {
-          if (p.productType == 'COMBINADO' &&
-              p.subcategoryId == product.subcategoryId &&
-              p.id != product.id) {
+          if (p.productType == 'COMBINADO' && p.id != product.id) {
             siblings.add(p);
           }
         }
@@ -575,6 +582,9 @@ class OrdersController extends GetxController {
               message: 'Se agregaron ${addedItems.length} producto(s) al pedido #${order.orderNumber}.',
               order: order,
               addedItems: addedItems,
+              observations: additionalObservationsController.text.trim().isEmpty
+                  ? null
+                  : additionalObservationsController.text.trim(),
               categories: categories,
               onClose: () => Get.back(),
             ),

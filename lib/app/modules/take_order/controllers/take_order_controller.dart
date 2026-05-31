@@ -395,7 +395,7 @@ class TakeOrderController extends GetxController {
   }
 
   /*agregar una combinacion 2x1: determina el producto mas caro y lo registra con el acompañante*/
-  void addCombination(ProductModel p1, ProductModel p2, String? comment) {
+  void addCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     // Determinar cuál es el producto más caro (el que se cobra)
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
@@ -417,13 +417,13 @@ class TakeOrderController extends GetxController {
         : -1;
 
     if (index != -1) {
-      currentOrder[index].quantity++;
+      currentOrder[index].quantity += quantity;
       currentOrder.refresh();
     } else {
       currentOrder.add(
         OrderItemModel(
           product: expensive,
-          quantity: 1,
+          quantity: quantity,
           combinedWith: cheap,
           comment: normalizedComment,
         ),
@@ -459,15 +459,13 @@ class TakeOrderController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
-  /*obtener los productos COMBINADO del mismo subcategoryId, excluyendo el producto actual*/
+  /* Obtener todos los productos COMBINADO de la sucursal, excluyendo el producto actual */
   List<ProductModel> getCombinadoSiblings(ProductModel product) {
     final List<ProductModel> siblings = [];
     for (final CategoryModel category in categories) {
       for (final subcategory in category.subcategories ?? []) {
         for (final ProductModel p in subcategory.products ?? []) {
-          if (p.productType == 'COMBINADO' &&
-              p.subcategoryId == product.subcategoryId &&
-              p.id != product.id) {
+          if (p.productType == 'COMBINADO' && p.id != product.id) {
             siblings.add(p);
           }
         }

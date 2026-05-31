@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
@@ -90,6 +91,14 @@ class UserFormDialog extends StatelessWidget {
           CustomReactiveTextField<String>(
             formControlName: 'username',
             labelText: 'Usuario *',
+            inputFormatters: [
+              FilteringTextInputFormatter.deny(RegExp(r'\s')),
+              TextInputFormatter.withFunction(
+                (oldValue, newValue) => newValue.copyWith(
+                  text: newValue.text.toLowerCase(),
+                ),
+              ),
+            ],
             validationMessages: {
               'required': (error) => 'Requerido',
               'maxLength': (error) => 'Máximo 50 caracteres',
