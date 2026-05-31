@@ -586,4 +586,28 @@ class CashRegisterController extends GetxController {
       },
     );
   }
+
+  /* actualizar cargos adicionales de un pedido desde caja registradora */
+  Future<void> saveOrderSurcharges(String orderId, List<dynamic> surcharges) async {
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final mappedSurcharges = surcharges.map((s) => {
+            'description': s.description,
+            'amount': s.amount,
+          }).toList();
+          await ordersRepository.updateOrderSurcharges(orderId, mappedSurcharges);
+          Get.back();
+          Get.showSnackbar(
+            const InfoSnackbar('Cargos adicionales actualizados exitosamente'),
+          );
+          await loadPendingOrders();
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.showSnackbar(ErrorSnackbar(errorMessage));
+        }
+      },
+    );
+  }
 }
