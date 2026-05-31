@@ -108,6 +108,7 @@ class OrderSuccessModal extends StatelessWidget {
               }
 
               Get.back(); // cierra el dialog al imprimir
+              if (onClose != null) onClose!(); // ejecuta la misma accion que el boton principal
             }
           : null,
     );
@@ -126,10 +127,11 @@ class OrderSuccessModal extends StatelessWidget {
 
       return OrderDetailModel(
         productId: item.product.id,
-        // Para COMBINADO: el nombre refleja ambos platos
+        // Para COMBINADO: el nombre refleja ambos platos. Se usa product.name (sin sizeLabel)
+        // para evitar duplicar el tamaño, ya que sizeLabel se pasa por separado al ticket.
         productName: item.combinedWith != null
-            ? '${item.productName} + ${item.combinedWith!.name ?? ''}'
-            : item.productName,
+            ? '${item.product.name ?? ''} + ${item.combinedWith!.name ?? ''}'
+            : item.product.name,
         productType: item.product.productType,
         quantity: item.quantity,
         // Para COMBINADO: observations incluye acompañante y nota opcional
