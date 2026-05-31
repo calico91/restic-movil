@@ -9,8 +9,9 @@ import 'package:restic_movil/core/utils/helpers/string_extensions.dart';
 class AddedItemsTicket58mm implements PrintableTicket {
   final OrderModel order;
   final List<OrderItemModel> items;
+  final String? observations;
 
-  AddedItemsTicket58mm({required this.order, required this.items});
+  AddedItemsTicket58mm({required this.order, required this.items, this.observations});
 
   static const String _sep = '--------------------------------'; // 32 chars
 
@@ -62,6 +63,12 @@ class AddedItemsTicket58mm implements PrintableTicket {
     }
 
     printer.printCustom(_sep, 1, 1);
+    printer.printCustom('Origen: ${order.originType?.description ?? 'N/A'}'.withoutDiacritics, 1, 0);
+
+    if (observations != null && observations!.trim().isNotEmpty) {
+      printer.printCustom('Obs: ${observations!.trim()}'.withoutDiacritics, 1, 0);
+    }
+
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

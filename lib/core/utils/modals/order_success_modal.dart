@@ -22,6 +22,8 @@ class OrderSuccessModal extends StatelessWidget {
   final String message;
   final OrderModel order;
   final List<OrderItemModel>? addedItems;
+  // Observaciones generales del pedido adicional
+  final String? observations;
   // Items fuente para impresion (nueva orden); requerido si categories != null y addedItems == null
   final List<OrderItemModel>? sourceItems;
   // Categorias con configuracion de impresora para enrutamiento multi-printer
@@ -35,6 +37,7 @@ class OrderSuccessModal extends StatelessWidget {
     required this.message,
     required this.order,
     this.addedItems,
+    this.observations,
     this.sourceItems,
     this.categories,
     this.onClose,
@@ -71,14 +74,14 @@ class OrderSuccessModal extends StatelessWidget {
                     sourceItems: addedItems!,
                     categories: categories!,
                     ticketBuilder: (o, items) => is80mm
-                        ? AddedItemsTicket80mm(order: o, items: items)
-                        : AddedItemsTicket58mm(order: o, items: items),
+                        ? AddedItemsTicket80mm(order: o, items: items, observations: observations)
+                        : AddedItemsTicket58mm(order: o, items: items, observations: observations),
                   );
                 } else {
                   printerService.printTicket(
                     is80mm
-                        ? AddedItemsTicket80mm(order: order, items: addedItems!)
-                        : AddedItemsTicket58mm(order: order, items: addedItems!),
+                        ? AddedItemsTicket80mm(order: order, items: addedItems!, observations: observations)
+                        : AddedItemsTicket58mm(order: order, items: addedItems!, observations: observations),
                   );
                 }
               } else {
