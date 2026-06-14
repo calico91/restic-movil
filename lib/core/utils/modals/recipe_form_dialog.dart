@@ -79,7 +79,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             children: [
               if (widget.product.productType == 'VARIABLE' && (widget.product.prices?.isNotEmpty ?? false))
                 DropdownButtonFormField<String>(
-                  value: _selectedVariantKey,
+                  initialValue: _selectedVariantKey,
                   decoration: const InputDecoration(
                     labelText: 'Variante de precio',
                     border: OutlineInputBorder(),
@@ -110,7 +110,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
                       Expanded(
                         flex: 5,
                         child: DropdownButtonFormField<String>(
-                          value: _currentRows[index].inventoryItemId,
+                          initialValue: _currentRows[index].inventoryItemId,
                           decoration: const InputDecoration(
                             labelText: 'Insumo',
                             border: OutlineInputBorder(),

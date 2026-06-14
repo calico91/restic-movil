@@ -25,7 +25,7 @@ class InventoryItemCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor: statusColor.withOpacity(0.15),
+          backgroundColor: statusColor.withValues(alpha: 0.15),
           child: Icon(Icons.inventory_2_outlined, color: statusColor),
         ),
         title: Text(item.name ?? '-'),
