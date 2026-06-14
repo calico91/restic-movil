@@ -10,6 +10,7 @@ class RecipeFormDialog extends StatefulWidget {
   final List<InventoryItemModel> inventoryItems;
   final List<ProductRecipeModel> existingRecipes;
   final Future<bool> Function(String? priceVariantId, List<Map<String, dynamic>> ingredients) onSave;
+  final Future<bool> Function(String? priceVariantId) onDelete;
 
   const RecipeFormDialog({
     super.key,
@@ -17,6 +18,7 @@ class RecipeFormDialog extends StatefulWidget {
     required this.inventoryItems,
     required this.existingRecipes,
     required this.onSave,
+    required this.onDelete,
   });
 
   @override
@@ -66,6 +68,14 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
   }
 
   List<_RecipeRow> get _currentRows => _rowsByVariant[_selectedVariantKey] ?? [_RecipeRow()];
+
+  bool _hasRecipeForCurrentVariant() {
+    final String? variantId = widget.product.productType == 'VARIABLE'
+        ? (_selectedVariantKey == 'base' ? null : _selectedVariantKey)
+        : null;
+
+    return widget.existingRecipes.any((recipe) => recipe.priceVariantId == variantId);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -179,6 +189,20 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
           onPressed: () => Get.back(),
           child: const Text('Cancelar'),
         ),
+        if (_hasRecipeForCurrentVariant())
+          OutlinedButton.icon(
+            onPressed: () async {
+              final String? variantId = widget.product.productType == 'VARIABLE'
+                  ? (_selectedVariantKey == 'base' ? null : _selectedVariantKey)
+                  : null;
+              final bool deleted = await widget.onDelete(variantId);
+              if (deleted) {
+                Get.back(result: 'deleted');
+              }
+            },
+            icon: const Icon(Icons.delete_outline),
+            label: const Text('Eliminar receta'),
+          ),
         ElevatedButton(
           onPressed: () async {
             final List<Map<String, dynamic>> payload = _currentRows
@@ -204,7 +228,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             );
 
             if (saved) {
-              Get.back(result: true);
+              Get.back(result: 'saved');
             }
           },
           child: const Text('Guardar receta'),

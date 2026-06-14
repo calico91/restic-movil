@@ -174,8 +174,8 @@ class MenuController extends GetxController {
         },
       );
 
-      final bool recipeSaved =
-          await Get.dialog<bool>(
+      final String actionResult =
+          await Get.dialog<String>(
         RecipeFormDialog(
           product: product,
           inventoryItems: inventoryItems,
@@ -183,15 +183,25 @@ class MenuController extends GetxController {
           onSave: (priceVariantId, ingredients) async {
             return saveRecipe(product.id!, priceVariantId, ingredients);
           },
+          onDelete: (priceVariantId) async {
+            return deleteRecipe(product.id!, priceVariantId: priceVariantId);
+          },
         ),
       ) ??
-          false;
+          '';
 
-      if (recipeSaved) {
+      if (actionResult == 'saved') {
         Get.dialog(
           const ModalInfo(
             title: 'Exito',
             message: 'Receta guardada correctamente.',
+          ),
+        );
+      } else if (actionResult == 'deleted') {
+        Get.dialog(
+          const ModalInfo(
+            title: 'Exito',
+            message: 'Receta eliminada correctamente.',
           ),
         );
       }
@@ -215,6 +225,26 @@ class MenuController extends GetxController {
             'priceVariantId': priceVariantId,
             'ingredients': ingredients,
           });
+        },
+      );
+      return true;
+    } catch (e) {
+      final message = ExceptionHandler.extractMessage(e);
+      Get.showSnackbar(ErrorSnackbar(message));
+      return false;
+    }
+  }
+
+  /// Elimina receta (base o por variante) asociada al producto.
+  Future<bool> deleteRecipe(String productId, {String? priceVariantId}) async {
+    try {
+      await Get.showOverlay(
+        loadingWidget: const LoadingCharging(),
+        asyncFunction: () async {
+          await _inventoryRepository.deleteRecipe(
+            productId,
+            priceVariantId: priceVariantId,
+          );
         },
       );
       return true;
