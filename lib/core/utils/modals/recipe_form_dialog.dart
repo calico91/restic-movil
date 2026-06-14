@@ -9,7 +9,7 @@ class RecipeFormDialog extends StatefulWidget {
   final ProductModel product;
   final List<InventoryItemModel> inventoryItems;
   final List<ProductRecipeModel> existingRecipes;
-  final Future<void> Function(String? priceVariantId, List<Map<String, dynamic>> ingredients) onSave;
+  final Future<bool> Function(String? priceVariantId, List<Map<String, dynamic>> ingredients) onSave;
 
   const RecipeFormDialog({
     super.key,
@@ -198,8 +198,14 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             }
 
             final String? variantId = widget.product.productType == 'VARIABLE' ? _selectedVariantKey : null;
-            await widget.onSave(variantId == 'base' ? null : variantId, payload);
-            Get.back();
+            final bool saved = await widget.onSave(
+              variantId == 'base' ? null : variantId,
+              payload,
+            );
+
+            if (saved) {
+              Get.back(result: true);
+            }
           },
           child: const Text('Guardar receta'),
         ),

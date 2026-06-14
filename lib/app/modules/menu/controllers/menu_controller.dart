@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
+import 'package:restic_movil/app/data/models/inventory_item_model.dart';
+import 'package:restic_movil/app/data/models/product_recipe_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/inventory_repository.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
@@ -154,55 +156,72 @@ class MenuController extends GetxController {
   /// Abre el modal para configurar receta del producto seleccionado.
   Future<void> showRecipeForm(ProductModel product) async {
     if (product.id == null) {
+      Get.showSnackbar(
+        const ErrorSnackbar('No se puede configurar receta: producto sin identificador.'),
+      );
       return;
     }
 
-    Get.showOverlay(
-      loadingWidget: const LoadingCharging(),
-      asyncFunction: () async {
-        try {
-          final inventoryItems = await _inventoryRepository.getItems();
-          final existingRecipes = await _inventoryRepository.getRecipesForProduct(product.id!);
+    try {
+      late final List<InventoryItemModel> inventoryItems;
+      late final List<ProductRecipeModel> existingRecipes;
 
-          await Get.dialog(
-            RecipeFormDialog(
-              product: product,
-              inventoryItems: inventoryItems,
-              existingRecipes: existingRecipes,
-              onSave: (priceVariantId, ingredients) async {
-                await saveRecipe(product.id!, priceVariantId, ingredients);
-              },
-            ),
-          );
-        } catch (e) {
-          final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
-        }
-      },
-    );
+      await Get.showOverlay(
+        loadingWidget: const LoadingCharging(),
+        asyncFunction: () async {
+          inventoryItems = await _inventoryRepository.getItems();
+          existingRecipes = await _inventoryRepository.getRecipesForProduct(product.id!);
+        },
+      );
+
+      final bool recipeSaved =
+          await Get.dialog<bool>(
+        RecipeFormDialog(
+          product: product,
+          inventoryItems: inventoryItems,
+          existingRecipes: existingRecipes,
+          onSave: (priceVariantId, ingredients) async {
+            return saveRecipe(product.id!, priceVariantId, ingredients);
+          },
+        ),
+      ) ??
+          false;
+
+      if (recipeSaved) {
+        Get.dialog(
+          const ModalInfo(
+            title: 'Exito',
+            message: 'Receta guardada correctamente.',
+          ),
+        );
+      }
+    } catch (e) {
+      final message = ExceptionHandler.extractMessage(e);
+      Get.showSnackbar(ErrorSnackbar(message));
+    }
   }
 
   /// Guarda receta (base o por variante) asociada al producto.
-  Future<void> saveRecipe(
+  Future<bool> saveRecipe(
     String productId,
     String? priceVariantId,
     List<Map<String, dynamic>> ingredients,
   ) async {
     try {
-      await _inventoryRepository.saveRecipe(productId, {
-        'priceVariantId': priceVariantId,
-        'ingredients': ingredients,
-      });
-
-      Get.dialog(
-        const ModalInfo(
-          title: 'Exito',
-          message: 'Receta guardada correctamente.',
-        ),
+      await Get.showOverlay(
+        loadingWidget: const LoadingCharging(),
+        asyncFunction: () async {
+          await _inventoryRepository.saveRecipe(productId, {
+            'priceVariantId': priceVariantId,
+            'ingredients': ingredients,
+          });
+        },
       );
+      return true;
     } catch (e) {
       final message = ExceptionHandler.extractMessage(e);
       Get.showSnackbar(ErrorSnackbar(message));
+      return false;
     }
   }
 }

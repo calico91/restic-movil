@@ -251,29 +251,55 @@ class MenuView extends GetView<MenuController> {
                                                         const SizedBox(
                                                           width: 8,
                                                         ),
-                                                        IconButton(
-                                                          onPressed: () => controller.showRecipeForm(product),
+                                                        PopupMenuButton<String>(
+                                                          tooltip: 'Acciones del producto',
                                                           icon: const Icon(
-                                                            Icons.restaurant_menu,
+                                                            Icons.more_vert,
                                                             color: Color(0xFF0D47A1),
                                                           ),
-                                                          tooltip: 'Configurar receta',
-                                                        ),
-                                                        CustomEditButton(
-                                                          iconSize: 20,
-                                                          onPressed: () => controller
-                                                              .showProductForm(
-                                                                categoryId:
-                                                                    category
-                                                                        .id ??
-                                                                    '',
-                                                                subcategoryId:
-                                                                    subcategory
-                                                                        .id ??
-                                                                    '',
-                                                                product:
-                                                                    product,
+                                                          onSelected: (value) {
+                                                            // Ejecuta la accion despues de cerrar el popup.
+                                                            Future<void>.delayed(Duration.zero, () async {
+                                                              if (value == 'edit') {
+                                                                controller.showProductForm(
+                                                                  categoryId:
+                                                                      category
+                                                                          .id ??
+                                                                      '',
+                                                                  subcategoryId:
+                                                                      subcategory
+                                                                          .id ??
+                                                                      '',
+                                                                  product:
+                                                                      product,
+                                                                );
+                                                              } else if (value == 'recipe') {
+                                                                await controller.showRecipeForm(product);
+                                                              }
+                                                            });
+                                                          },
+                                                          itemBuilder: (context) => const [
+                                                            PopupMenuItem<String>(
+                                                              value: 'edit',
+                                                              child: Row(
+                                                                children: [
+                                                                  Icon(Icons.edit, size: 18),
+                                                                  SizedBox(width: 8),
+                                                                  Text('Editar producto'),
+                                                                ],
                                                               ),
+                                                            ),
+                                                            PopupMenuItem<String>(
+                                                              value: 'recipe',
+                                                              child: Row(
+                                                                children: [
+                                                                  Icon(Icons.restaurant_menu, size: 18),
+                                                                  SizedBox(width: 8),
+                                                                  Text('Configurar receta'),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ],
                                                         ),
                                                       ],
                                                     ),
@@ -330,21 +356,48 @@ class MenuView extends GetView<MenuController> {
                   ],
                 ),
               ),
-              CustomEditButton(
-                iconSize: 20,
-                onPressed: () => controller.showProductForm(
-                  categoryId: categoryId,
-                  subcategoryId: subcategoryId,
-                  product: product,
-                ),
-              ),
-              IconButton(
-                onPressed: () => controller.showRecipeForm(product),
+              PopupMenuButton<String>(
+                tooltip: 'Acciones del producto',
                 icon: const Icon(
-                  Icons.restaurant_menu,
+                  Icons.more_vert,
                   color: Color(0xFF0D47A1),
                 ),
-                tooltip: 'Configurar receta',
+                onSelected: (value) {
+                  // Ejecuta la accion despues de cerrar el popup.
+                  Future<void>.delayed(Duration.zero, () async {
+                    if (value == 'edit') {
+                      controller.showProductForm(
+                        categoryId: categoryId,
+                        subcategoryId: subcategoryId,
+                        product: product,
+                      );
+                    } else if (value == 'recipe') {
+                      await controller.showRecipeForm(product);
+                    }
+                  });
+                },
+                itemBuilder: (context) => const [
+                  PopupMenuItem<String>(
+                    value: 'edit',
+                    child: Row(
+                      children: [
+                        Icon(Icons.edit, size: 18),
+                        SizedBox(width: 8),
+                        Text('Editar producto'),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'recipe',
+                    child: Row(
+                      children: [
+                        Icon(Icons.restaurant_menu, size: 18),
+                        SizedBox(width: 8),
+                        Text('Configurar receta'),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ],
           ),

@@ -14,24 +14,30 @@ class InventoryView extends GetView<InventoryController> {
       length: 3,
       child: CustomScaffold(
         title: 'Inventario',
-        floatingActionButton: Obx(() {
-          if (!controller.canEdit.value) {
-            return const SizedBox.shrink();
-          }
-
-          return FloatingActionButton.extended(
-            onPressed: () {
-              if (DefaultTabController.of(context).index == 1) {
-                controller.openManualMovementForm();
-              } else {
-                controller.openItemForm();
+        floatingActionButton: Builder(
+          builder: (tabContext) {
+            return Obx(() {
+              if (!controller.canEdit.value) {
+                return const SizedBox.shrink();
               }
-            },
-            backgroundColor: const Color(0xFF0D47A1),
-            icon: const Icon(Icons.add, color: Colors.white),
-            label: const Text('Agregar', style: TextStyle(color: Colors.white)),
-          );
-        }),
+
+              return FloatingActionButton.extended(
+                onPressed: () {
+                  final int currentTabIndex =
+                      DefaultTabController.maybeOf(tabContext)?.index ?? 0;
+                  if (currentTabIndex == 1) {
+                    controller.openManualMovementForm();
+                  } else {
+                    controller.openItemForm();
+                  }
+                },
+                backgroundColor: const Color(0xFF0D47A1),
+                icon: const Icon(Icons.add, color: Colors.white),
+                label: const Text('Agregar', style: TextStyle(color: Colors.white)),
+              );
+            });
+          },
+        ),
         body: Column(
           children: [
             const TabBar(
