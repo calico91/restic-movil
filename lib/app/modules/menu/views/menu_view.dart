@@ -251,6 +251,14 @@ class MenuView extends GetView<MenuController> {
                                                         const SizedBox(
                                                           width: 8,
                                                         ),
+                                                        IconButton(
+                                                          onPressed: () => controller.showRecipeForm(product),
+                                                          icon: const Icon(
+                                                            Icons.restaurant_menu,
+                                                            color: Color(0xFF0D47A1),
+                                                          ),
+                                                          tooltip: 'Configurar receta',
+                                                        ),
                                                         CustomEditButton(
                                                           iconSize: 20,
                                                           onPressed: () => controller
@@ -329,6 +337,14 @@ class MenuView extends GetView<MenuController> {
                   subcategoryId: subcategoryId,
                   product: product,
                 ),
+              ),
+              IconButton(
+                onPressed: () => controller.showRecipeForm(product),
+                icon: const Icon(
+                  Icons.restaurant_menu,
+                  color: Color(0xFF0D47A1),
+                ),
+                tooltip: 'Configurar receta',
               ),
             ],
           ),

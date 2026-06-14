@@ -149,6 +149,16 @@ class CustomDrawer extends GetView<HomeController> {
                     onTap: () => Get.toNamed(Routes.PAYMENT_METHODS),
                   );
                 }),
+                Obx(() {
+                  if (!controller.modules.contains('INVENTARIO')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.inventory_2_outlined,
+                    title: 'Inventario',
+                    onTap: () => Get.toNamed(Routes.INVENTORY),
+                  );
+                }),
               ],
             ),
           ),

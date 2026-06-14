@@ -31,6 +31,8 @@ import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/payment_methods/bindings/payment_methods_binding.dart';
 import '../modules/payment_methods/views/payment_methods_view.dart';
+import '../modules/inventory/bindings/inventory_binding.dart';
+import '../modules/inventory/views/inventory_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -116,6 +118,11 @@ class AppPages {
       name: Routes.PAYMENT_METHODS,
       page: () => const PaymentMethodsView(),
       binding: PaymentMethodsBinding(),
+    ),
+    GetPage(
+      name: Routes.INVENTORY,
+      page: () => const InventoryView(),
+      binding: InventoryBinding(),
     ),
   ];
 }

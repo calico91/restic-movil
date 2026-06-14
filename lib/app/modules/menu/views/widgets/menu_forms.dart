@@ -144,6 +144,9 @@ class ProductFormDialog extends StatelessWidget {
         value: initialType,
         validators: [Validators.required],
       ),
+      'requires_recipe': FormControl<bool>(
+        value: product?.requiresRecipe ?? false,
+      ),
       'prices': FormArray(
         initialPrices.map((p) {
           final currentPrice = p?.amount;
@@ -214,6 +217,7 @@ class ProductFormDialog extends StatelessWidget {
           "productType": productType,
           "category_id": categoryId,
           "subcategory_id": subcategoryId,
+          "requires_recipe": data['requires_recipe'] ?? false,
           "prices": pricesArray,
           "combo_groups": null,
         };
@@ -263,6 +267,12 @@ class ProductFormDialog extends StatelessWidget {
                 }
               }
             },
+          ),
+          const SizedBox(height: 16),
+          ReactiveSwitchListTile(
+            formControlName: 'requires_recipe',
+            title: const Text('Requiere receta de inventario'),
+            subtitle: const Text('Activalo para descontar insumos automaticamente al pagar.'),
           ),
           const SizedBox(height: 16),
           ReactiveValueListenableBuilder<String>(

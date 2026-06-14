@@ -15,4 +15,5 @@ abstract class Routes {
   static const REPORTS = '/reports';
   static const PROFILE = '/profile';
   static const PAYMENT_METHODS = '/payment-methods';
+  static const INVENTORY = '/inventory';
 }

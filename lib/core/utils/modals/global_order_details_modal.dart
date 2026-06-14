@@ -149,7 +149,7 @@ class GlobalOrderDetailsModal extends StatelessWidget {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: order.details?.length ?? 0,
-                separatorBuilder: (_, _) => const Divider(height: 1),
+                separatorBuilder: (_, __) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final item = order.details![index];
                   if (isReadOnly) {

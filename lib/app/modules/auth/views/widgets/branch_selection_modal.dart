@@ -32,7 +32,7 @@ class BranchSelectionModal {
               child: ListView.separated(
                 shrinkWrap: true,
                 itemCount: branches.length,
-                separatorBuilder: (_, _) => const Divider(),
+                separatorBuilder: (_, __) => const Divider(),
                 itemBuilder: (context, index) {
                   final branch = branches[index];
                   return ListTile(

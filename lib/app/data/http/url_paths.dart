@@ -96,4 +96,10 @@ class UrlPaths {
   // Branches
   static const String updateBranch = 'branches'; // put /{id}
   static const String updateBranchWaiterFilter = 'branches'; // patch /{id}/waiter-filter
+
+  // Inventory
+  static const String inventoryItems = 'inventory/items';
+  static const String inventoryAlerts = 'inventory/items/alerts';
+  static const String inventoryRecipes = 'inventory/recipes';
+  static const String inventoryMovements = 'inventory/movements';
 }
