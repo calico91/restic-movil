@@ -8,7 +8,7 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class ExpensesController extends GetxController {
   final CashWithdrawalsRepository _repository = Get.find();
@@ -78,7 +78,7 @@ class ExpensesController extends GetxController {
           );
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -129,7 +129,7 @@ class ExpensesController extends GetxController {
           );
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );

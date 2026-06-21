@@ -2,7 +2,7 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/modules/profile/repositories/profile_repository.dart';
 
@@ -53,7 +53,7 @@ class ProfileController extends GetxController {
           form.reset();
           Get.showSnackbar(const InfoSnackbar('Contraseña cambiada exitosamente'));
         } catch (e) {
-          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+          Get.dialog(ModalError(message: ExceptionHandler.extractMessage(e)));
         }
       },
     );

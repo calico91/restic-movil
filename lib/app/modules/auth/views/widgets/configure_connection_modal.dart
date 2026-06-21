@@ -4,7 +4,7 @@ import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class ConfigureConnectionController extends GetxController {
@@ -42,7 +42,7 @@ class ConfigureConnectionController extends GetxController {
     // Concatena el sufijo del dominio al nombre del cliente antes de guardar
     final String clientName = serverController.text.trim();
     if (clientName.isEmpty) {
-      Get.showSnackbar(const ErrorSnackbar('El nombre del servidor no puede estar vacío'));
+      Get.dialog(const ModalError(message: 'El servidor no puede estar vacío'));
       return;
     }
     final String fullUrl = '$clientName$_urlSuffix';

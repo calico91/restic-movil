@@ -3,7 +3,7 @@ import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/app/modules/menu/views/widgets/menu_forms.dart';
 
@@ -31,7 +31,7 @@ class MenuController extends GetxController {
           categories.assignAll(result);
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -142,7 +142,7 @@ class MenuController extends GetxController {
           Get.dialog(ModalInfo(title: 'Éxito', message: successMessage));
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );

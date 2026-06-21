@@ -5,7 +5,7 @@ import 'package:restic_movil/app/data/repositories/payment_methods_repository.da
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
 
@@ -48,7 +48,7 @@ class PaymentMethodsController extends GetxController {
           );
           methods.assignAll(result);
         } catch (e) {
-          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+          Get.dialog(ModalError(message: ExceptionHandler.extractMessage(e)));
         }
       },
     );
@@ -100,7 +100,7 @@ class PaymentMethodsController extends GetxController {
           await loadMethods();
           isSuccess = true;
         } catch (e) {
-          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+          Get.dialog(ModalError(message: ExceptionHandler.extractMessage(e)));
         }
       },
     );
