@@ -9,7 +9,7 @@ import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class CommandsController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -153,7 +153,7 @@ class CommandsController extends GetxController {
       );
     } catch (e) {
       final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(errorMessage));
+      Get.dialog(ModalError(message: errorMessage));
     }
   }
 
@@ -199,7 +199,7 @@ class CommandsController extends GetxController {
           );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );

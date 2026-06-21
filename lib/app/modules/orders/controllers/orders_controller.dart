@@ -13,7 +13,7 @@ import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/modals/order_success_modal.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class OrdersController extends GetxController {
@@ -133,7 +133,7 @@ class OrdersController extends GetxController {
         _filterOrders();
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);
-        Get.showSnackbar(ErrorSnackbar(errorMessage));
+        Get.dialog(ModalError(message: errorMessage));
       }
     }
 
@@ -159,7 +159,7 @@ class OrdersController extends GetxController {
         _filterOrders();
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);
-        Get.showSnackbar(ErrorSnackbar(errorMessage));
+        Get.dialog(ModalError(message: errorMessage));
       }
     }
 
@@ -248,7 +248,7 @@ class OrdersController extends GetxController {
       );
     } catch (e) {
       final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(errorMessage));
+      Get.dialog(ModalError(message: errorMessage));
     }
   }
 
@@ -294,7 +294,7 @@ class OrdersController extends GetxController {
           );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );
@@ -353,7 +353,7 @@ class OrdersController extends GetxController {
       final result = await categoriesRepository.getCategories();
       categories.assignAll(result);
     } catch (e) {
-      Get.showSnackbar(const ErrorSnackbar('Error al cargar productos'));
+      Get.dialog(const ModalError(message: 'Error al cargar productos'));
     }
   }
 
@@ -592,7 +592,7 @@ class OrdersController extends GetxController {
           );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );
@@ -616,7 +616,7 @@ class OrdersController extends GetxController {
           if (currentTab.value == 0) { await loadOrders(withOverlay: false); } else { await loadFinalizedOrders(withOverlay: false); }
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );

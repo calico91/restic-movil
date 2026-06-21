@@ -7,7 +7,7 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 import 'package:restic_movil/app/modules/customers/views/customer_form_dialog.dart';
 
@@ -74,7 +74,7 @@ class CustomerController extends GetxController {
           customers.assignAll(result);
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -150,7 +150,7 @@ class CustomerController extends GetxController {
           }
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -184,7 +184,7 @@ class CustomerController extends GetxController {
                 );
               } catch (e) {
                 final message = ExceptionHandler.extractMessage(e);
-                Get.showSnackbar(ErrorSnackbar(message));
+                Get.dialog(ModalError(message: message));
               }
             },
           );

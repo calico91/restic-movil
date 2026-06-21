@@ -12,7 +12,7 @@ import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 import 'package:restic_movil/core/utils/inputs/custom_dropdown_field.dart';
 import 'package:restic_movil/core/utils/buttons/custom_submit_button.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class TransactionModal extends StatefulWidget {
   final OrderModel order;
@@ -230,9 +230,7 @@ class _TransactionModalState extends State<TransactionModal> {
               onPressed: () {
                 // Validar que haya más de un método de pago configurado
                 if (controller.paymentMethods.length <= 1) {
-                  Get.showSnackbar(
-                    const ErrorSnackbar(
-                      'Solo tienes un método de pago configurado. Agrega más métodos en la sección de Métodos de Pago.',
+                  Get.dialog(const ModalError(message: 'Solo tienes un método de pago configurado. Agrega más métodos en la sección de Métodos de Pago.',
                     ),
                   );
                   return;
@@ -561,9 +559,7 @@ class _TransactionModalState extends State<TransactionModal> {
     // Validar que el total a pagar no sea inferior al total del pedido.
     final orderTotal = order.total ?? 0.0;
     if (totalToPayInput < orderTotal) {
-      Get.showSnackbar(
-        const ErrorSnackbar(
-          'El total a pagar no puede ser menor al total del pedido',
+      Get.dialog(const ModalError(message: 'El total a pagar no puede ser menor al total del pedido',
         ),
       );
       return;
@@ -575,8 +571,7 @@ class _TransactionModalState extends State<TransactionModal> {
         .toList();
     final uniqueMethods = paymentMethods.toSet();
     if (uniqueMethods.length != paymentMethods.length) {
-      Get.showSnackbar(
-        const ErrorSnackbar('No se pueden repetir métodos de pago'),
+      Get.dialog(const ModalError(message: 'No se pueden repetir métodos de pago'),
       );
       return;
     }
@@ -590,8 +585,7 @@ class _TransactionModalState extends State<TransactionModal> {
 
     // Allow a small epsilon for floating point comparison if necessary, but >= logic usually fine
     if (totalPaid < totalToPay) {
-      Get.showSnackbar(
-        const ErrorSnackbar('El monto cubierto es menor al total a pagar.'),
+      Get.dialog(const ModalError(message: 'El monto cubierto es menor al total a pagar.'),
       );
       return;
     }
