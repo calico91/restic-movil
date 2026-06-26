@@ -3,8 +3,7 @@ import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/repositories/cashier_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/modals/modal_error.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 
 class CloseShiftController extends GetxController {
   final CashierRepository cashierRepository;
@@ -32,8 +31,7 @@ class CloseShiftController extends GetxController {
     final cashierId = loginResponse?.id;
 
     if (cashierId == null) {
-      Get.dialog(const ModalError(message: 'No se pudo identificar al usuario (Cajero).'),
-      );
+      ErrorHandler.showErrorDialog('No se pudo identificar al usuario (Cajero).');
       return null;
     }
 
@@ -43,8 +41,7 @@ class CloseShiftController extends GetxController {
     final declaredCash = _parseAmount(declaredCashStr ?? '');
 
     if (declaredCash <= 0) {
-      Get.dialog(const ModalError(message: 'El efectivo declarado debe ser mayor a 0.'),
-      );
+      ErrorHandler.showErrorDialog('El efectivo declarado debe ser mayor a 0.');
       return null;
     }
 
@@ -60,8 +57,7 @@ class CloseShiftController extends GetxController {
             remarks: remarks,
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

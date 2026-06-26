@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
-import 'package:restic_movil/app/routes/app_routes.dart';
+
 
 class BaseHttpClient {
   final StorageService _storageService = Get.find<StorageService>();
@@ -213,7 +213,6 @@ class BaseHttpClient {
           if (apiError.code == 'E2') {
             _storageService.deleteToken();
             _storageService.deleteUser();
-            Get.offAllNamed(Routes.LOGIN);
           }
         } catch (_) {
           errorMessage =
