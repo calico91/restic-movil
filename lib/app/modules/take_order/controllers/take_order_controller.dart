@@ -17,8 +17,7 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/modals/modal_error.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/combo_selection_controller.dart';
 
 class TakeOrderController extends GetxController {
@@ -198,8 +197,7 @@ class TakeOrderController extends GetxController {
           customers.assignAll(result);
           filteredCustomers.assignAll(result);
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -238,8 +236,7 @@ class TakeOrderController extends GetxController {
         try {
           await Future.wait([_fetchOriginTypes(), _fetchCategories()]);
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -265,10 +262,9 @@ class TakeOrderController extends GetxController {
   /*consultar las categorias, subcategorias y productos */
   Future<void> _fetchCategories() async {
     final result = await categoriesRepository.getCategories();
-    if (result.isEmpty) {
-      Get.dialog(ModalError(message: "No hay productos asociados al establecimiento."),
-      );
-    }
+          if (result.isEmpty) {
+            ErrorHandler.showErrorDialog("No hay productos asociados al establecimiento.");
+          }
     categories.assignAll(result);
   }
 
@@ -282,13 +278,10 @@ class TakeOrderController extends GetxController {
           tables.assignAll(result);
 
           if (result.isEmpty) {
-            Get.dialog(ModalError(message: "No hay mesas disponibles para realizar un pedido.",
-              ),
-            );
+            ErrorHandler.showErrorDialog("No hay mesas disponibles para realizar un pedido.");
           }
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -514,14 +507,13 @@ class TakeOrderController extends GetxController {
 
     // Validar si es SALON y no tiene mesas seleccionadas
     if (origin == 'SALON' && selectedTableIds.isEmpty) {
-      Get.dialog(const ModalError(message: 'Debe seleccionar al menos una mesa'),
-      );
+      ErrorHandler.showErrorDialog('Debe seleccionar al menos una mesa');
       return;
     }
 
     // Validar cliente para todos los origenes
     if (origin != null && selectedCustomer.value == null) {
-      Get.dialog(const ModalError(message: 'Debe seleccionar un cliente'));
+      ErrorHandler.showErrorDialog('Debe seleccionar un cliente');
       return;
     }
 
@@ -601,8 +593,7 @@ class TakeOrderController extends GetxController {
             barrierDismissible: false,
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

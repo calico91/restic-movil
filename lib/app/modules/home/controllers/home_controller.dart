@@ -7,8 +7,7 @@ import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/app/modules/orders/views/orders_view.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/modals/modal_error.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 class NavigationItem {
@@ -164,8 +163,7 @@ class HomeController extends GetxController {
         Get.find<OrdersController>().updateWaiterFilter(value);
       }
     } catch (e) {
-      final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.dialog(ModalError(message: errorMessage));
+      ErrorHandler.showErrorDialog(e);
     }
   }
 }

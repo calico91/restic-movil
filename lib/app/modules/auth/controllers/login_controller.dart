@@ -6,6 +6,7 @@ import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/branch_selection_modal.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/configure_connection_modal.dart';
@@ -84,7 +85,7 @@ class LoginController extends GetxController {
               attribute: 'recommendation',
             );
 
-            Get.dialog(ModalError(message: errorMessage + recomendations));
+            ErrorHandler.showErrorDialog(errorMessage + recomendations);
           }
         },
       ).then((response) async {

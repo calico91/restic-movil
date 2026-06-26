@@ -10,10 +10,9 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/orders/views/widgets/add_products_sheet.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/modals/order_success_modal.dart';
-import 'package:restic_movil/core/utils/modals/modal_error.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class OrdersController extends GetxController {
@@ -132,8 +131,7 @@ class OrdersController extends GetxController {
         _allOrders.assignAll(result);
         _filterOrders();
       } catch (e) {
-        final String errorMessage = ExceptionHandler.extractMessage(e);
-        Get.dialog(ModalError(message: errorMessage));
+        ErrorHandler.showErrorDialog(e);
       }
     }
 
@@ -158,8 +156,7 @@ class OrdersController extends GetxController {
         _allFinalizedOrders.assignAll(result);
         _filterOrders();
       } catch (e) {
-        final String errorMessage = ExceptionHandler.extractMessage(e);
-        Get.dialog(ModalError(message: errorMessage));
+        ErrorHandler.showErrorDialog(e);
       }
     }
 
@@ -247,8 +244,7 @@ class OrdersController extends GetxController {
             .toList(),
       );
     } catch (e) {
-      final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.dialog(ModalError(message: errorMessage));
+      ErrorHandler.showErrorDialog(e);
     }
   }
 
@@ -293,8 +289,7 @@ class OrdersController extends GetxController {
             ),
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -353,7 +348,7 @@ class OrdersController extends GetxController {
       final result = await categoriesRepository.getCategories();
       categories.assignAll(result);
     } catch (e) {
-      Get.dialog(const ModalError(message: 'Error al cargar productos'));
+      ErrorHandler.showErrorDialog('Error al cargar productos');
     }
   }
 
@@ -591,8 +586,7 @@ class OrdersController extends GetxController {
             barrierDismissible: false,
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -615,8 +609,7 @@ class OrdersController extends GetxController {
           );
           if (currentTab.value == 0) { await loadOrders(withOverlay: false); } else { await loadFinalizedOrders(withOverlay: false); }
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
