@@ -2,7 +2,7 @@ name: restic_movil
 description: "Aplicación móvil para la gestión y operación de Restaurantes y heladerías."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.5+5
+version: 1.0.7+7
 
 environment:
   sdk: ^3.10.7

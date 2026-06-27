@@ -7,9 +7,8 @@ import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 
 class CommandsController extends GetxController {
   final OrdersRepository ordersRepository;
@@ -152,8 +151,7 @@ class CommandsController extends GetxController {
         details.where((s) => s['name'] != 'SERVED').toList(),
       );
     } catch (e) {
-      final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(errorMessage));
+      ErrorHandler.showErrorDialog(e);
     }
   }
 
@@ -198,8 +196,7 @@ class CommandsController extends GetxController {
             ),
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

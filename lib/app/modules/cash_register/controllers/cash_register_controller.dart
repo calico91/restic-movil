@@ -16,7 +16,8 @@ import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/transaction_modal.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
 import 'package:restic_movil/core/utils/printers/tickets/58mm/transaction_ticket_58mm.dart';
@@ -128,8 +129,7 @@ class CashRegisterController extends GetxController {
       );
       paymentMethods.assignAll(methodsToAssign);
     } catch (e) {
-      final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(errorMessage));
+      ErrorHandler.showErrorDialog(e);
     }
   }
 
@@ -150,8 +150,7 @@ class CashRegisterController extends GetxController {
         );
       }
     } catch (e) {
-      final String errorMessage = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(errorMessage));
+      ErrorHandler.showErrorDialog(e);
     }
   }
 
@@ -196,8 +195,7 @@ class CashRegisterController extends GetxController {
         );
         pendingOrders.assignAll(result);
       } catch (e) {
-        final String errorMessage = ExceptionHandler.extractMessage(e);
-        Get.showSnackbar(ErrorSnackbar(errorMessage));
+        ErrorHandler.showErrorDialog(e);
       }
     }
 
@@ -222,7 +220,7 @@ class CashRegisterController extends GetxController {
         historyOrders.assignAll(result);
       } catch (e) {
         final String errorMessage = ExceptionHandler.extractMessage(e);
-        Get.showSnackbar(ErrorSnackbar(errorMessage));
+        Get.dialog(ModalError(message: errorMessage));
       }
     }
 
@@ -250,7 +248,7 @@ class CashRegisterController extends GetxController {
     if (order.id == null) return;
 
     if (paymentMethods.isEmpty) {
-      Get.showSnackbar(const ErrorSnackbar('No hay métodos de pago activos'));
+      Get.dialog(const ModalError(message: 'No hay métodos de pago activos'));
       return;
     }
 
@@ -475,8 +473,7 @@ class CashRegisterController extends GetxController {
             await loadHistoryOrders(withOverlay: false);
           }
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -516,8 +513,7 @@ class CashRegisterController extends GetxController {
             const InfoSnackbar('Factura reimpresa correctamente'),
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -530,11 +526,7 @@ class CashRegisterController extends GetxController {
     final cashierId = loginResponse?.id;
 
     if (cashierId == null) {
-      Get.showSnackbar(
-        const ErrorSnackbar(
-          'No se pudo identificar al usuario actual (Cajero).',
-        ),
-      );
+      ErrorHandler.showErrorDialog('No se pudo identificar al usuario actual (Cajero).');
       return;
     }
 
@@ -581,7 +573,7 @@ class CashRegisterController extends GetxController {
           );
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );
@@ -604,8 +596,7 @@ class CashRegisterController extends GetxController {
           );
           await loadPendingOrders();
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

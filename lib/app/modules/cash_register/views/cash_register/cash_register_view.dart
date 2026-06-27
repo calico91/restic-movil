@@ -5,7 +5,7 @@ import 'package:restic_movil/app/modules/orders/views/widgets/manage_surcharges_
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
 import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class CashRegisterView extends GetView<CashRegisterController> {
   const CashRegisterView({super.key});
@@ -112,9 +112,7 @@ class CashRegisterView extends GetView<CashRegisterController> {
                                       order.transactionId!,
                                     );
                                   } else {
-                                    Get.showSnackbar(
-                                      const ErrorSnackbar(
-                                        'No hay factura asociada a este pedido.',
+                                    Get.dialog(const ModalError(message: 'No hay factura asociada a este pedido.',
                                       ),
                                     );
                                   }

@@ -18,7 +18,7 @@ import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
@@ -311,13 +311,13 @@ class TakeOrderView extends GetView<TakeOrderController> {
   /* Valida y abre el bottom sheet con el resumen del pedido. */
   void _showOrderSummary(BuildContext context) {
     if (controller.selectedCustomer.value == null) {
-      Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar un cliente.'));
+      Get.dialog(const ModalError(message: 'Se debe seleccionar un cliente.'));
       return;
     }
 
     if (controller.form.control('origin').value == 'SALON' &&
         controller.selectedTableIds.isEmpty) {
-      Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar una mesa.'));
+      Get.dialog(const ModalError(message: 'Se debe seleccionar una mesa.'));
       return;
     }
 
