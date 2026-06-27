@@ -8,8 +8,8 @@ import 'package:restic_movil/app/modules/inventory/views/widgets/inventory_item_
 import 'package:restic_movil/app/modules/inventory/views/widgets/manual_movement_dialog.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
 
 class InventoryController extends GetxController {
   final InventoryRepository _inventoryRepository;
@@ -60,7 +60,7 @@ class InventoryController extends GetxController {
           movements.assignAll(result[2] as List<StockMovementModel>);
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -119,7 +119,7 @@ class InventoryController extends GetxController {
           );
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -135,7 +135,7 @@ class InventoryController extends GetxController {
           await loadAll();
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -183,7 +183,7 @@ class InventoryController extends GetxController {
           );
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );

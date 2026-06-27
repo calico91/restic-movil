@@ -165,7 +165,7 @@ class BaseHttpClient {
       throw FetchDataException('No hay conexión a internet', '');
     } on TimeoutException {
       throw ApiNotRespondingException(
-        'El servidor tardó demasiado en responder',
+        'El servidor tardó demasiado en responder. ',
         '',
       );
     } catch (e) {

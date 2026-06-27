@@ -156,8 +156,8 @@ class MenuController extends GetxController {
   /// Abre el modal para configurar receta del producto seleccionado.
   Future<void> showRecipeForm(ProductModel product) async {
     if (product.id == null) {
-      Get.showSnackbar(
-        const ErrorSnackbar('No se puede configurar receta: producto sin identificador.'),
+      Get.dialog(
+        const ModalError(message: 'No se puede configurar receta: producto sin identificador.'),
       );
       return;
     }
@@ -207,7 +207,7 @@ class MenuController extends GetxController {
       }
     } catch (e) {
       final message = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(message));
+      Get.dialog(ModalError(message: message));
     }
   }
 
@@ -230,7 +230,7 @@ class MenuController extends GetxController {
       return true;
     } catch (e) {
       final message = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(message));
+      Get.dialog(ModalError(message: message));
       return false;
     }
   }
@@ -250,7 +250,7 @@ class MenuController extends GetxController {
       return true;
     } catch (e) {
       final message = ExceptionHandler.extractMessage(e);
-      Get.showSnackbar(ErrorSnackbar(message));
+      Get.dialog(ModalError(message: message));
       return false;
     }
   }
