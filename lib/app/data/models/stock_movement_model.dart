@@ -10,6 +10,7 @@ class StockMovementModel {
   final String? createdById;
   final String? createdByName;
   final DateTime? createdAt;
+  final bool? manual;
 
   StockMovementModel({
     this.id,
@@ -23,6 +24,7 @@ class StockMovementModel {
     this.createdById,
     this.createdByName,
     this.createdAt,
+    this.manual,
   });
 
   factory StockMovementModel.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class StockMovementModel {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'])
           : null,
+      manual: json['manual'] as bool?,
     );
   }
 
@@ -56,6 +59,7 @@ class StockMovementModel {
       'createdById': createdById,
       'createdByName': createdByName,
       'createdAt': createdAt?.toIso8601String(),
+      'manual': manual,
     };
   }
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
@@ -26,14 +27,14 @@ class InventoryController extends GetxController {
   final FormGroup itemForm = FormGroup({
     'name': FormControl<String>(validators: [Validators.required]),
     'unit': FormControl<String>(value: 'UNIT', validators: [Validators.required]),
-    'currentStock': FormControl<double>(value: 0, validators: [Validators.required, Validators.min(0)]),
-    'minStock': FormControl<double>(value: 0, validators: [Validators.required, Validators.min(0)]),
+    'currentStock': FormControl<double>(value: 0.0, validators: [Validators.required, Validators.min(0)]),
+    'minStock': FormControl<double>(value: 0.0, validators: [Validators.required, Validators.min(0)]),
   });
 
   final FormGroup movementForm = FormGroup({
     'inventoryItemId': FormControl<String>(validators: [Validators.required]),
     'type': FormControl<String>(value: 'PURCHASE', validators: [Validators.required]),
-    'quantity': FormControl<double>(value: 0, validators: [Validators.required, Validators.min(0.001)]),
+    'quantity': FormControl<double>(value: 0.0, validators: [Validators.required, Validators.min(0.001)]),
     'notes': FormControl<String>(),
   });
 
@@ -91,12 +92,15 @@ class InventoryController extends GetxController {
       return;
     }
 
-    final data = {
+    final Map<String, dynamic> data = {
       'name': itemForm.control('name').value,
       'unit': itemForm.control('unit').value,
-      'currentStock': itemForm.control('currentStock').value,
       'minStock': itemForm.control('minStock').value,
     };
+
+    if (itemId == null) {
+      data['currentStock'] = itemForm.control('currentStock').value;
+    }
 
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
@@ -127,17 +131,35 @@ class InventoryController extends GetxController {
 
   /// Desactiva un insumo y vuelve a consultar informacion del inventario.
   Future<void> deleteItem(String id) async {
-    Get.showOverlay(
-      loadingWidget: const LoadingCharging(),
-      asyncFunction: () async {
-        try {
-          await _inventoryRepository.deleteItem(id);
-          await loadAll();
-        } catch (e) {
-          final message = ExceptionHandler.extractMessage(e);
-          Get.dialog(ModalError(message: message));
-        }
-      },
+    Get.dialog(
+      ModalInfo(
+        title: 'Confirmacion',
+        message: '¿Está seguro de eliminar este insumo?',
+        buttonText: 'Eliminar',
+        icon: Icons.warning_amber_rounded,
+        iconColor: const Color(0xFFB71C1C),
+        onClose: () async {
+          Get.back();
+          Get.showOverlay(
+            loadingWidget: const LoadingCharging(),
+            asyncFunction: () async {
+              try {
+                await _inventoryRepository.deleteItem(id);
+                await loadAll();
+                Get.dialog(
+                  const ModalInfo(
+                    title: 'Exito',
+                    message: 'Insumo eliminado correctamente.',
+                  ),
+                );
+              } catch (e) {
+                final message = ExceptionHandler.extractMessage(e);
+                Get.dialog(ModalError(message: message));
+              }
+            },
+          );
+        },
+      ),
     );
   }
 
@@ -145,7 +167,7 @@ class InventoryController extends GetxController {
   Future<void> openManualMovementForm() async {
     movementForm.reset();
     movementForm.control('type').value = 'PURCHASE';
-    movementForm.control('quantity').value = 0;
+    movementForm.control('quantity').value = 0.0;
     movementForm.control('notes').value = '';
     if (items.isNotEmpty) {
       movementForm.control('inventoryItemId').value = items.first.id;

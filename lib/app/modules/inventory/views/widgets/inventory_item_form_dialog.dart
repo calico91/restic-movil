@@ -39,12 +39,37 @@ class InventoryItemFormDialog extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 12),
-              ReactiveTextField<double>(
-                formControlName: 'currentStock',
-                decoration: const InputDecoration(labelText: 'Stock actual'),
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                valueAccessor: DoubleValueAccessor(),
-              ),
+              if (item == null)
+                ReactiveTextField<double>(
+                  formControlName: 'currentStock',
+                  decoration: const InputDecoration(labelText: 'Stock inicial'),
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  valueAccessor: DoubleValueAccessor(),
+                ),
+              if (item != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.shade50,
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue.shade200),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Stock actual: ${item?.currentStock ?? 0} ${item?.unit ?? ''}',
+                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 4),
+                      const Text(
+                        'Para modificar el stock usa "Agregar Movimiento" en la pestana de Movimientos.',
+                        style: TextStyle(fontSize: 12, color: Colors.black54),
+                      ),
+                    ],
+                  ),
+                ),
               const SizedBox(height: 12),
               ReactiveTextField<double>(
                 formControlName: 'minStock',
