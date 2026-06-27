@@ -90,6 +90,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
               if (widget.product.productType == 'VARIABLE' && (widget.product.prices?.isNotEmpty ?? false))
                 DropdownButtonFormField<String>(
                   initialValue: _selectedVariantKey,
+                  isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Variante de precio',
                     border: OutlineInputBorder(),
@@ -98,7 +99,11 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
                       .map(
                         (price) => DropdownMenuItem(
                           value: price.id,
-                          child: Text(price.sizeLabel ?? 'Variante sin etiqueta'),
+                          child: Text(
+                            price.sizeLabel ?? 'Variante sin etiqueta',
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 1,
+                          ),
                         ),
                       )
                       .toList(),
@@ -121,6 +126,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
                         flex: 5,
                         child: DropdownButtonFormField<String>(
                           initialValue: _currentRows[index].inventoryItemId,
+                          isExpanded: true,
                           decoration: const InputDecoration(
                             labelText: 'Insumo',
                             border: OutlineInputBorder(),
@@ -130,7 +136,11 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
                               .map(
                                 (item) => DropdownMenuItem(
                                   value: item.id,
-                                  child: Text(item.name ?? '-'),
+                                  child: Text(
+                                    item.name ?? '-',
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 1,
+                                  ),
                                 ),
                               )
                               .toList(),
