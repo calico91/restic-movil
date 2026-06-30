@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
-import 'package:restic_movil/app/data/models/associated_product_model.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
 import 'package:restic_movil/app/data/models/stock_movement_model.dart';
 import 'package:restic_movil/app/data/repositories/inventory_repository.dart';

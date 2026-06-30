@@ -53,7 +53,7 @@ class AssociatedProductsDialog extends StatelessWidget {
             : ListView.separated(
                 shrinkWrap: true,
                 itemCount: products.length,
-                separatorBuilder: (_, __) => const Divider(height: 1),
+                separatorBuilder: (_, _) => const Divider(height: 1),
                 itemBuilder: (context, index) {
                   final p = products[index];
                   final label = p.priceVariantLabel != null
