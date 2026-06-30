@@ -26,6 +26,12 @@ class InventoryController extends GetxController {
   final RxList<StockMovementModel> movements = <StockMovementModel>[].obs;
   final RxBool canEdit = false.obs;
 
+  final RxString filterInventoryItemId = ''.obs;
+  final RxString filterType = ''.obs;
+  final Rxn<DateTime> filterFromDate = Rxn<DateTime>();
+  final Rxn<DateTime> filterToDate = Rxn<DateTime>();
+  final RxBool hasActiveFilters = false.obs;
+
   final FormGroup itemForm = FormGroup({
     'name': FormControl<String>(validators: [Validators.required]),
     'unit': FormControl<String>(value: 'UNIT', validators: [Validators.required]),
@@ -67,6 +73,59 @@ class InventoryController extends GetxController {
         }
       },
     );
+  }
+
+  /// Carga movimientos con los filtros activos actuales.
+  Future<void> loadMovements() async {
+    final fromDateStr = filterFromDate.value?.toIso8601String();
+    final toDateStr = filterToDate.value?.toIso8601String();
+
+    try {
+      final result = await _inventoryRepository.getMovements(
+        inventoryItemId: filterInventoryItemId.value.isEmpty ? null : filterInventoryItemId.value,
+        type: filterType.value.isEmpty ? null : filterType.value,
+        fromDate: fromDateStr,
+        toDate: toDateStr,
+      );
+      movements.assignAll(result);
+      _updateHasActiveFilters();
+    } catch (e) {
+      final message = ExceptionHandler.extractMessage(e);
+      Get.dialog(ModalError(message: message));
+    }
+  }
+
+  void _updateHasActiveFilters() {
+    hasActiveFilters.value =
+        filterInventoryItemId.value.isNotEmpty ||
+        filterType.value.isNotEmpty ||
+        filterFromDate.value != null ||
+        filterToDate.value != null;
+  }
+
+  void setFilterInventoryItem(String? value) {
+    filterInventoryItemId.value = value ?? '';
+    loadMovements();
+  }
+
+  void setFilterType(String? value) {
+    filterType.value = value ?? '';
+    loadMovements();
+  }
+
+  Future<void> setDateRange(DateTime? from, DateTime? to) async {
+    filterFromDate.value = from;
+    filterToDate.value = to;
+    loadMovements();
+  }
+
+  void clearFilters() {
+    filterInventoryItemId.value = '';
+    filterType.value = '';
+    filterFromDate.value = null;
+    filterToDate.value = null;
+    hasActiveFilters.value = false;
+    loadMovements();
   }
 
   /// Carga roles del usuario para habilitar o deshabilitar acciones de escritura.
