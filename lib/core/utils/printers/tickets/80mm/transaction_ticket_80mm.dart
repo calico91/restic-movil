@@ -34,10 +34,10 @@ class TransactionTicket80mm implements PrintableTicket {
             (fiscal.taxIdDigit != null && fiscal.taxIdDigit!.trim().isNotEmpty)
                 ? '-${fiscal.taxIdDigit}'
                 : '';
-        printer.printCustom('NIT: ${fiscal.taxId}$digit'.withoutDiacritics, 2, 1);
+        printer.printCustom('NIT: ${fiscal.taxId}$digit'.withoutDiacritics, 1, 1);
       }
       if (fiscal.address != null && fiscal.address!.trim().isNotEmpty) {
-        printer.printCustom(fiscal.address!.withoutDiacritics, 2, 1);
+        printer.printCustom(fiscal.address!.withoutDiacritics, 1, 1);
       }
       String cityDept = '';
       if (fiscal.city != null && fiscal.city!.trim().isNotEmpty) {
@@ -47,10 +47,10 @@ class TransactionTicket80mm implements PrintableTicket {
         cityDept += cityDept.isEmpty ? fiscal.department! : ' - ${fiscal.department}';
       }
       if (cityDept.isNotEmpty) {
-        printer.printCustom(cityDept.withoutDiacritics, 2, 1);
+        printer.printCustom(cityDept.withoutDiacritics, 1, 1);
       }
       if (fiscal.phone != null && fiscal.phone!.trim().isNotEmpty) {
-        printer.printCustom('Tel: ${fiscal.phone}'.withoutDiacritics, 2, 1);
+        printer.printCustom('Tel: ${fiscal.phone}'.withoutDiacritics, 1, 1);
       }
       printer.printNewLine();
       if (fiscal.dianResolution != null && fiscal.dianResolution!.trim().isNotEmpty) {
@@ -80,7 +80,7 @@ class TransactionTicket80mm implements PrintableTicket {
         }
       }
       if (fiscal.taxRegime != null && fiscal.taxRegime!.trim().isNotEmpty) {
-        printer.printCustom('Regimen: ${fiscal.taxRegime}'.withoutDiacritics, 2, 1);
+        printer.printCustom('Regimen: ${fiscal.taxRegime}'.withoutDiacritics, 1, 1);
       }
     } else {
       printer.printCustom('RECIBO DE VENTA', 3, 1);
@@ -91,26 +91,26 @@ class TransactionTicket80mm implements PrintableTicket {
     // INFO DE LA TRANSACCION
     printer.printCustom(
       'FACTURA DE VENTA: ${transaction.transactionNumber ?? ''}'.withoutDiacritics,
-      2,
+      1,
       0,
     );
-    printer.printCustom('Fecha: $date'.withoutDiacritics, 2, 0);
+    printer.printCustom('Fecha: $date'.withoutDiacritics, 1, 0);
     if (transaction.waiterName != null) {
-      printer.printCustom('Creado por: ${transaction.waiterName}'.withoutDiacritics, 2, 0);
+      printer.printCustom('Creado por: ${transaction.waiterName}'.withoutDiacritics, 1, 0);
     }
     if (transaction.customerName != null) {
-      printer.printCustom('Cliente: ${transaction.customerName}'.withoutDiacritics, 2, 0);
+      printer.printCustom('Cliente: ${transaction.customerName}'.withoutDiacritics, 1, 0);
     }
     if (transaction.tableNames != null && transaction.tableNames!.isNotEmpty) {
       printer.printCustom(
         'Mesas: ${transaction.tableNames!.join(', ')}'.withoutDiacritics,
-        2,
+        1,
         0,
       );
     }
 
     printer.printCustom(_sep, 1, 1);
-    printer.printCustom('PRODUCTOS', 2, 1);
+    printer.printCustom('PRODUCTOS', 1, 1);
     printer.printCustom(_sep, 1, 1);
 
     // Construye el nombre visible incluyendo acompañante si el ítem es COMBINADO
@@ -148,7 +148,7 @@ class TransactionTicket80mm implements PrintableTicket {
     }
 
     for (final row in grouped.values) {
-      printer.printCustom((row['name'] as String).withoutDiacritics, 2, 0);
+      printer.printCustom((row['name'] as String).withoutDiacritics, 1, 0);
       final String qtyStr = (row['qty'] as int).toString();
       final String unitPriceStr =
           PrinterUtils.formatCurrency(row['unitPrice'] as double);
@@ -179,12 +179,12 @@ class TransactionTicket80mm implements PrintableTicket {
 
     printer.printNewLine();
     if (transaction.paymentDetails != null && transaction.paymentDetails!.isNotEmpty) {
-      printer.printCustom('Metodos de pago:', 2, 1);
+      printer.printCustom('Metodos de pago:', 1, 1);
       for (var pay in transaction.paymentDetails!) {
         final String payAmount = PrinterUtils.formatCurrency(pay.amount ?? 0);
         final String methodDesc =
             pay.paymentMethodDescription ?? pay.paymentMethod ?? 'Desconocido';
-        printer.printCustom('$methodDesc: $payAmount'.withoutDiacritics, 2, 1);
+        printer.printCustom('$methodDesc: $payAmount'.withoutDiacritics, 1, 1);
       }
     }
 

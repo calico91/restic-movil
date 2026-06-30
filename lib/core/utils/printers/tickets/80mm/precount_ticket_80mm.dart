@@ -36,19 +36,19 @@ class PrecountTicket80mm implements PrintableTicket {
     printer.printNewLine();
 
     // INFO DE LA ORDEN
-    printer.printCustom('Orden: #${order.orderNumber ?? ''}'.withoutDiacritics, 2, 0);
-    printer.printCustom('Fecha: $dateStr'.withoutDiacritics, 2, 0);
+    printer.printCustom('Orden: #${order.orderNumber ?? ''}'.withoutDiacritics, 1, 0);
+    printer.printCustom('Fecha: $dateStr'.withoutDiacritics, 1, 0);
 
     if (order.customer != null && order.customer!.fullName.isNotEmpty) {
-      printer.printCustom('Cliente: ${order.customer!.fullName}'.withoutDiacritics, 2, 0);
+      printer.printCustom('Cliente: ${order.customer!.fullName}'.withoutDiacritics, 1, 0);
     }
     if (order.tables != null && order.tables!.isNotEmpty) {
       final tableNames = order.tables!.map((e) => e.name).toList();
-      printer.printCustom('Mesas: ${tableNames.join(', ')}'.withoutDiacritics, 2, 0);
+      printer.printCustom('Mesas: ${tableNames.join(', ')}'.withoutDiacritics, 1, 0);
     }
 
     printer.printCustom(_sep, 1, 1);
-    printer.printCustom('PRODUCTOS', 2, 1);
+    printer.printCustom('PRODUCTOS', 1, 1);
     printer.printCustom(_sep, 1, 1);
 
     // Construye el nombre visible incluyendo acompañante si el ítem es COMBINADO
@@ -90,7 +90,7 @@ class PrecountTicket80mm implements PrintableTicket {
     }
 
     for (final row in grouped.values) {
-      printer.printCustom((row['name'] as String).withoutDiacritics, 2, 0);
+      printer.printCustom((row['name'] as String).withoutDiacritics, 1, 0);
       final String qtyStr = (row['qty'] as int).toString();
       final String unitPriceStr =
           PrinterUtils.formatCurrency(row['unitPrice'] as double);
