@@ -54,7 +54,7 @@ class StockMovementCard extends StatelessWidget {
           ],
         ),
         subtitle: Text(
-          '${movement.type ?? '-'} | ${movement.createdAt != null ? DateFormat('dd/MM/yyyy HH:mm').format(movement.createdAt!) : '-'}',
+          '${movement.typeDescription ?? movement.type ?? '-'} | ${movement.createdAt != null ? DateFormat('dd/MM/yyyy HH:mm').format(movement.createdAt!) : '-'}',
         ),
         trailing: Text(
           '${movement.quantity ?? 0}',
