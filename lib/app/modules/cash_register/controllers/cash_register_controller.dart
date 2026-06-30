@@ -18,6 +18,7 @@ import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_error.dart';
+import 'package:restic_movil/core/utils/modals/transaction_invoice_details_modal.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/app/data/models/transaction_receipt_model.dart';
 import 'package:restic_movil/core/utils/printers/tickets/58mm/transaction_ticket_58mm.dart';
@@ -514,6 +515,28 @@ class CashRegisterController extends GetxController {
           );
         } catch (e) {
           ErrorHandler.showErrorDialog(e);
+        }
+      },
+    );
+  }
+
+  Future<void> showInvoiceDetails(OrderModel order) async {
+    if (order.transactionId == null) {
+      Get.dialog(const ModalError(message: 'No hay factura asociada a este pedido.'));
+      return;
+    }
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final response = await transactionsRepository.getTransactionInvoice(
+            order.transactionId!,
+          );
+          final receipt = TransactionReceiptModel.fromJson(response);
+          Get.dialog(TransactionInvoiceDetailsModal(receipt: receipt));
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );

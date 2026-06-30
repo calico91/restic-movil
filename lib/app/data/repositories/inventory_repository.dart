@@ -1,5 +1,6 @@
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
+import 'package:restic_movil/app/data/models/associated_product_model.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
 import 'package:restic_movil/app/data/models/product_recipe_model.dart';
 import 'package:restic_movil/app/data/models/stock_movement_model.dart';
@@ -50,6 +51,17 @@ class InventoryRepository {
   Future<void> deleteItem(String id) async {
     try {
       await _client.delete('${UrlPaths.inventoryItems}/$id');
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<List<AssociatedProductModel>> getAssociatedProducts(String itemId) async {
+    try {
+      final response = await _client.get('${UrlPaths.inventoryItemProducts}/$itemId/products');
+      return (response as List)
+          .map((e) => AssociatedProductModel.fromJson(e))
+          .toList();
     } catch (e) {
       rethrow;
     }

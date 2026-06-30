@@ -102,4 +102,5 @@ class UrlPaths {
   static const String inventoryAlerts = 'inventory/items/alerts';
   static const String inventoryRecipes = 'inventory/recipes';
   static const String inventoryMovements = 'inventory/movements';
+  static const String inventoryItemProducts = 'inventory/items'; // GET /{id}/products
 }

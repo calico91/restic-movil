@@ -5,12 +5,14 @@ class InventoryItemCard extends StatelessWidget {
   final InventoryItemModel item;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
+  final VoidCallback? onViewProducts;
 
   const InventoryItemCard({
     super.key,
     required this.item,
     this.onEdit,
     this.onDelete,
+    this.onViewProducts,
   });
 
   @override
@@ -35,6 +37,11 @@ class InventoryItemCard extends StatelessWidget {
         trailing: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
+            if (onViewProducts != null)
+              IconButton(
+                onPressed: onViewProducts,
+                icon: const Icon(Icons.restaurant_menu, color: Color(0xFF0D47A1)),
+              ),
             if (onEdit != null)
               IconButton(
                 onPressed: onEdit,

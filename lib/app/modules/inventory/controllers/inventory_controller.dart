@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:restic_movil/app/data/models/associated_product_model.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
 import 'package:restic_movil/app/data/models/stock_movement_model.dart';
 import 'package:restic_movil/app/data/repositories/inventory_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/modules/inventory/views/widgets/associated_products_dialog.dart';
 import 'package:restic_movil/app/modules/inventory/views/widgets/inventory_item_form_dialog.dart';
 import 'package:restic_movil/app/modules/inventory/views/widgets/manual_movement_dialog.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -160,6 +162,24 @@ class InventoryController extends GetxController {
           );
         },
       ),
+    );
+  }
+
+  /// Consulta los productos asociados a un insumo y muestra un modal con la informacion.
+  Future<void> showAssociatedProducts(InventoryItemModel item) async {
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          final products = await _inventoryRepository.getAssociatedProducts(item.id!);
+          Get.dialog(
+            AssociatedProductsDialog(item: item, products: products),
+          );
+        } catch (e) {
+          final message = ExceptionHandler.extractMessage(e);
+          Get.dialog(ModalError(message: message));
+        }
+      },
     );
   }
 

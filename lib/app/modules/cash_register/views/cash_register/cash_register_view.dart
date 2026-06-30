@@ -77,11 +77,13 @@ class CashRegisterView extends GetView<CashRegisterController> {
                         return GlobalOrderCard(
                           order: order,
                           detailsText: 'Detalle Pedido',
-                          onDetailsPressed: () => GlobalOrderDetailsModal.show(
-                            context: context,
-                            order: order,
-                            isReadOnly: true,
-                          ),
+                          onDetailsPressed: controller.currentTab.value == 0
+                              ? () => GlobalOrderDetailsModal.show(
+                                    context: context,
+                                    order: order,
+                                    isReadOnly: true,
+                                  )
+                              : () => controller.showInvoiceDetails(order),
                           actionText: 'Pagar',
                           onActionPressed: controller.currentTab.value == 0
                               ? () => controller.showTransactionModal(order)

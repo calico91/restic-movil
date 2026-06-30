@@ -81,6 +81,9 @@ class InventoryView extends GetView<InventoryController> {
           final item = controller.items[index];
           return InventoryItemCard(
             item: item,
+            onViewProducts: item.id != null
+                ? () => controller.showAssociatedProducts(item)
+                : null,
             onEdit: controller.canEdit.value && item.id != null
                 ? () => controller.openItemForm(item: item)
                 : null,
