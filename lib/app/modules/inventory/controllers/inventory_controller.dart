@@ -55,6 +55,12 @@ class InventoryController extends GetxController {
 
   /// Carga en paralelo insumos, alertas y movimientos para renderizar el modulo.
   Future<void> loadAll() async {
+    filterInventoryItemId.value = '';
+    filterType.value = '';
+    filterFromDate.value = null;
+    filterToDate.value = null;
+    hasActiveFilters.value = false;
+
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
