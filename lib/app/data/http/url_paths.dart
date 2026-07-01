@@ -103,4 +103,9 @@ class UrlPaths {
   static const String inventoryRecipes = 'inventory/recipes';
   static const String inventoryMovements = 'inventory/movements';
   static const String inventoryItemProducts = 'inventory/items'; // GET /{id}/products
+
+  // Combos
+  static const String addComboOption = 'combos/groups'; // /{groupId}/options
+  static const String removeComboOption = 'combos/options'; // /{optionId}
+  static const String toggleComboOption = 'combos/options'; // /{optionId}/toggle
 }

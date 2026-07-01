@@ -265,41 +265,60 @@ class MenuView extends GetView<MenuController> {
                                                                   categoryId:
                                                                       category
                                                                           .id ??
-                                                                      '',
+                                                                          '',
                                                                   subcategoryId:
                                                                       subcategory
                                                                           .id ??
-                                                                      '',
+                                                                          '',
                                                                   product:
                                                                       product,
                                                                 );
                                                               } else if (value == 'recipe') {
                                                                 await controller.showRecipeForm(product);
+                                                              } else if (value == 'manage_combo') {
+                                                                await controller.showComboEditor(product);
                                                               }
                                                             });
                                                           },
-                                                          itemBuilder: (context) => const [
-                                                            PopupMenuItem<String>(
-                                                              value: 'edit',
-                                                              child: Row(
-                                                                children: [
-                                                                  Icon(Icons.edit, size: 18),
-                                                                  SizedBox(width: 8),
-                                                                  Text('Editar producto'),
-                                                                ],
+                                                          itemBuilder: (context) {
+                                                            final items = <PopupMenuEntry<String>>[
+                                                              PopupMenuItem<String>(
+                                                                value: 'edit',
+                                                                child: Row(
+                                                                  children: [
+                                                                    Icon(Icons.edit, size: 18),
+                                                                    SizedBox(width: 8),
+                                                                    Text('Editar producto'),
+                                                                  ],
+                                                                ),
                                                               ),
-                                                            ),
-                                                            PopupMenuItem<String>(
-                                                              value: 'recipe',
-                                                              child: Row(
-                                                                children: [
-                                                                  Icon(Icons.restaurant_menu, size: 18),
-                                                                  SizedBox(width: 8),
-                                                                  Text('Configurar receta'),
-                                                                ],
+                                                              PopupMenuItem<String>(
+                                                                value: 'recipe',
+                                                                child: Row(
+                                                                  children: [
+                                                                    Icon(Icons.restaurant_menu, size: 18),
+                                                                    SizedBox(width: 8),
+                                                                    Text('Configurar receta'),
+                                                                  ],
+                                                                ),
                                                               ),
-                                                            ),
-                                                          ],
+                                                            ];
+                                                            if (product.productType == 'COMBO') {
+                                                              items.add(
+                                                                PopupMenuItem<String>(
+                                                                  value: 'manage_combo',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.add_circle_outline, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Administrar combo'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }
+                                                            return items;
+                                                          },
                                                         ),
                                                       ],
                                                     ),
@@ -373,31 +392,50 @@ class MenuView extends GetView<MenuController> {
                       );
                     } else if (value == 'recipe') {
                       await controller.showRecipeForm(product);
+                    } else if (value == 'manage_combo') {
+                      await controller.showComboEditor(product);
                     }
                   });
                 },
-                itemBuilder: (context) => const [
-                  PopupMenuItem<String>(
-                    value: 'edit',
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, size: 18),
-                        SizedBox(width: 8),
-                        Text('Editar producto'),
-                      ],
+                itemBuilder: (context) {
+                  final items = <PopupMenuEntry<String>>[
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Editar producto'),
+                        ],
+                      ),
                     ),
-                  ),
-                  PopupMenuItem<String>(
-                    value: 'recipe',
-                    child: Row(
-                      children: [
-                        Icon(Icons.restaurant_menu, size: 18),
-                        SizedBox(width: 8),
-                        Text('Configurar receta'),
-                      ],
+                    PopupMenuItem<String>(
+                      value: 'recipe',
+                      child: Row(
+                        children: [
+                          Icon(Icons.restaurant_menu, size: 18),
+                          SizedBox(width: 8),
+                          Text('Configurar receta'),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ];
+                  if (product.productType == 'COMBO') {
+                    items.add(
+                      PopupMenuItem<String>(
+                        value: 'manage_combo',
+                        child: Row(
+                          children: [
+                            Icon(Icons.add_circle_outline, size: 18),
+                            SizedBox(width: 8),
+                            Text('Administrar combo'),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return items;
+                },
               ),
             ],
           ),

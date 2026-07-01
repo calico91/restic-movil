@@ -1,8 +1,10 @@
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
+import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/data/models/product_recipe_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
+import 'package:restic_movil/app/data/repositories/combos_repository.dart';
 import 'package:restic_movil/app/data/repositories/inventory_repository.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -11,12 +13,14 @@ import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/modals/recipe_form_dialog.dart';
 import 'package:restic_movil/app/modules/menu/views/widgets/menu_forms.dart';
+import 'package:restic_movil/app/modules/menu/views/widgets/combo_editor_dialog.dart';
 
 class MenuController extends GetxController {
   final CategoriesRepository _categoriesRepository;
   final InventoryRepository _inventoryRepository;
+  final CombosRepository _combosRepository;
 
-  MenuController(this._categoriesRepository, this._inventoryRepository);
+  MenuController(this._categoriesRepository, this._inventoryRepository, this._combosRepository);
 
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxInt selectedCategoryIndex = 0.obs;
@@ -253,5 +257,51 @@ class MenuController extends GetxController {
       Get.dialog(ModalError(message: message));
       return false;
     }
+  }
+
+  /// Retorna todos los productos SIMPLE de la sucursal (sin filtrar por combo).
+  List<ProductModel> getAllSimpleProducts() {
+    final simpleProducts = <ProductModel>[];
+    for (final category in categories) {
+      for (final subcategory in category.subcategories ?? []) {
+        for (final product in subcategory.products ?? []) {
+          if (product.productType == 'SIMPLE' && product.id != null) {
+            simpleProducts.add(product);
+          }
+        }
+      }
+    }
+    return simpleProducts;
+  }
+
+  /// Abre el editor de combos para un producto COMBO.
+  Future<void> showComboEditor(ProductModel combo) async {
+    await Get.dialog(
+      ComboEditorDialog(
+        combo: combo,
+        simpleProducts: getAllSimpleProducts(),
+        onAddOption: (groupId, productId) async {
+          await _combosRepository.addOption(groupId, productId);
+        },
+        onRemoveOption: (optionId) async {
+          await _combosRepository.removeOption(optionId);
+        },
+        onToggleOption: (optionId) async {
+          await _combosRepository.toggleOption(optionId);
+        },
+        onRefresh: () async {
+          final result = await _categoriesRepository.getCategories();
+          categories.assignAll(result);
+          for (final c in result) {
+            for (final s in c.subcategories ?? []) {
+              for (final p in s.products ?? []) {
+                if (p.id == combo.id) return p;
+              }
+            }
+          }
+          return combo;
+        },
+      ),
+    );
   }
 }

@@ -341,7 +341,9 @@ class ComboSelectionDialog extends StatelessWidget {
     ComboSelectionController controller,
     int unitIdx,
   ) {
-    final List<ComboOptionModel> options = group.options ?? [];
+    final List<ComboOptionModel> options = (group.options ?? [])
+        .where((o) => o.available != false)
+        .toList();
     options.sort(
       (a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0),
     );
