@@ -132,9 +132,29 @@ class ProductFormDialog extends StatelessWidget {
     final List<PriceModel?> initialPrices =
         product?.prices?.isNotEmpty == true
             ? List<PriceModel?>.from(product!.prices!)
-            : [null]; // un precio vacío para productos nuevos
+            : [null];
 
-    return FormGroup({
+    final bool initialOptionOnly = product?.optionOnly ?? false;
+    final List<AbstractControl> priceControls = initialPrices.map((p) {
+      final currentPrice = p?.amount;
+      final String? priceStr = currentPrice != null
+          ? NumberFormat.decimalPattern('es_CO').format(currentPrice)
+          : null;
+      return FormGroup({
+        'amount': FormControl<String>(
+          value: priceStr,
+          validators: initialOptionOnly
+              ? []
+              : [
+                  Validators.required,
+                  Validators.pattern(RegExp(r'^[0-9.]+$')),
+                ],
+        ),
+        'size_label': FormControl<String>(value: p?.sizeLabel ?? ''),
+      });
+    }).toList();
+
+    final form = FormGroup({
       'name': FormControl<String>(
         value: product?.name,
         validators: [Validators.required],
@@ -148,32 +168,33 @@ class ProductFormDialog extends StatelessWidget {
         value: product?.requiresRecipe ?? false,
       ),
       'option_only': FormControl<bool>(
-        value: product?.optionOnly ?? false,
+        value: initialOptionOnly,
       ),
-      'prices': FormArray(
-        initialPrices.map((p) {
-          final currentPrice = p?.amount;
-          final String? priceStr = currentPrice != null
-              ? NumberFormat.decimalPattern('es_CO').format(currentPrice)
-              : null;
-          return FormGroup({
-            'amount': FormControl<String>(
-              value: priceStr,
-              validators: [
-                Validators.required,
-                Validators.pattern(RegExp(r'^[0-9.]+$')),
-              ],
-            ),
-            'size_label': FormControl<String>(value: p?.sizeLabel ?? ''),
-          });
-        }).toList(),
-      ),
+      'prices': FormArray(priceControls),
     });
+
+    form.control('option_only').valueChanges.listen((value) {
+      final pricesArray = form.control('prices') as FormArray;
+      for (final c in pricesArray.controls) {
+        final amountControl = (c as FormGroup).control('amount');
+        if (value == true) {
+          amountControl.setValidators([]);
+        } else {
+          amountControl.setValidators([
+            Validators.required,
+            Validators.pattern(RegExp(r'^[0-9.]+$')),
+          ]);
+        }
+        amountControl.updateValueAndValidity();
+      }
+    });
+
+    return form;
   }
 
   @override
   Widget build(BuildContext context) {
-    final form = _buildForm();
+    final form = _buildForm();  
 
     return CustomFormDialog(
       title: product == null ? 'Nuevo Producto' : 'Editar Producto',
@@ -181,38 +202,47 @@ class ProductFormDialog extends StatelessWidget {
       onSave: () {
         final data = Map<String, dynamic>.from(form.value);
         final String productType = data['productType'];
+        final bool isOptionOnly = data['option_only'] ?? false;
 
-        // Mapear el array de precios
-        final List<Map<String, dynamic>> pricesArray = (data['prices'] as List)
-            .map((p) {
-              final priceValue = p['amount'] as String;
-              final double amount =
-                  double.tryParse(
-                    priceValue.replaceAll(RegExp(r'[^0-9]'), ''),
-                  ) ??
-                  0.0;
+        final List<Map<String, dynamic>> pricesArray;
+        if (isOptionOnly) {
+          final DateTime startOfDay = DateTime(
+            DateTime.now().year,
+            DateTime.now().month,
+            DateTime.now().day,
+          );
+          pricesArray = [{
+            "amount": 0.0,
+            "start_date": DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(startOfDay),
+            "end_date": null,
+          }];
+        } else {
+          pricesArray = (data['prices'] as List).map((p) {
+            final priceValue = p['amount'] as String;
+            final double amount = double.tryParse(
+              priceValue.replaceAll(RegExp(r'[^0-9]'), ''),
+            ) ?? 0.0;
 
-              // Usar inicio del día actual para evitar problemas de desfase de reloj con el servidor
-              final DateTime startOfDay = DateTime(
-                DateTime.now().year,
-                DateTime.now().month,
-                DateTime.now().day,
-              );
-              final Map<String, dynamic> priceMap = {
-                "amount": amount,
-                "start_date": DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(startOfDay),
-                "end_date": null,
-              };
+            final DateTime startOfDay = DateTime(
+              DateTime.now().year,
+              DateTime.now().month,
+              DateTime.now().day,
+            );
+            final Map<String, dynamic> priceMap = {
+              "amount": amount,
+              "start_date": DateFormat("yyyy-MM-dd'T'HH:mm:ss").format(startOfDay),
+              "end_date": null,
+            };
 
-              if (productType == 'VARIABLE' &&
-                  p['size_label'] != null &&
-                  p['size_label'].toString().isNotEmpty) {
-                priceMap['size_label'] = p['size_label'];
-              }
+            if (productType == 'VARIABLE' &&
+                p['size_label'] != null &&
+                p['size_label'].toString().isNotEmpty) {
+              priceMap['size_label'] = p['size_label'];
+            }
 
-              return priceMap;
-            })
-            .toList();
+            return priceMap;
+          }).toList();
+        }
 
         final formattedResult = {
           "name": data['name'],
@@ -221,7 +251,7 @@ class ProductFormDialog extends StatelessWidget {
           "category_id": categoryId,
           "subcategory_id": subcategoryId,
           "requires_recipe": data['requires_recipe'] ?? false,
-          "option_only": data['option_only'] ?? false,
+          "option_only": isOptionOnly,
           "prices": pricesArray,
           "combo_groups": null,
         };
@@ -285,103 +315,111 @@ class ProductFormDialog extends StatelessWidget {
             subtitle: const Text('Este producto aparece como opción dentro de un combo, sin precio propio.'),
           ),
           const SizedBox(height: 16),
-          ReactiveValueListenableBuilder<String>(
-            formControlName: 'productType',
-            builder: (context, control, child) {
-              final bool isVariable = control.value == 'VARIABLE';
+          ReactiveValueListenableBuilder<bool>(
+            formControlName: 'option_only',
+            builder: (context, optionControl, child) {
+              if (optionControl.value == true) {
+                return const SizedBox.shrink();
+              }
+              return ReactiveValueListenableBuilder<String>(
+                formControlName: 'productType',
+                builder: (context, control, child) {
+                  final bool isVariable = control.value == 'VARIABLE';
 
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isVariable ? 'Precios y Tamaños' : 'Precio',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-                  ),
-                  const SizedBox(height: 8),
-                  ReactiveFormArray(
-                    formArrayName: 'prices',
-                    builder: (context, formArray, child) {
-                      return Column(
-                        children: [
-                          for (int i = 0; i < formArray.controls.length; i++)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12.0),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  if (isVariable) ...[
-                                    Expanded(
-                                      flex: 3,
-                                      child: ReactiveTextField<String>(
-                                        formControlName: '$i.size_label',
-                                        decoration: const InputDecoration(
-                                          labelText: 'Tamaño (ej: 12oz)',
-                                          border: OutlineInputBorder(),
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        isVariable ? 'Precios y Tamaños' : 'Precio',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      const SizedBox(height: 8),
+                      ReactiveFormArray(
+                        formArrayName: 'prices',
+                        builder: (context, formArray, child) {
+                          return Column(
+                            children: [
+                              for (int i = 0; i < formArray.controls.length; i++)
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12.0),
+                                  child: Row(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      if (isVariable) ...[
+                                        Expanded(
+                                          flex: 3,
+                                          child: ReactiveTextField<String>(
+                                            formControlName: '$i.size_label',
+                                            decoration: const InputDecoration(
+                                              labelText: 'Tamaño (ej: 12oz)',
+                                              border: OutlineInputBorder(),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                      ],
+                                      Expanded(
+                                        flex: 4,
+                                        child: ReactiveTextField<String>(
+                                          formControlName: '$i.amount',
+                                          validationMessages: {
+                                            'required': (error) => 'Requerido',
+                                            'pattern': (error) => 'Solo números',
+                                          },
+                                          decoration: const InputDecoration(
+                                            labelText: 'Precio',
+                                            border: OutlineInputBorder(),
+                                            prefixText: '\$ ',
+                                          ),
+                                          keyboardType: TextInputType.number,
+                                          inputFormatters: [
+                                            ThousandsSeparatorInputFormatter(),
+                                          ],
                                         ),
                                       ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                  ],
-                                  Expanded(
-                                    flex: 4,
-                                    child: ReactiveTextField<String>(
-                                      formControlName: '$i.amount',
-                                      validationMessages: {
-                                        'required': (error) => 'Requerido',
-                                        'pattern': (error) => 'Solo números',
-                                      },
-                                      decoration: const InputDecoration(
-                                        labelText: 'Precio',
-                                        border: OutlineInputBorder(),
-                                        prefixText: '\$ ',
-                                      ),
-                                      keyboardType: TextInputType.number,
-                                      inputFormatters: [
-                                        ThousandsSeparatorInputFormatter(),
-                                      ],
-                                    ),
+                                      if (isVariable &&
+                                          formArray.controls.length > 1)
+                                        IconButton(
+                                          icon: const Icon(
+                                            Icons.delete,
+                                            color: Colors.red,
+                                          ),
+                                          onPressed: () {
+                                            formArray.removeAt(i);
+                                          },
+                                        ),
+                                    ],
                                   ),
-                                  if (isVariable &&
-                                      formArray.controls.length > 1)
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.red,
-                                      ),
-                                      onPressed: () {
-                                        formArray.removeAt(i);
-                                      },
-                                    ),
-                                ],
-                              ),
-                            ),
-                          if (isVariable)
-                            TextButton.icon(
-                              onPressed: () {
-                                formArray.add(
-                                  FormGroup({
-                                    'amount': FormControl<String>(
-                                      validators: [
-                                        Validators.required,
-                                        Validators.pattern(
-                                          RegExp(r'^[0-9.]+$'),
+                                ),
+                              if (isVariable)
+                                TextButton.icon(
+                                  onPressed: () {
+                                    formArray.add(
+                                      FormGroup({
+                                        'amount': FormControl<String>(
+                                          validators: [
+                                            Validators.required,
+                                            Validators.pattern(
+                                              RegExp(r'^[0-9.]+$'),
+                                            ),
+                                          ],
                                         ),
-                                      ],
-                                    ),
-                                    'size_label': FormControl<String>(
-                                      value: '',
-                                    ),
-                                  }),
-                                );
-                              },
-                              icon: const Icon(Icons.add),
-                              label: const Text('Agregar Precio'),
-                            ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+                                        'size_label': FormControl<String>(
+                                          value: '',
+                                        ),
+                                      }),
+                                    );
+                                  },
+                                  icon: const Icon(Icons.add),
+                                  label: const Text('Agregar Precio'),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
               );
             },
           ),
