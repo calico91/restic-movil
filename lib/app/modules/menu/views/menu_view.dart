@@ -233,21 +233,52 @@ class MenuView extends GetView<MenuController> {
                                                       mainAxisSize:
                                                           MainAxisSize.min,
                                                       children: [
-                                                        Text(
-                                                          CurrencyFormatter.toCurrency(
-                                                            price,
-                                                          ),
-                                                          style:
-                                                              const TextStyle(
+                                                        if (product.optionOnly ==
+                                                            true)
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4,
+                                                            ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: const Color(
+                                                                  0xFF9E9E9E),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          4),
+                                                            ),
+                                                            child: const Text(
+                                                              'Opción',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.white,
+                                                                fontSize: 12,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold,
-                                                                color: Color(
-                                                                  0xFF0D47A1,
-                                                                ),
-                                                                fontSize: 16,
                                                               ),
-                                                        ),
+                                                            ),
+                                                          )
+                                                        else
+                                                          Text(
+                                                            CurrencyFormatter.toCurrency(
+                                                              price,
+                                                            ),
+                                                            style:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Color(
+                                                                0xFF0D47A1,
+                                                              ),
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
                                                         const SizedBox(
                                                           width: 8,
                                                         ),

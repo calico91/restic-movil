@@ -11,6 +11,7 @@ class ProductModel {
   final String? productType;
   final List<ComboGroupModel>? comboGroups;
   final bool? requiresRecipe;
+  final bool? optionOnly;
 
   ProductModel({
     this.id,
@@ -22,6 +23,7 @@ class ProductModel {
     this.productType,
     this.comboGroups,
     this.requiresRecipe,
+    this.optionOnly,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +43,7 @@ class ProductModel {
                 .toList()
           : null,
       requiresRecipe: json['requiresRecipe'] ?? json['requires_recipe'],
+      optionOnly: json['option_only'],
     );
   }
 
@@ -55,6 +58,7 @@ class ProductModel {
       'productType': productType,
       'combo_groups': comboGroups?.map((e) => e.toJson()).toList(),
       'requires_recipe': requiresRecipe,
+      'option_only': optionOnly,
     };
   }
 }

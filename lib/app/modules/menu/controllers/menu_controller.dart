@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
-import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/data/models/product_recipe_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/combos_repository.dart';

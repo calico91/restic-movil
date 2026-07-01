@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/combo_group_model.dart';
-import 'package:restic_movil/app/data/models/combo_option_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';

@@ -147,6 +147,9 @@ class ProductFormDialog extends StatelessWidget {
       'requires_recipe': FormControl<bool>(
         value: product?.requiresRecipe ?? false,
       ),
+      'option_only': FormControl<bool>(
+        value: product?.optionOnly ?? false,
+      ),
       'prices': FormArray(
         initialPrices.map((p) {
           final currentPrice = p?.amount;
@@ -218,6 +221,7 @@ class ProductFormDialog extends StatelessWidget {
           "category_id": categoryId,
           "subcategory_id": subcategoryId,
           "requires_recipe": data['requires_recipe'] ?? false,
+          "option_only": data['option_only'] ?? false,
           "prices": pricesArray,
           "combo_groups": null,
         };
@@ -273,6 +277,12 @@ class ProductFormDialog extends StatelessWidget {
             formControlName: 'requires_recipe',
             title: const Text('Requiere receta de inventario'),
             subtitle: const Text('Activalo para descontar insumos automaticamente al pagar.'),
+          ),
+          const SizedBox(height: 16),
+          ReactiveSwitchListTile(
+            formControlName: 'option_only',
+            title: const Text('Solo opción de combo'),
+            subtitle: const Text('Este producto aparece como opción dentro de un combo, sin precio propio.'),
           ),
           const SizedBox(height: 16),
           ReactiveValueListenableBuilder<String>(
