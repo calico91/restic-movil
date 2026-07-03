@@ -67,7 +67,9 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
         .toList();
   }
 
-  List<_RecipeRow> get _currentRows => _rowsByVariant[_selectedVariantKey] ?? [_RecipeRow()];
+  List<_RecipeRow> get _currentRows {
+    return _rowsByVariant.putIfAbsent(_selectedVariantKey, () => [_RecipeRow()]);
+  }
 
   bool _hasRecipeForCurrentVariant() {
     final String? variantId = widget.product.productType == 'VARIABLE'
@@ -75,6 +77,16 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
         : null;
 
     return widget.existingRecipes.any((recipe) => recipe.priceVariantId == variantId);
+  }
+
+  @override
+  void dispose() {
+    for (final rows in _rowsByVariant.values) {
+      for (final row in rows) {
+        row.dispose();
+      }
+    }
+    super.dispose();
   }
 
   @override
@@ -89,7 +101,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             children: [
               if (widget.product.productType == 'VARIABLE' && (widget.product.prices?.isNotEmpty ?? false))
                 DropdownButtonFormField<String>(
-                  initialValue: _selectedVariantKey,
+                  value: _selectedVariantKey,
                   isExpanded: true,
                   decoration: const InputDecoration(
                     labelText: 'Variante de precio',
@@ -117,77 +129,88 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
                   },
                 ),
               const SizedBox(height: 12),
-              ...List.generate(_currentRows.length, (index) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 10),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        flex: 5,
-                        child: DropdownButtonFormField<String>(
-                          initialValue: _currentRows[index].inventoryItemId,
-                          isExpanded: true,
-                          decoration: const InputDecoration(
-                            labelText: 'Insumo',
-                            border: OutlineInputBorder(),
-                          ),
-                          items: widget.inventoryItems
-                              .where((item) => item.id != null)
-                              .map(
-                                (item) => DropdownMenuItem(
-                                  value: item.id,
-                                  child: Text(
-                                    item.name ?? '-',
-                                    overflow: TextOverflow.ellipsis,
-                                    maxLines: 1,
-                                  ),
+              KeyedSubtree(
+                key: ValueKey('variant_${_selectedVariantKey}_rows'),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    ...List.generate(_currentRows.length, (index) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 10),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              flex: 5,
+                              child: DropdownButtonFormField<String>(
+                                key: ValueKey('${_selectedVariantKey}_$index'),
+                                value: _currentRows[index].inventoryItemId,
+                                isExpanded: true,
+                                decoration: const InputDecoration(
+                                  labelText: 'Insumo',
+                                  border: OutlineInputBorder(),
                                 ),
-                              )
-                              .toList(),
-                          onChanged: (value) {
-                            _currentRows[index].inventoryItemId = value;
-                          },
+                                items: widget.inventoryItems
+                                    .where((item) => item.id != null)
+                                    .map(
+                                      (item) => DropdownMenuItem(
+                                        value: item.id,
+                                        child: Text(
+                                          item.name ?? '-',
+                                          overflow: TextOverflow.ellipsis,
+                                          maxLines: 1,
+                                        ),
+                                      ),
+                                    )
+                                    .toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _currentRows[index].inventoryItemId = value;
+                                  });
+                                },
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 3,
+                              child: TextFormField(
+                                controller: _currentRows[index].quantityController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Cantidad',
+                                  border: OutlineInputBorder(),
+                                ),
+                                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            IconButton(
+                              onPressed: _currentRows.length <= 1
+                                  ? null
+                                  : () {
+                                      setState(() {
+                                        _currentRows[index].dispose();
+                                        _currentRows.removeAt(index);
+                                      });
+                                    },
+                              icon: const Icon(Icons.delete_outline, color: Colors.red),
+                            ),
+                          ],
                         ),
+                      );
+                    }),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: TextButton.icon(
+                        onPressed: () {
+                          setState(() {
+                            _currentRows.add(_RecipeRow());
+                          });
+                        },
+                        icon: const Icon(Icons.add),
+                        label: const Text('Agregar ingrediente'),
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        flex: 3,
-                        child: TextFormField(
-                          initialValue: _currentRows[index].quantity,
-                          decoration: const InputDecoration(
-                            labelText: 'Cantidad',
-                            border: OutlineInputBorder(),
-                          ),
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          onChanged: (value) => _currentRows[index].quantity = value,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      IconButton(
-                        onPressed: _currentRows.length <= 1
-                            ? null
-                            : () {
-                                setState(() {
-                                  _currentRows.removeAt(index);
-                                });
-                              },
-                        icon: const Icon(Icons.delete_outline, color: Colors.red),
-                      ),
-                    ],
-                  ),
-                );
-              }),
-              const SizedBox(height: 8),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: TextButton.icon(
-                  onPressed: () {
-                    setState(() {
-                      _currentRows.add(_RecipeRow());
-                    });
-                  },
-                  icon: const Icon(Icons.add),
-                  label: const Text('Agregar ingrediente'),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -216,11 +239,11 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
         ElevatedButton(
           onPressed: () async {
             final List<Map<String, dynamic>> payload = _currentRows
-                .where((row) => row.inventoryItemId != null && row.quantity.trim().isNotEmpty)
+                .where((row) => row.inventoryItemId != null && row.quantityController.text.trim().isNotEmpty)
                 .map(
                   (row) => {
                     'inventoryItemId': row.inventoryItemId,
-                    'quantity': double.tryParse(row.quantity.replaceAll(',', '.')) ?? 0,
+                    'quantity': double.tryParse(row.quantityController.text.replaceAll(',', '.')) ?? 0,
                   },
                 )
                 .where((row) => (row['quantity'] as double) > 0)
@@ -250,10 +273,14 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
 
 class _RecipeRow {
   String? inventoryItemId;
-  String quantity;
+  final TextEditingController quantityController;
 
   _RecipeRow({
     this.inventoryItemId,
-    this.quantity = '',
-  });
+    String quantity = '',
+  }) : quantityController = TextEditingController(text: quantity);
+
+  void dispose() {
+    quantityController.dispose();
+  }
 }
