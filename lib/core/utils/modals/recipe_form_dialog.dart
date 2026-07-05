@@ -285,7 +285,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             label: const Text('Eliminar receta'),
           ),
         if (widget.onSaveAll != null && widget.product.productType == 'VARIABLE')
-          OutlinedButton.icon(
+          ElevatedButton.icon(
             onPressed: () async {
               final List<Map<String, dynamic>> bulkPayload = _buildBulkPayload();
               if (bulkPayload.isEmpty) {
@@ -300,7 +300,8 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             icon: const Icon(Icons.save),
             label: const Text('Guardar todas'),
           ),
-        ElevatedButton(
+        if (widget.product.productType != 'VARIABLE')
+          ElevatedButton(
           onPressed: () async {
             final List<Map<String, dynamic>> payload = _currentRows
                 .where((row) => row.inventoryItemId != null && row.quantityController.text.trim().isNotEmpty)
