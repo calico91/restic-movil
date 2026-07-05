@@ -51,7 +51,7 @@ class PaymentMethodFormModal extends GetView<PaymentMethodsController> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                CustomReactiveTextField<String>(
+                const CustomReactiveTextField<String>(
                   formControlName: 'method',
                   labelText: 'Código Interno (Solo Lectura)',
                   readOnly: true,

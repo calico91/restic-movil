@@ -75,11 +75,25 @@ class UrlPaths {
   static const String openCashierShift = 'cashier-shifts/open';
   static const String closeCashierShift = 'cashier-shifts/close/cashier';
 
+  // Cashier Shifts
+  static const String getCashierShift = 'cashier-shifts'; // /{id}
+  static const String getAllCashierShifts = 'cashier-shifts/all';
+  static const String getCashierShiftsByStatus = 'cashier-shifts/by-status'; // /{status}
+  static const String getCashierShiftsByCashier = 'cashier-shifts/by-cashier'; // /{cashierId}
+  static const String getActiveShiftByTerminal = 'cashier-shifts/active/terminal'; // /{terminalId}
+  static const String getCashierShiftSummary = 'cashier-shifts'; // /{id}/summary
+  static const String reconcileCashierShift = 'cashier-shifts'; // /{id}/reconcile
+  static const String getCashierShiftStatuses = 'cashier-shifts/statuses';
+
   // Cash Withdrawals
   static const String getCashWithdrawalReasons = 'cash-withdrawals/reasons';
   static const String getCashWithdrawalPaymentSources =
       'cash-withdrawals/payment-sources';
-  static const String createCashWithdrawal = 'cash-withdrawals';
+  static const String createCashWithdrawal = 'cash-withdrawals/register';
+  static const String getCashWithdrawalsByShift = 'cash-withdrawals/by-shift'; // /{shiftId}
+  static const String getAllCashWithdrawals = 'cash-withdrawals/all';
+  static const String getCashWithdrawalHistory = 'cash-withdrawals/history';
+  static const String exportCashWithdrawals = 'cash-withdrawals/export';
 
   // Fiscal Data
   static const String fiscalDataCreate = 'fiscal-data/create';

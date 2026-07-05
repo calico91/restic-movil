@@ -76,6 +76,14 @@ class CustomDrawer extends GetView<HomeController> {
                         title: 'Egresos de Caja',
                         onTap: () => Get.toNamed(Routes.EXPENSES),
                       ),
+                      _buildDrawerSubItem(
+                        title: 'Cierres Pendientes',
+                        onTap: () => Get.toNamed(Routes.PENDING_CLOSES),
+                      ),
+                      _buildDrawerSubItem(
+                        title: 'Historial de Egresos',
+                        onTap: () => Get.toNamed(Routes.WITHDRAWALS_HISTORY),
+                      ),
                     ],
                   );
                 }),

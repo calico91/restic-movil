@@ -178,7 +178,7 @@ class CommandsController extends GetxController {
     String orderIdentifier,
   ) async {
     Get.showOverlay(
-      loadingWidget: LoadingCharging(),
+      loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           await ordersRepository.updateOrderDetailsStatus(items, status);

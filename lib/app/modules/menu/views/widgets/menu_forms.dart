@@ -331,7 +331,7 @@ class ProductFormDialog extends StatelessWidget {
                     children: [
                       Text(
                         isVariable ? 'Precios y Tamaños' : 'Precio',
-                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                       ),
                       const SizedBox(height: 8),
                       ReactiveFormArray(

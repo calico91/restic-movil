@@ -36,7 +36,7 @@ class CustomerFormDialog extends StatelessWidget {
             labelText: 'Apellido',
           ),
           const SizedBox(height: 16),
-          CustomReactiveTextField<String>(
+          const CustomReactiveTextField<String>(
             formControlName: 'document',
             labelText: 'Documento',
             keyboardType: TextInputType.number,

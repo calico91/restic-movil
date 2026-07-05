@@ -11,6 +11,10 @@ import '../modules/cash_register/bindings/close_shift/close_shift_binding.dart';
 import '../modules/cash_register/views/close_shift/close_shift_view.dart';
 import '../modules/cash_register/bindings/expenses/expenses_binding.dart';
 import '../modules/cash_register/views/expenses/expenses_view.dart';
+import '../modules/cash_register/bindings/pending_closes/pending_closes_binding.dart';
+import '../modules/cash_register/views/pending_closes/pending_closes_view.dart';
+import '../modules/cash_register/bindings/withdrawals_history/withdrawals_history_binding.dart';
+import '../modules/cash_register/views/withdrawals_history/withdrawals_history_view.dart';
 import '../modules/customers/bindings/customer_binding.dart';
 import '../modules/customers/views/customer_view.dart';
 import '../modules/menu/bindings/menu_binding.dart';
@@ -88,6 +92,16 @@ class AppPages {
       name: Routes.EXPENSES,
       page: () => const ExpensesView(),
       binding: ExpensesBinding(),
+    ),
+    GetPage(
+      name: Routes.PENDING_CLOSES,
+      page: () => const PendingClosesView(),
+      binding: PendingClosesBinding(),
+    ),
+    GetPage(
+      name: Routes.WITHDRAWALS_HISTORY,
+      page: () => const WithdrawalsHistoryView(),
+      binding: WithdrawalsHistoryBinding(),
     ),
     GetPage(
       name: Routes.CUSTOMERS,

@@ -313,7 +313,7 @@ class MenuView extends GetView<MenuController> {
                                                           },
                                                           itemBuilder: (context) {
                                                             final items = <PopupMenuEntry<String>>[
-                                                              PopupMenuItem<String>(
+                                                              const PopupMenuItem<String>(
                                                                 value: 'edit',
                                                                 child: Row(
                                                                   children: [
@@ -323,7 +323,7 @@ class MenuView extends GetView<MenuController> {
                                                                   ],
                                                                 ),
                                                               ),
-                                                              PopupMenuItem<String>(
+                                                              const PopupMenuItem<String>(
                                                                 value: 'recipe',
                                                                 child: Row(
                                                                   children: [
@@ -336,7 +336,7 @@ class MenuView extends GetView<MenuController> {
                                                             ];
                                                             if (product.productType == 'COMBO') {
                                                               items.add(
-                                                                PopupMenuItem<String>(
+                                                                const PopupMenuItem<String>(
                                                                   value: 'manage_combo',
                                                                   child: Row(
                                                                     children: [
@@ -430,7 +430,7 @@ class MenuView extends GetView<MenuController> {
                 },
                 itemBuilder: (context) {
                   final items = <PopupMenuEntry<String>>[
-                    PopupMenuItem<String>(
+                    const PopupMenuItem<String>(
                       value: 'edit',
                       child: Row(
                         children: [
@@ -440,7 +440,7 @@ class MenuView extends GetView<MenuController> {
                         ],
                       ),
                     ),
-                    PopupMenuItem<String>(
+                    const PopupMenuItem<String>(
                       value: 'recipe',
                       child: Row(
                         children: [
@@ -453,7 +453,7 @@ class MenuView extends GetView<MenuController> {
                   ];
                   if (product.productType == 'COMBO') {
                     items.add(
-                      PopupMenuItem<String>(
+                      const PopupMenuItem<String>(
                         value: 'manage_combo',
                         child: Row(
                           children: [

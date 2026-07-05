@@ -67,7 +67,7 @@ class _ComboEditorDialogState extends State<ComboEditorDialog> {
       await widget.onAddOption(groupId, selected.id!);
       _combo = await widget.onRefresh();
       setState(() {});
-      Get.dialog(ModalInfo(title: 'Éxito', message: 'Opción agregada correctamente'));
+      Get.dialog(const ModalInfo(title: 'Éxito', message: 'Opción agregada correctamente'));
     } catch (e) {
       final message = ExceptionHandler.extractMessage(e);
       Get.dialog(ModalError(message: message));
@@ -111,12 +111,12 @@ class _ComboEditorDialogState extends State<ComboEditorDialog> {
         await widget.onRemoveOption(optionId);
         _combo = await widget.onRefresh();
         setState(() {});
-        Get.dialog(ModalInfo(title: 'Éxito', message: 'Opción desactivada correctamente'));
+        Get.dialog(const ModalInfo(title: 'Éxito', message: 'Opción desactivada correctamente'));
       } else {
         await widget.onToggleOption(optionId);
         _combo = await widget.onRefresh();
         setState(() {});
-        Get.dialog(ModalInfo(title: 'Éxito', message: 'Opción reactivada correctamente'));
+        Get.dialog(const ModalInfo(title: 'Éxito', message: 'Opción reactivada correctamente'));
       }
     } catch (e) {
       final message = ExceptionHandler.extractMessage(e);

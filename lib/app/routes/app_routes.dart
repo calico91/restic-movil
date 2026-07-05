@@ -9,6 +9,8 @@ abstract class Routes {
   static const OPEN_SHIFT = '/cash-register/open-shift';
   static const CLOSE_SHIFT = '/cash-register/close-shift';
   static const EXPENSES = '/cash-register/expenses';
+  static const PENDING_CLOSES = '/cash-register/pending-closes';
+  static const WITHDRAWALS_HISTORY = '/cash-register/withdrawals-history';
   static const CUSTOMERS = '/customers';
   static const PRINTER_SETTINGS = '/settings/printer';
   static const FISCAL_DATA = '/settings/fiscal-data';
