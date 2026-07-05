@@ -96,6 +96,9 @@ class MockInventoryRepository implements InventoryRepository {
   Future<void> saveRecipe(String productId, Map<String, dynamic> data) async {}
 
   @override
+  Future<void> saveAllRecipes(String productId, List<Map<String, dynamic>> recipes) async {}
+
+  @override
   Future<void> updateItem(String id, Map<String, dynamic> data) async {}
 }
 
