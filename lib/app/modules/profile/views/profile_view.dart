@@ -19,8 +19,8 @@ class ProfileView extends GetView<ProfileController> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Center(
-              child: const Text(
+            const Center(
+              child:  Text(
                 'Cambiar Contraseña',
                 style: TextStyle(
                   fontSize: 20,

@@ -210,22 +210,26 @@ class GlobalOrderCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                         ],
-                        // Botón de imprimir precuenta
+                        // Botón de imprimir (precuenta o factura según contexto)
                         ActionIconButton(
                           icon: Icons.receipt_long,
                           color: isConnected ? Colors.orange : Colors.red,
                           size: 24,
                           tooltip: isConnected
-                              ? 'Imprimir precuenta'
+                              ? printTooltip
                               : 'Impresora no conectada',
                           onPressed: isConnected
                               ? () {
-                                  Get.showSnackbar(
-                                    const InfoSnackbar(
-                                      'Enviando precuenta a imprimir...',
-                                    ),
-                                  );
-                                  printPrecount();
+                                  if (onPrintCustomAction != null) {
+                                    onPrintCustomAction!();
+                                  } else {
+                                    Get.showSnackbar(
+                                      const InfoSnackbar(
+                                        'Enviando precuenta a imprimir...',
+                                      ),
+                                    );
+                                    printPrecount();
+                                  }
                                 }
                               : () => Get.dialog(const ModalError(message: 'Impresora no conectada',
                                     ),

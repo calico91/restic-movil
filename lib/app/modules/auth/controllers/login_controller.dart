@@ -67,7 +67,7 @@ class LoginController extends GetxController {
       final password = form.control('password').value as String;
 
       await Get.showOverlay(
-        loadingWidget: LoadingCharging(),
+        loadingWidget: const LoadingCharging(),
         asyncFunction: () async {
           try {
             final LoginResponse response = await authRepository.login(

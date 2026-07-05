@@ -74,15 +74,15 @@ class CloseShiftView extends GetView<CloseShiftController> {
   }
 
   Widget _buildRemarksField() {
-    return Column(
+    return const Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           'Observaciones (Opcional)',
           style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
         ),
-        const SizedBox(height: 10),
-        const CustomReactiveTextField<String>(
+        SizedBox(height: 10),
+        CustomReactiveTextField<String>(
           formControlName: 'remarks',
           maxLines: 3,
           hintText: 'Ingrese una observación si hay diferencias',

@@ -15,7 +15,7 @@ class PriceModel {
 
   factory PriceModel.fromJson(Map<String, dynamic> json) {
     return PriceModel(
-      id: json['id'],
+      id: json['id'] ?? json['_id'],
       amount: (json['amount'] as num?)?.toDouble(),
       startDate: json['start_date'],
       active: json['active'],

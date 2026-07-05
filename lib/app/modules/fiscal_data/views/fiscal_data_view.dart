@@ -58,7 +58,7 @@ class FiscalDataView extends GetView<FiscalDataController> {
                     ),
                   ),
                   const SizedBox(width: 16),
-                  Expanded(
+                  const Expanded(
                     flex: 1,
                     child: CustomReactiveTextField<String>(
                       formControlName: 'taxIdDigit',
@@ -69,12 +69,12 @@ class FiscalDataView extends GetView<FiscalDataController> {
                 ],
               ),
               const SizedBox(height: 16),
-              CustomReactiveTextField<String>(
+              const CustomReactiveTextField<String>(
                 formControlName: 'dianResolution',
                 labelText: 'Resolución DIAN',
               ),
               const SizedBox(height: 16),
-              Row(
+              const Row(
                 children: [
                   Expanded(
                     child: CustomReactiveTextField<String>(
@@ -82,7 +82,7 @@ class FiscalDataView extends GetView<FiscalDataController> {
                       labelText: 'Prefijo (Ej: FE)',
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: CustomReactiveTextField<int>(
                       formControlName: 'resolutionNumberFrom',
@@ -90,7 +90,7 @@ class FiscalDataView extends GetView<FiscalDataController> {
                       keyboardType: TextInputType.number,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: CustomReactiveTextField<int>(
                       formControlName: 'resolutionNumberTo',
@@ -143,12 +143,12 @@ class FiscalDataView extends GetView<FiscalDataController> {
                 },
               ),
               const SizedBox(height: 16),
-              CustomReactiveTextField<String>(
+              const CustomReactiveTextField<String>(
                 formControlName: 'address',
                 labelText: 'Dirección Fiscal',
               ),
               const SizedBox(height: 16),
-              Row(
+              const Row(
                 children: [
                   Expanded(
                     child: CustomReactiveTextField<String>(
@@ -156,7 +156,7 @@ class FiscalDataView extends GetView<FiscalDataController> {
                       labelText: 'Ciudad',
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  SizedBox(width: 16),
                   Expanded(
                     child: CustomReactiveTextField<String>(
                       formControlName: 'department',

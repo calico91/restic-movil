@@ -4,6 +4,9 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/terminal_model.dart';
 import 'package:restic_movil/app/data/models/cashier_user_model.dart';
+import 'package:restic_movil/app/data/models/cashier_shift.dart';
+import 'package:restic_movil/app/data/models/shift_summary.dart';
+import 'package:restic_movil/app/data/models/shift_status.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/repositories/cashier_repository.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/close_shift/close_shift_controller.dart';
@@ -29,6 +32,30 @@ class MockCashierRepository implements CashierRepository {
   }
 
   Future<void> registerExpense({required String cashierShiftId, required double amount, required String reason, required String observations}) async {}
+
+  @override
+  Future<CashierShift> getShiftById(String shiftId) async => throw UnimplementedError();
+
+  @override
+  Future<List<CashierShift>> getAllShifts() async => [];
+
+  @override
+  Future<List<CashierShift>> getShiftsByStatus(String status) async => [];
+
+  @override
+  Future<List<CashierShift>> getShiftsByCashier(String cashierId) async => [];
+
+  @override
+  Future<CashierShift> getActiveShiftByTerminal(String terminalId) async => throw UnimplementedError();
+
+  @override
+  Future<ShiftSummary> getShiftSummary(String shiftId) async => throw UnimplementedError();
+
+  @override
+  Future<List<ShiftStatus>> getShiftStatuses() async => [];
+
+  @override
+  Future<CashierShift> reconcileShift(String shiftId) async => throw UnimplementedError();
 }
 
 class MockStorageService extends GetxService implements StorageService {

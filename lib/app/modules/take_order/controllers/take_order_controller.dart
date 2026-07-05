@@ -231,7 +231,7 @@ class TakeOrderController extends GetxController {
   la otra para no bloquear toda la pantalla*/
   Future<void> _loadInitialData() async {
     Get.showOverlay(
-      loadingWidget: LoadingCharging(),
+      loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           await Future.wait([_fetchOriginTypes(), _fetchCategories()]);
@@ -271,7 +271,7 @@ class TakeOrderController extends GetxController {
   /*consultar las mesas disponibles */
   Future<void> _loadTables() async {
     Get.showOverlay(
-      loadingWidget: LoadingCharging(),
+      loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           final result = await tablesRepository.getAvailableTables();

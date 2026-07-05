@@ -143,52 +143,23 @@ class BaseHttpClient {
   }
 
   Future<dynamic> _executeRequest(
-    Future<http.Response> Function() requestFn, {
-    int retries = 2,
-    Duration delayBetweenRetries = const Duration(seconds: 1),
-  }) async {
-    final int maxAttempts = retries + 1;
-    int wakeUpAttempts = 0;
-    const int maxWakeUpAttempts = 8; // Límite máximo estricto para evitar ciclos infinitos en códigos >= 500
-
-    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        final response = await requestFn().timeout(const Duration(seconds: 30));
-
-        if (response.statusCode >= 500 && wakeUpAttempts < maxWakeUpAttempts) {
-          wakeUpAttempts++;
-          
-          if (attempt == maxAttempts) attempt--; // Evita salir del loop normal si seguimos reintentando el 500
-          
-          await Future.delayed(const Duration(seconds: 5));
-          continue;
-        }
-
-        return _processResponse(response);
-      } on SocketException {
-        if (attempt == maxAttempts) {
-          throw FetchDataException('No hay conexión a internet', '');
-        }
-        await Future.delayed(delayBetweenRetries);
-      } on TimeoutException {
-        if (attempt == maxAttempts) {
-          throw ApiNotRespondingException(
-            'El servidor tardó demasiado en responder',
-            '',
-          );
-        }
-        await Future.delayed(delayBetweenRetries);
-      } catch (e) {
-        if (e is HttpException) rethrow;
-        
-        if (attempt == maxAttempts) {
-          throw FetchDataException('Error inesperado: $e', '');
-        }
-        await Future.delayed(delayBetweenRetries);
-      }
+    Future<http.Response> Function() requestFn,
+  ) async {
+    try {
+      final response = await requestFn().timeout(const Duration(seconds: 30));
+      return _processResponse(response);
+    } on SocketException {
+      throw FetchDataException('No hay conexión a internet', '');
+    } on TimeoutException {
+      throw ApiNotRespondingException(
+        'El servidor tardó demasiado en responder. ',
+        '',
+      );
+    } catch (e) {
+      if (e is HttpException) rethrow;
+      throw FetchDataException('Error inesperado: $e', '');
     }
     
-    throw FetchDataException('Error desconocido en la comunicación', '');
   }
 
   dynamic _processResponse(http.Response response) {
