@@ -4,6 +4,7 @@ import 'package:restic_movil/app/data/models/inventory_item_model.dart';
 import 'package:restic_movil/app/data/models/price_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/data/models/product_recipe_model.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class RecipeFormDialog extends StatefulWidget {
   final ProductModel product;
@@ -11,6 +12,7 @@ class RecipeFormDialog extends StatefulWidget {
   final List<ProductRecipeModel> existingRecipes;
   final Future<bool> Function(String? priceVariantId, List<Map<String, dynamic>> ingredients) onSave;
   final Future<bool> Function(String? priceVariantId) onDelete;
+  final Future<bool> Function(List<Map<String, dynamic>> recipes)? onSaveAll;
 
   const RecipeFormDialog({
     super.key,
@@ -19,6 +21,7 @@ class RecipeFormDialog extends StatefulWidget {
     required this.existingRecipes,
     required this.onSave,
     required this.onDelete,
+    this.onSaveAll,
   });
 
   @override
@@ -77,6 +80,51 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
         : null;
 
     return widget.existingRecipes.any((recipe) => recipe.priceVariantId == variantId);
+  }
+
+  List<Map<String, dynamic>> _buildBulkPayload() {
+    final List<Map<String, dynamic>> recipes = [];
+
+    if (widget.product.productType == 'VARIABLE' && (widget.product.prices?.isNotEmpty ?? false)) {
+      for (final PriceModel price in widget.product.prices!) {
+        final String variantKey = price.id ?? 'base';
+        final List<_RecipeRow> rows = _rowsByVariant[variantKey] ?? [];
+        final List<Map<String, dynamic>> ingredients = rows
+            .where((row) => row.inventoryItemId != null && row.quantityController.text.trim().isNotEmpty)
+            .map((row) => {
+              'inventoryItemId': row.inventoryItemId,
+              'quantity': double.tryParse(row.quantityController.text.replaceAll(',', '.')) ?? 0,
+            })
+            .where((row) => (row['quantity'] as double) > 0)
+            .toList();
+
+        if (ingredients.isNotEmpty) {
+          recipes.add({
+            'priceVariantId': price.id,
+            'ingredients': ingredients,
+          });
+        }
+      }
+    } else {
+      final List<_RecipeRow> baseRows = _rowsByVariant['base'] ?? [];
+      final List<Map<String, dynamic>> ingredients = baseRows
+          .where((row) => row.inventoryItemId != null && row.quantityController.text.trim().isNotEmpty)
+          .map((row) => {
+            'inventoryItemId': row.inventoryItemId,
+            'quantity': double.tryParse(row.quantityController.text.replaceAll(',', '.')) ?? 0,
+          })
+          .where((row) => (row['quantity'] as double) > 0)
+          .toList();
+
+      if (ingredients.isNotEmpty) {
+        recipes.add({
+          'priceVariantId': null,
+          'ingredients': ingredients,
+        });
+      }
+    }
+
+    return recipes;
   }
 
   @override
@@ -236,7 +284,24 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
             icon: const Icon(Icons.delete_outline),
             label: const Text('Eliminar receta'),
           ),
-        ElevatedButton(
+        if (widget.onSaveAll != null && widget.product.productType == 'VARIABLE')
+          ElevatedButton.icon(
+            onPressed: () async {
+              final List<Map<String, dynamic>> bulkPayload = _buildBulkPayload();
+              if (bulkPayload.isEmpty) {
+                Get.dialog(const ModalError(message: 'Debe configurar al menos un ingrediente en alguna variante.'));
+                return;
+              }
+              final bool saved = await widget.onSaveAll!(bulkPayload);
+              if (saved) {
+                Get.back(result: 'savedAll');
+              }
+            },
+            icon: const Icon(Icons.save),
+            label: const Text('Guardar todas'),
+          ),
+        if (widget.product.productType != 'VARIABLE')
+          ElevatedButton(
           onPressed: () async {
             final List<Map<String, dynamic>> payload = _currentRows
                 .where((row) => row.inventoryItemId != null && row.quantityController.text.trim().isNotEmpty)
@@ -250,7 +315,7 @@ class _RecipeFormDialogState extends State<RecipeFormDialog> {
                 .toList();
 
             if (payload.isEmpty) {
-              Get.snackbar('Validacion', 'Debe agregar al menos un ingrediente valido.');
+              Get.dialog(const ModalError(message: 'Debe agregar al menos un ingrediente valido.'));
               return;
             }
 

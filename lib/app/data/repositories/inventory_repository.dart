@@ -86,6 +86,17 @@ class InventoryRepository {
     }
   }
 
+  Future<void> saveAllRecipes(String productId, List<Map<String, dynamic>> recipes) async {
+    try {
+      await _client.post(
+        '${UrlPaths.inventoryRecipes}/$productId/bulk',
+        body: {'recipes': recipes},
+      );
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   Future<void> deleteRecipe(String productId, {String? priceVariantId}) async {
     try {
       await _client.delete(

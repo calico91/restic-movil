@@ -189,11 +189,14 @@ class MenuController extends GetxController {
           onDelete: (priceVariantId) async {
             return deleteRecipe(product.id!, priceVariantId: priceVariantId);
           },
+          onSaveAll: (recipes) async {
+            return saveAllRecipes(product.id!, recipes);
+          },
         ),
       ) ??
           '';
 
-      if (actionResult == 'saved') {
+      if (actionResult == 'saved' || actionResult == 'savedAll') {
         Get.dialog(
           const ModalInfo(
             title: 'Exito',
@@ -228,6 +231,26 @@ class MenuController extends GetxController {
             'priceVariantId': priceVariantId,
             'ingredients': ingredients,
           });
+        },
+      );
+      return true;
+    } catch (e) {
+      final message = ExceptionHandler.extractMessage(e);
+      Get.dialog(ModalError(message: message));
+      return false;
+    }
+  }
+
+  /// Guarda todas las recetas de un producto VARIABLE en una sola peticion.
+  Future<bool> saveAllRecipes(
+    String productId,
+    List<Map<String, dynamic>> recipes,
+  ) async {
+    try {
+      await Get.showOverlay(
+        loadingWidget: const LoadingCharging(),
+        asyncFunction: () async {
+          await _inventoryRepository.saveAllRecipes(productId, recipes);
         },
       );
       return true;
