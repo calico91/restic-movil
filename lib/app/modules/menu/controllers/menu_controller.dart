@@ -196,18 +196,17 @@ class MenuController extends GetxController {
       ) ??
           '';
 
-      if (actionResult == 'saved' || actionResult == 'savedAll') {
+      if (actionResult == 'saved' || actionResult == 'savedAll' || actionResult == 'deleted') {
+        try {
+          final result = await _categoriesRepository.getCategories();
+          categories.assignAll(result);
+        } catch (_) {}
         Get.dialog(
-          const ModalInfo(
+          ModalInfo(
             title: 'Exito',
-            message: 'Receta guardada correctamente.',
-          ),
-        );
-      } else if (actionResult == 'deleted') {
-        Get.dialog(
-          const ModalInfo(
-            title: 'Exito',
-            message: 'Receta eliminada correctamente.',
+            message: actionResult == 'deleted'
+                ? 'Receta eliminada correctamente.'
+                : 'Receta guardada correctamente.',
           ),
         );
       }
