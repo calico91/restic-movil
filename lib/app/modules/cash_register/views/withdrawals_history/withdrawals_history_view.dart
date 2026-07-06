@@ -25,41 +25,41 @@ class WithdrawalsHistoryView extends GetView<WithdrawalsHistoryController> {
   }
 
   Widget _buildFilters(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      color: Colors.grey.shade50,
-      child: Column(
-        children: [
-          _buildDateRangeRow(context),
-          const SizedBox(height: 8),
-          Row(
+    return Obx(() => Container(
+          padding: const EdgeInsets.all(12),
+          color: Colors.grey.shade50,
+          child: Column(
             children: [
-              Expanded(child: _buildReasonDropdown()),
-              if (controller.isAdmin.value) ...[
-                const SizedBox(width: 8),
-                Expanded(child: _buildUserDropdown()),
-              ],
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: controller.loadHistory,
-                  icon: const Icon(Icons.search, size: 18),
-                  label: const Text('Buscar'),
-                ),
+              _buildDateRangeRow(context),
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(child: _buildReasonDropdown()),
+                  if (controller.isAdmin.value) ...[
+                    const SizedBox(width: 8),
+                    Expanded(child: _buildUserDropdown()),
+                  ],
+                ],
               ),
-              if (controller.isAdmin.value) ...[
-                const SizedBox(width: 8),
-                Obx(() => Expanded(
+              const SizedBox(height: 8),
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: controller.loadHistory,
+                      icon: const Icon(Icons.search, size: 18),
+                      label: const Text('Buscar'),
+                    ),
+                  ),
+                  if (controller.isAdmin.value) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: controller.isExporting ||
+                        onPressed: controller.isExporting.value ||
                                 controller.withdrawals.isEmpty
                             ? null
                             : controller.exportCsv,
-                        icon: controller.isExporting
+                        icon: controller.isExporting.value
                             ? const SizedBox(
                                 width: 18,
                                 height: 18,
@@ -69,20 +69,21 @@ class WithdrawalsHistoryView extends GetView<WithdrawalsHistoryController> {
                                 ),
                               )
                             : const Icon(Icons.download, size: 18),
-                        label: Text(
-                            controller.isExporting ? 'Exportando...' : 'Exportar CSV'),
+                        label: Text(controller.isExporting.value
+                            ? 'Exportando...'
+                            : 'Exportar CSV'),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue,
                           foregroundColor: Colors.white,
                         ),
                       ),
-                    )),
-              ],
+                    ),
+                  ],
+                ],
+              ),
             ],
           ),
-        ],
-      ),
-    );
+        ));
   }
 
   Widget _buildDateRangeRow(BuildContext context) {
@@ -174,9 +175,6 @@ class WithdrawalsHistoryView extends GetView<WithdrawalsHistoryController> {
 
   Widget _buildList() {
     return Obx(() {
-      if (controller.isLoading.value) {
-        return const Center(child: CircularProgressIndicator());
-      }
       if (controller.withdrawals.isEmpty) {
         return const Center(
           child: Padding(

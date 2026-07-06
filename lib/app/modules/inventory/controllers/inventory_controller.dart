@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:reactive_forms/reactive_forms.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
 import 'package:restic_movil/app/data/models/stock_movement_model.dart';
 import 'package:restic_movil/app/data/repositories/inventory_repository.dart';
@@ -30,6 +34,8 @@ class InventoryController extends GetxController {
   final Rxn<DateTime> filterFromDate = Rxn<DateTime>();
   final Rxn<DateTime> filterToDate = Rxn<DateTime>();
   final RxBool hasActiveFilters = false.obs;
+  final isExportingItems = false.obs;
+  final isExportingMovements = false.obs;
 
   final FormGroup itemForm = FormGroup({
     'name': FormControl<String>(validators: [Validators.required]),
@@ -293,5 +299,59 @@ class InventoryController extends GetxController {
         }
       },
     );
+  }
+
+  Future<void> exportItemsCsv() async {
+    if (items.isEmpty) return;
+    isExportingItems.value = true;
+    try {
+      final bytes = await _inventoryRepository.downloadItemsCsv();
+
+      final dir = await getTemporaryDirectory();
+      final filename = 'insumos-${DateFormat('yyyy-MM-dd').format(DateTime.now())}.csv';
+      final file = File('${dir.path}/$filename');
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Reporte de insumos',
+      );
+    } catch (e) {
+      final message = ExceptionHandler.extractMessage(e);
+      Get.dialog(ModalError(message: message));
+    } finally {
+      isExportingItems.value = false;
+    }
+  }
+
+  Future<void> exportMovementsCsv() async {
+    if (movements.isEmpty) return;
+    isExportingMovements.value = true;
+    try {
+      final fromDateStr = filterFromDate.value?.toIso8601String();
+      final toDateStr = filterToDate.value?.toIso8601String();
+
+      final bytes = await _inventoryRepository.downloadMovementsCsv(
+        inventoryItemId: filterInventoryItemId.value.isEmpty ? null : filterInventoryItemId.value,
+        type: filterType.value.isEmpty ? null : filterType.value,
+        fromDate: fromDateStr,
+        toDate: toDateStr,
+      );
+
+      final dir = await getTemporaryDirectory();
+      final filename = 'movimientos-inventario-${DateFormat('yyyy-MM-dd').format(DateTime.now())}.csv';
+      final file = File('${dir.path}/$filename');
+      await file.writeAsBytes(bytes);
+
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        text: 'Reporte de movimientos de inventario',
+      );
+    } catch (e) {
+      final message = ExceptionHandler.extractMessage(e);
+      Get.dialog(ModalError(message: message));
+    } finally {
+      isExportingMovements.value = false;
+    }
   }
 }

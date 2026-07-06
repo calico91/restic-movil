@@ -33,7 +33,7 @@ class WithdrawalsHistoryController extends GetxController {
   DateTime endDate = DateTime.now();
   CashWithdrawalReason? selectedReason;
   String? selectedUserId;
-  bool isExporting = false;
+  final isExporting = false.obs;
 
   @override
   void onReady() {
@@ -120,7 +120,7 @@ class WithdrawalsHistoryController extends GetxController {
 
   Future<void> exportCsv() async {
     if (withdrawals.isEmpty) return;
-    isExporting = true;
+    isExporting.value = true;
     try {
       final startStr = DateFormat('yyyy-MM-dd').format(startDate);
       final endStr = DateFormat('yyyy-MM-dd').format(endDate);
@@ -144,7 +144,7 @@ class WithdrawalsHistoryController extends GetxController {
     } catch (e) {
       ErrorHandler.showErrorDialog(e);
     } finally {
-      isExporting = false;
+      isExporting.value = false;
     }
   }
 }
