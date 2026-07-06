@@ -117,6 +117,8 @@ class UrlPaths {
   static const String inventoryRecipes = 'inventory/recipes';
   static const String inventoryMovements = 'inventory/movements';
   static const String inventoryItemProducts = 'inventory/items'; // GET /{id}/products
+  static const String exportInventoryItems = 'inventory/items/export';
+  static const String exportInventoryMovements = 'inventory/movements/export';
 
   // Combos
   static const String addComboOption = 'combos/groups'; // /{groupId}/options

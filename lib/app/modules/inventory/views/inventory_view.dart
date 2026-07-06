@@ -49,7 +49,7 @@ class InventoryView extends GetView<InventoryController> {
                 Tab(text: 'Insumos'),
                 Tab(text: 'Movimientos'),
                 Tab(text: 'Alertas'),
-              ],
+              ],  
             ),
             Expanded(
               child: Obx(
@@ -69,32 +69,73 @@ class InventoryView extends GetView<InventoryController> {
   }
 
   Widget _buildItemsTab() {
-    if (controller.items.isEmpty) {
-      return const Center(child: Text('No hay insumos registrados.'));
-    }
+    return Obx(() {
+      if (controller.items.isEmpty) {
+        return const Center(child: Text('No hay insumos registrados.'));
+      }
 
-    return RefreshIndicator(
-      onRefresh: controller.loadAll,
-      child: ListView.builder(
-        padding: const EdgeInsets.all(16),
-        itemCount: controller.items.length,
-        itemBuilder: (_, index) {
-          final item = controller.items[index];
-          return InventoryItemCard(
-            item: item,
-            onViewProducts: item.id != null
-                ? () => controller.showAssociatedProducts(item)
-                : null,
-            onEdit: controller.canEdit.value && item.id != null
-                ? () => controller.openItemForm(item: item)
-                : null,
-            onDelete: controller.canEdit.value && item.id != null
-                ? () => controller.deleteItem(item.id!)
-                : null,
-          );
-        },
-      ),
-    );
+      return Column(
+        children: [
+          if (controller.canEdit.value)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Obx(() => ElevatedButton.icon(
+                      onPressed: controller.isExportingItems.value ||
+                              controller.items.isEmpty
+                          ? null
+                          : controller.exportItemsCsv,
+                      icon: controller.isExportingItems.value
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.download, size: 18),
+                      label: Text(controller.isExportingItems.value
+                          ? 'Exportando...'
+                          : 'Exportar CSV'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                      ),
+                    )),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: controller.loadAll,
+              child: ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: controller.items.length,
+                itemBuilder: (_, index) {
+                  final item = controller.items[index];
+                  return InventoryItemCard(
+                    item: item,
+                    onViewProducts: item.id != null
+                        ? () => controller.showAssociatedProducts(item)
+                        : null,
+                    onEdit: controller.canEdit.value && item.id != null
+                        ? () => controller.openItemForm(item: item)
+                        : null,
+                    onDelete: controller.canEdit.value && item.id != null
+                        ? () => controller.deleteItem(item.id!)
+                        : null,
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      );
+    });
   }
 
   Widget _buildMovementsTab() {
@@ -151,6 +192,30 @@ class InventoryView extends GetView<InventoryController> {
               const SizedBox(width: 8),
               _buildClearButton(),
             ],
+            const SizedBox(width: 8),
+            Obx(() => ElevatedButton.icon(
+              onPressed: controller.isExportingMovements.value ||
+                      controller.movements.isEmpty
+                  ? null
+                  : controller.exportMovementsCsv,
+              icon: controller.isExportingMovements.value
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Icon(Icons.download, size: 18),
+              label: Text(controller.isExportingMovements.value
+                  ? 'Exportando...'
+                  : 'Exportar CSV'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            )),
           ],
         )),
       ),
