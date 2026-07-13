@@ -17,8 +17,7 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/app/modules/take_order/controllers/combo_selection_controller.dart';
 
 class TakeOrderController extends GetxController {
@@ -198,8 +197,7 @@ class TakeOrderController extends GetxController {
           customers.assignAll(result);
           filteredCustomers.assignAll(result);
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -233,13 +231,12 @@ class TakeOrderController extends GetxController {
   la otra para no bloquear toda la pantalla*/
   Future<void> _loadInitialData() async {
     Get.showOverlay(
-      loadingWidget: LoadingCharging(),
+      loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           await Future.wait([_fetchOriginTypes(), _fetchCategories()]);
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -265,33 +262,26 @@ class TakeOrderController extends GetxController {
   /*consultar las categorias, subcategorias y productos */
   Future<void> _fetchCategories() async {
     final result = await categoriesRepository.getCategories();
-    if (result.isEmpty) {
-      Get.showSnackbar(
-        ErrorSnackbar("No hay productos asociados al establecimiento."),
-      );
-    }
+          if (result.isEmpty) {
+            ErrorHandler.showErrorDialog("No hay productos asociados al establecimiento.");
+          }
     categories.assignAll(result);
   }
 
   /*consultar las mesas disponibles */
   Future<void> _loadTables() async {
     Get.showOverlay(
-      loadingWidget: LoadingCharging(),
+      loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
           final result = await tablesRepository.getAvailableTables();
           tables.assignAll(result);
 
           if (result.isEmpty) {
-            Get.showSnackbar(
-              ErrorSnackbar(
-                "No hay mesas disponibles para realizar un pedido.",
-              ),
-            );
+            ErrorHandler.showErrorDialog("No hay mesas disponibles para realizar un pedido.");
           }
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -394,8 +384,61 @@ class TakeOrderController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
+  /*obtener cantidad de productos sin comentario (para el modal de comentario)*/
+  int getCommentlessProductQuantity(ProductModel product, PriceModel? price) {
+    return currentOrder
+        .where((item) =>
+            item.product.id == product.id &&
+            item.selectedPrice?.id == price?.id &&
+            (item.comment == null || item.comment!.trim().isEmpty) &&
+            (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+            item.combinedWith == null)
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  /*agregar comentario a productos existentes sin comentario*/
+  void addCommentToOrder(ProductModel product, PriceModel? price, String? comment) {
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
+
+    if (normalizedComment == null) {
+      if (Get.isDialogOpen ?? false) Get.back();
+      return;
+    }
+
+    final int commentlessIdx = currentOrder.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
+          (item.comment == null || item.comment!.trim().isEmpty) &&
+          (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+          item.combinedWith == null,
+    );
+
+    final int existingCommentIdx = currentOrder.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
+          item.comment == normalizedComment &&
+          (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+          item.combinedWith == null,
+    );
+
+    if (commentlessIdx != -1 && existingCommentIdx != -1) {
+      currentOrder[existingCommentIdx].quantity += currentOrder[commentlessIdx].quantity;
+      currentOrder.removeAt(commentlessIdx);
+      currentOrder.refresh();
+    } else if (commentlessIdx != -1) {
+      currentOrder[commentlessIdx].comment = normalizedComment;
+      currentOrder.refresh();
+    }
+
+    if (Get.isDialogOpen ?? false) Get.back();
+  }
+
   /*agregar una combinacion 2x1: determina el producto mas caro y lo registra con el acompañante*/
-  void addCombination(ProductModel p1, ProductModel p2, String? comment) {
+  void addCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     // Determinar cuál es el producto más caro (el que se cobra)
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
     final double price2 = p2.prices?.isNotEmpty == true ? (p2.prices!.first.amount ?? 0) : 0;
@@ -417,13 +460,13 @@ class TakeOrderController extends GetxController {
         : -1;
 
     if (index != -1) {
-      currentOrder[index].quantity++;
+      currentOrder[index].quantity += quantity;
       currentOrder.refresh();
     } else {
       currentOrder.add(
         OrderItemModel(
           product: expensive,
-          quantity: 1,
+          quantity: quantity,
           combinedWith: cheap,
           comment: normalizedComment,
         ),
@@ -459,15 +502,13 @@ class TakeOrderController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
-  /*obtener los productos COMBINADO del mismo subcategoryId, excluyendo el producto actual*/
+  /* Obtener todos los productos COMBINADO de la sucursal, excluyendo el producto actual */
   List<ProductModel> getCombinadoSiblings(ProductModel product) {
     final List<ProductModel> siblings = [];
     for (final CategoryModel category in categories) {
       for (final subcategory in category.subcategories ?? []) {
         for (final ProductModel p in subcategory.products ?? []) {
-          if (p.productType == 'COMBINADO' &&
-              p.subcategoryId == product.subcategoryId &&
-              p.id != product.id) {
+          if (p.productType == 'COMBINADO' && p.id != product.id) {
             siblings.add(p);
           }
         }
@@ -519,15 +560,13 @@ class TakeOrderController extends GetxController {
 
     // Validar si es SALON y no tiene mesas seleccionadas
     if (origin == 'SALON' && selectedTableIds.isEmpty) {
-      Get.showSnackbar(
-        const ErrorSnackbar('Debe seleccionar al menos una mesa'),
-      );
+      ErrorHandler.showErrorDialog('Debe seleccionar al menos una mesa');
       return;
     }
 
     // Validar cliente para todos los origenes
     if (origin != null && selectedCustomer.value == null) {
-      Get.showSnackbar(const ErrorSnackbar('Debe seleccionar un cliente'));
+      ErrorHandler.showErrorDialog('Debe seleccionar un cliente');
       return;
     }
 
@@ -607,8 +646,7 @@ class TakeOrderController extends GetxController {
             barrierDismissible: false,
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

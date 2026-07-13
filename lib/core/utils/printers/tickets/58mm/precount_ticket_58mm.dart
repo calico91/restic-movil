@@ -121,7 +121,7 @@ class PrecountTicket58mm implements PrintableTicket {
 
     printer.printNewLine();
     printer.printCustom('Revise su consumo antes de pagar.', 1, 1);
-    printer.printCustom('GRACIAS POR SU VISITA!', 1, 1);
+    printer.printCustom('GRACIAS POR SU VISITA!', 2, 1);
     printer.printNewLine();
     printer.printNewLine();
     printer.printNewLine();

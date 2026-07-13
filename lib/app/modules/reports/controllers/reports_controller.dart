@@ -5,8 +5,7 @@ import 'package:restic_movil/app/data/models/sales_report_response.dart';
 import 'package:restic_movil/app/data/models/shift_sales_report_response.dart';
 import 'package:restic_movil/app/data/repositories/reports_repository.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 
 enum ReportType {
   dateRange,
@@ -96,8 +95,7 @@ class ReportsController extends GetxController {
               break;
           }
         } catch (e) {
-          final errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

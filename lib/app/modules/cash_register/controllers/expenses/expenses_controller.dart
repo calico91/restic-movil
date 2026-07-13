@@ -5,10 +5,9 @@ import 'package:restic_movil/app/data/models/cash_withdrawal_reason.dart';
 import 'package:restic_movil/app/data/models/cash_withdrawal_payment_source.dart';
 import 'package:restic_movil/app/data/models/create_cash_withdrawal_request.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 
 class ExpensesController extends GetxController {
   final CashWithdrawalsRepository _repository = Get.find();
@@ -77,8 +76,7 @@ class ExpensesController extends GetxController {
             results[1] as List<CashWithdrawalPaymentSource>,
           );
         } catch (e) {
-          final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -128,8 +126,7 @@ class ExpensesController extends GetxController {
             ),
           );
         } catch (e) {
-          final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

@@ -7,14 +7,15 @@ import '../controllers/login_controller.dart';
 class AuthBinding extends Bindings {
   @override
   void dependencies() {
-    Get.lazyPut(() => BaseHttpClient());
-    Get.lazyPut(() => AuthRepository(Get.find()));
+    Get.lazyPut(() => BaseHttpClient(), fenix: true);
+    Get.lazyPut(() => AuthRepository(Get.find()), fenix: true);
 
     Get.lazyPut<LoginController>(
       () => LoginController(
         authRepository: Get.find(),
         storageService: Get.find(),
       ),
+      fenix: true,
     );
   }
 }

@@ -6,7 +6,8 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class FiscalDataController extends GetxController {
   final FiscalDataRepository _repository = Get.find<FiscalDataRepository>();
@@ -88,8 +89,7 @@ class FiscalDataController extends GetxController {
           _branchId = await _storageService.getBranchId();
 
           if (_branchId == null) {
-            Get.showSnackbar(
-              const ErrorSnackbar('No se encontró sucursal configurada'),
+            Get.dialog(const ModalError(message: 'No se encontró sucursal configurada'),
             );
             return;
           }
@@ -106,7 +106,7 @@ class FiscalDataController extends GetxController {
           }
         } catch (e) {
           final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          Get.dialog(ModalError(message: message));
         }
       },
     );
@@ -120,9 +120,7 @@ class FiscalDataController extends GetxController {
     }
 
     if (_branchId == null) {
-      Get.showSnackbar(
-        const ErrorSnackbar('No se encontró sucursal configurada'),
-      );
+      Get.dialog(const ModalError(message: 'No se encontró sucursal configurada'));
       return;
     }
 
@@ -148,8 +146,7 @@ class FiscalDataController extends GetxController {
             _showSuccessModal('Datos fiscales creados correctamente');
           }
         } catch (e) {
-          final message = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(message));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

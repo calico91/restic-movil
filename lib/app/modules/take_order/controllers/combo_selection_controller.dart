@@ -37,6 +37,9 @@ class ComboSelectionController extends GetxController {
 
   final TextEditingController commentController = TextEditingController();
 
+  // Comentarios por unidad: índice de unidad → texto del comentario
+  final Map<int, String> _unitComments = {};
+
   /* elimina todos los controllers de combos registrados (llamar al confirmar pedido) */
   static void clearAll() {
     for (final String tag in _activeTags.toList()) {
@@ -123,16 +126,21 @@ class ComboSelectionController extends GetxController {
 
   /* agrega una nueva unidad al combo y la activa */
   void addUnit() {
+    _unitComments[currentUnit.value] = commentController.text;
+    final int newIndex = unitSelections.length;
     unitSelections.add({});
-    currentUnit.value = unitSelections.length - 1;
+    _unitComments[newIndex] = '';
+    switchUnit(newIndex);
   }
 
   /* elimina la última unidad si hay más de una, ajusta la unidad activa */
   void removeUnit() {
     if (unitSelections.length <= 1) return;
+    _unitComments[currentUnit.value] = commentController.text;
     unitSelections.removeLast();
+    _unitComments.remove(unitSelections.length);
     if (currentUnit.value >= unitSelections.length) {
-      currentUnit.value = unitSelections.length - 1;
+      switchUnit(unitSelections.length - 1);
     }
   }
 
@@ -180,6 +188,31 @@ class ComboSelectionController extends GetxController {
      si ya existe un item previo (_editingItem), lo pasa para que sea reemplazado */
   void submit() {
     if (!isValid) return;
+
+    // Guardar comentario de la unidad actual
+    _unitComments[currentUnit.value] = commentController.text;
+
+    // Construir string de comentarios
+    final List<MapEntry<int, String>> nonEmptyComments = [];
+    for (int i = 0; i < unitSelections.length; i++) {
+      final String comment = _unitComments[i]?.trim() ?? '';
+      if (comment.isNotEmpty) {
+        nonEmptyComments.add(MapEntry(i, comment));
+      }
+    }
+
+    String commentString;
+    if (nonEmptyComments.isEmpty) {
+      commentString = '';
+    } else if (nonEmptyComments.length == 1) {
+      commentString = nonEmptyComments.first.value;
+    } else {
+      final List<String> parts = nonEmptyComments.map((e) {
+        return '[${e.key + 1}] ${e.value}';
+      }).toList();
+      commentString = 'COMBO_NOTES:${parts.join('|')}';
+    }
+
     final List<Map<String, String>> comboSelectionsList = [];
     for (int unitIdx = 0; unitIdx < unitSelections.length; unitIdx++) {
       unitSelections[unitIdx].forEach((groupId, options) {
@@ -206,10 +239,22 @@ class ComboSelectionController extends GetxController {
       product,
       price,
       unitSelections.length,
-      commentController.text,
+      commentString,
       comboSelectionsList,
       additionalPriceOnly,
       _editingItem,
+    );
+  }
+
+  /* cambia a una unidad específica, guardando el comentario de la unidad actual antes de cambiar */
+  void switchUnit(int newUnit) {
+    if (newUnit == currentUnit.value) return;
+    if (newUnit < 0 || newUnit >= unitSelections.length) return;
+    _unitComments[currentUnit.value] = commentController.text;
+    currentUnit.value = newUnit;
+    commentController.text = _unitComments[newUnit] ?? '';
+    commentController.selection = TextSelection.fromPosition(
+      TextPosition(offset: commentController.text.length),
     );
   }
 

@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
@@ -10,9 +10,11 @@ import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
 class ManageSurchargesSheet extends StatelessWidget {
   final OrderModel order;
+  // Callback opcional para guardar cargos; si es null usa OrdersController
+  final Future<void> Function(String, List<dynamic>)? onSave;
   final OrdersController controller = Get.find();
 
-  ManageSurchargesSheet({super.key, required this.order});
+  ManageSurchargesSheet({super.key, required this.order, this.onSave});
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +69,7 @@ class ManageSurchargesSheet extends StatelessWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(
+                  const Expanded(
                     flex: 2,
                     child: CustomReactiveTextField(
                       formControlName: 'description',
@@ -130,7 +132,8 @@ class ManageSurchargesSheet extends StatelessWidget {
                  ),
                  onPressed: () {
                     if (order.id != null) {
-                      controller.saveOrderSurcharges(order.id!, localSurcharges.toList());
+                      final saveCallback = onSave ?? controller.saveOrderSurcharges;
+                      saveCallback(order.id!, localSurcharges.toList());
                     }
                  },
                  child: const Text('Guardar Cargos', style: TextStyle(fontSize: 16, color: Colors.white)),

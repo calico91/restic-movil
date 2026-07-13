@@ -7,9 +7,8 @@ import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class PrinterSettingsController extends GetxController {
@@ -102,9 +101,7 @@ class PrinterSettingsController extends GetxController {
             ),
           );
         } else {
-          Get.showSnackbar(
-            ErrorSnackbar('No se pudo conectar a ${device.name}'),
-          );
+          ErrorHandler.showErrorDialog('No se pudo conectar a ${device.name}');
         }
       },
       loadingWidget: const LoadingCharging(),
@@ -131,9 +128,7 @@ class PrinterSettingsController extends GetxController {
     final int? port = int.tryParse(portText);
 
     if (ip.isEmpty || port == null) {
-      Get.showSnackbar(
-        const ErrorSnackbar('Ingresa una IP y un puerto válidos'),
-      );
+      ErrorHandler.showErrorDialog('Ingresa una IP y un puerto válidos');
       return;
     }
 
@@ -151,9 +146,7 @@ class PrinterSettingsController extends GetxController {
             ),
           );
         } else {
-          Get.showSnackbar(
-            ErrorSnackbar('No se pudo conectar a $ip:$port'),
-          );
+          ErrorHandler.showErrorDialog('No se pudo conectar a $ip:$port');
         }
       },
       loadingWidget: const LoadingCharging(),
@@ -183,8 +176,7 @@ class PrinterSettingsController extends GetxController {
             const InfoSnackbar('Página de prueba enviada a la impresora'),
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
       loadingWidget: const LoadingCharging(),
@@ -199,7 +191,7 @@ class PrinterSettingsController extends GetxController {
       categories.assignAll(result);
       _initCategoryControllers(result);
     } catch (e) {
-      Get.showSnackbar(const ErrorSnackbar('Error al cargar categorías'));
+      ErrorHandler.showErrorDialog('Error al cargar categorías');
     } finally {
       isLoadingCategories.value = false;
     }
@@ -226,11 +218,11 @@ class PrinterSettingsController extends GetxController {
     final int? port = int.tryParse(portText);
 
     if (ip.isEmpty) {
-      Get.showSnackbar(const ErrorSnackbar('Ingresa una IP válida'));
+      ErrorHandler.showErrorDialog('Ingresa una IP válida');
       return;
     }
     if (port == null || port < 1 || port > 65535) {
-      Get.showSnackbar(const ErrorSnackbar('Ingresa un puerto válido (1-65535)'));
+      ErrorHandler.showErrorDialog('Ingresa un puerto válido (1-65535)');
       return;
     }
 
@@ -247,8 +239,7 @@ class PrinterSettingsController extends GetxController {
           if (idx != -1) categories[idx] = updated;
           Get.showSnackbar(const InfoSnackbar('Impresora asignada correctamente'));
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
       loadingWidget: const LoadingCharging(),
@@ -272,8 +263,7 @@ class PrinterSettingsController extends GetxController {
           categoryControllers[categoryId]?[1].text = '9100';
           Get.showSnackbar(const InfoSnackbar('Impresora de categoría eliminada'));
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
       loadingWidget: const LoadingCharging(),

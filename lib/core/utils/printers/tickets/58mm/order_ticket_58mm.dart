@@ -91,7 +91,7 @@ class OrderTicket58mm implements PrintableTicket {
       printer.printCustom('${item.quantity}x  $pName'.withoutDiacritics, 2, 0);
 
       if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
-        _printComboSelections(printer, item.comboSelections!, item.quantity ?? 1);
+        _printComboSelections(printer, item.comboSelections!, item.quantity ?? 1, item.observations);
       }
 
       if (companion.isNotEmpty) {
@@ -99,7 +99,9 @@ class OrderTicket58mm implements PrintableTicket {
         if (comboNote.isNotEmpty) {
           printer.printCustom('    [Nota: $comboNote]'.withoutDiacritics, 1, 0);
         }
-      } else if (item.observations != null && item.observations!.trim().isNotEmpty) {
+      } else if (item.observations != null &&
+                 item.observations!.trim().isNotEmpty &&
+                 !item.observations!.startsWith('COMBO_NOTES:')) {
         printer.printCustom('    [Nota: ${item.observations}]'.withoutDiacritics, 1, 0);
       }
 
@@ -119,8 +121,25 @@ class OrderTicket58mm implements PrintableTicket {
     ThermalPrinterPort printer,
     List<OrderComboSelectionModel> selections,
     int quantity,
+    String? observations,
   ) {
     final bool hasUnitIndex = selections.any((s) => s.unitIndex != null);
+
+    // Parsear notas por unidad si existe el formato COMBO_NOTES
+    Map<int, String> unitNotes = {};
+    if (observations != null && observations.startsWith('COMBO_NOTES:')) {
+      final String notesStr = observations.substring('COMBO_NOTES:'.length);
+      final List<String> parts = notesStr.split('|');
+      for (final part in parts) {
+        final RegExpMatch? match = RegExp(r'^\[(\d+)\]\s*(.*)$').firstMatch(part);
+        if (match != null) {
+          final int unitIdx = int.parse(match.group(1)!) - 1;
+          final String note = match.group(2)!.trim();
+          if (note.isNotEmpty) unitNotes[unitIdx] = note;
+        }
+      }
+    }
+
     if (hasUnitIndex && quantity > 1) {
       final Map<int, List<String>> byUnit = {};
       for (final s in selections) {
@@ -137,6 +156,13 @@ class OrderTicket58mm implements PrintableTicket {
         for (final name in byUnit[unit]!) {
           printer.printCustom(
             '   $name'.withoutDiacritics,
+            1,
+            0,
+          );
+        }
+        if (unitNotes.containsKey(unit)) {
+          printer.printCustom(
+            '    [Nota: ${unitNotes[unit]}]'.withoutDiacritics,
             1,
             0,
           );

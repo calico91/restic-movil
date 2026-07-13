@@ -233,39 +233,123 @@ class MenuView extends GetView<MenuController> {
                                                       mainAxisSize:
                                                           MainAxisSize.min,
                                                       children: [
-                                                        Text(
-                                                          CurrencyFormatter.toCurrency(
-                                                            price,
-                                                          ),
-                                                          style:
-                                                              const TextStyle(
+                                                        if (product.optionOnly ==
+                                                            true)
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4,
+                                                            ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: const Color(
+                                                                  0xFF9E9E9E),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          4),
+                                                            ),
+                                                            child: const Text(
+                                                              'Opción',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.white,
+                                                                fontSize: 12,
                                                                 fontWeight:
                                                                     FontWeight
                                                                         .bold,
-                                                                color: Color(
-                                                                  0xFF0D47A1,
-                                                                ),
-                                                                fontSize: 16,
                                                               ),
-                                                        ),
+                                                            ),
+                                                          )
+                                                        else
+                                                          Text(
+                                                            CurrencyFormatter.toCurrency(
+                                                              price,
+                                                            ),
+                                                            style:
+                                                                const TextStyle(
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .bold,
+                                                              color: Color(
+                                                                0xFF0D47A1,
+                                                              ),
+                                                              fontSize: 16,
+                                                            ),
+                                                          ),
                                                         const SizedBox(
                                                           width: 8,
                                                         ),
-                                                        CustomEditButton(
-                                                          iconSize: 20,
-                                                          onPressed: () => controller
-                                                              .showProductForm(
-                                                                categoryId:
-                                                                    category
-                                                                        .id ??
-                                                                    '',
-                                                                subcategoryId:
-                                                                    subcategory
-                                                                        .id ??
-                                                                    '',
-                                                                product:
-                                                                    product,
+                                                        PopupMenuButton<String>(
+                                                          tooltip: 'Acciones del producto',
+                                                          icon: const Icon(
+                                                            Icons.more_vert,
+                                                            color: Color(0xFF0D47A1),
+                                                          ),
+                                                          onSelected: (value) {
+                                                            // Ejecuta la accion despues de cerrar el popup.
+                                                            Future<void>.delayed(Duration.zero, () async {
+                                                              if (value == 'edit') {
+                                                                controller.showProductForm(
+                                                                  categoryId:
+                                                                      category
+                                                                          .id ??
+                                                                          '',
+                                                                  subcategoryId:
+                                                                      subcategory
+                                                                          .id ??
+                                                                          '',
+                                                                  product:
+                                                                      product,
+                                                                );
+                                                              } else if (value == 'recipe') {
+                                                                await controller.showRecipeForm(product);
+                                                              } else if (value == 'manage_combo') {
+                                                                await controller.showComboEditor(product);
+                                                              }
+                                                            });
+                                                          },
+                                                          itemBuilder: (context) {
+                                                            final items = <PopupMenuEntry<String>>[
+                                                              const PopupMenuItem<String>(
+                                                                value: 'edit',
+                                                                child: Row(
+                                                                  children: [
+                                                                    Icon(Icons.edit, size: 18),
+                                                                    SizedBox(width: 8),
+                                                                    Text('Editar producto'),
+                                                                  ],
+                                                                ),
                                                               ),
+                                                              const PopupMenuItem<String>(
+                                                                value: 'recipe',
+                                                                child: Row(
+                                                                  children: [
+                                                                    Icon(Icons.restaurant_menu, size: 18),
+                                                                    SizedBox(width: 8),
+                                                                    Text('Configurar receta'),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                            ];
+                                                            if (product.productType == 'COMBO') {
+                                                              items.add(
+                                                                const PopupMenuItem<String>(
+                                                                  value: 'manage_combo',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.add_circle_outline, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Administrar combo'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }
+                                                            return items;
+                                                          },
                                                         ),
                                                       ],
                                                     ),
@@ -322,13 +406,67 @@ class MenuView extends GetView<MenuController> {
                   ],
                 ),
               ),
-              CustomEditButton(
-                iconSize: 20,
-                onPressed: () => controller.showProductForm(
-                  categoryId: categoryId,
-                  subcategoryId: subcategoryId,
-                  product: product,
+              PopupMenuButton<String>(
+                tooltip: 'Acciones del producto',
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Color(0xFF0D47A1),
                 ),
+                onSelected: (value) {
+                  // Ejecuta la accion despues de cerrar el popup.
+                  Future<void>.delayed(Duration.zero, () async {
+                    if (value == 'edit') {
+                      controller.showProductForm(
+                        categoryId: categoryId,
+                        subcategoryId: subcategoryId,
+                        product: product,
+                      );
+                    } else if (value == 'recipe') {
+                      await controller.showRecipeForm(product);
+                    } else if (value == 'manage_combo') {
+                      await controller.showComboEditor(product);
+                    }
+                  });
+                },
+                itemBuilder: (context) {
+                  final items = <PopupMenuEntry<String>>[
+                    const PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, size: 18),
+                          SizedBox(width: 8),
+                          Text('Editar producto'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem<String>(
+                      value: 'recipe',
+                      child: Row(
+                        children: [
+                          Icon(Icons.restaurant_menu, size: 18),
+                          SizedBox(width: 8),
+                          Text('Configurar receta'),
+                        ],
+                      ),
+                    ),
+                  ];
+                  if (product.productType == 'COMBO') {
+                    items.add(
+                      const PopupMenuItem<String>(
+                        value: 'manage_combo',
+                        child: Row(
+                          children: [
+                            Icon(Icons.add_circle_outline, size: 18),
+                            SizedBox(width: 8),
+                            Text('Administrar combo'),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return items;
+                },
               ),
             ],
           ),

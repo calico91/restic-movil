@@ -4,8 +4,7 @@ import 'package:restic_movil/app/data/models/cashier_user_model.dart';
 import 'package:restic_movil/app/data/models/terminal_model.dart';
 import 'package:restic_movil/app/data/repositories/cashier_repository.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
-import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class OpenShiftController extends GetxController {
@@ -45,8 +44,7 @@ class OpenShiftController extends GetxController {
           users.assignAll(usersData);
           terminals.assignAll(terminalsData);
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -87,8 +85,7 @@ class OpenShiftController extends GetxController {
             const InfoSnackbar('Apertura de caja realizada correctamente'),
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

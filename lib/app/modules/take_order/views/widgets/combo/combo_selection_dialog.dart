@@ -95,15 +95,28 @@ class ComboSelectionDialog extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 16),
-                  TextFormField(
-                    controller: controller.commentController,
-                    decoration: InputDecoration(
-                      labelText: 'Comentarios adicionales',
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                    ),
-                    maxLines: 2,
+                  Obx(
+                    () {
+                      final int total = controller.unitSelections.length;
+                      final int active = controller.currentUnit.value;
+                      final String label = total > 1
+                          ? 'Comentarios (Combo N°${active + 1})'
+                          : 'Comentarios adicionales';
+                      final String helper = total > 1
+                          ? 'Estos comentarios son específicos para el combo N°${active + 1}'
+                          : '';
+                      return TextFormField(
+                        controller: controller.commentController,
+                        decoration: InputDecoration(
+                          labelText: label,
+                          helperText: helper.isNotEmpty ? helper : null,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                        ),
+                        maxLines: 2,
+                      );
+                    },
                   ),
                   const SizedBox(height: 16),
                   Align(
@@ -270,7 +283,7 @@ class ComboSelectionDialog extends StatelessWidget {
                         final bool isActive = i == active;
                         final bool isUnitValid = controller.isValidForUnit(i);
                         return GestureDetector(
-                          onTap: () => controller.currentUnit.value = i,
+                          onTap: () => controller.switchUnit(i),
                           child: AnimatedContainer(
                             duration: const Duration(milliseconds: 200),
                             margin: const EdgeInsets.only(right: 8),
@@ -341,7 +354,9 @@ class ComboSelectionDialog extends StatelessWidget {
     ComboSelectionController controller,
     int unitIdx,
   ) {
-    final List<ComboOptionModel> options = group.options ?? [];
+    final List<ComboOptionModel> options = (group.options ?? [])
+        .where((o) => o.available != false)
+        .toList();
     options.sort(
       (a, b) => (a.displayOrder ?? 0).compareTo(b.displayOrder ?? 0),
     );

@@ -4,7 +4,8 @@ import 'package:restic_movil/app/data/repositories/users_repository.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class UsersController extends GetxController {
@@ -32,8 +33,7 @@ class UsersController extends GetxController {
           users.assignAll(usersData);
           roles.assignAll(rolesData);
         } catch (e) {
-          final errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -51,7 +51,7 @@ class UsersController extends GetxController {
           isSuccess = true;
         } catch (e) {
           final errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );
@@ -84,8 +84,7 @@ class UsersController extends GetxController {
           }
           isSuccess = true;
         } catch (e) {
-          final errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -117,7 +116,7 @@ class UsersController extends GetxController {
             ),
           );
         } catch (e) {
-          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -140,7 +139,7 @@ class UsersController extends GetxController {
             ),
           );
         } catch (e) {
-          Get.showSnackbar(ErrorSnackbar(ExceptionHandler.extractMessage(e)));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

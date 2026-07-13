@@ -6,7 +6,8 @@ import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/branch_selection_modal.dart';
 import 'package:restic_movil/app/modules/auth/views/widgets/configure_connection_modal.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -56,8 +57,7 @@ class LoginController extends GetxController {
   Future<void> login() async {
     final serverUrl = await storageService.getServerUrl();
     if (serverUrl == null || serverUrl.isEmpty) {
-      Get.showSnackbar(
-        const ErrorSnackbar('Debe configurar la conexión antes de ingresar.'),
+      Get.dialog(const ModalError(message: 'Debe configurar la conexión antes de ingresar.'),
       );
       return;
     }
@@ -67,7 +67,7 @@ class LoginController extends GetxController {
       final password = form.control('password').value as String;
 
       await Get.showOverlay(
-        loadingWidget: LoadingCharging(),
+        loadingWidget: const LoadingCharging(),
         asyncFunction: () async {
           try {
             final LoginResponse response = await authRepository.login(
@@ -85,7 +85,7 @@ class LoginController extends GetxController {
               attribute: 'recommendation',
             );
 
-            Get.showSnackbar(ErrorSnackbar(errorMessage + recomendations));
+            ErrorHandler.showErrorDialog(errorMessage + recomendations);
           }
         },
       ).then((response) async {

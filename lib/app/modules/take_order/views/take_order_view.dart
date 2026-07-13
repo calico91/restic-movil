@@ -18,7 +18,7 @@ import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 /*
   Vista principal para tomar pedidos en el restaurante.
@@ -287,23 +287,31 @@ class TakeOrderView extends GetView<TakeOrderController> {
       CombinationSelectionDialog(
         product: product,
         siblings: siblings,
-        onConfirm: (p1, p2, comment) => controller.addCombination(p1, p2, comment),
+        onConfirm: (p1, p2, quantity, comment) => controller.addCombination(p1, p2, quantity, comment),
       ),
     );
   }
 
-  /* Abre el dialogo para especificar cantidad y comentarios de un producto. */
+  /* Abre el dialogo para especificar comentarios de un producto ya agregado. */
   void _showAddProductDialog(
     BuildContext context,
     ProductModel product,
     PriceModel? price,
   ) {
+    final int currentQty = controller.getCommentlessProductQuantity(product, price);
+    if (currentQty == 0) {
+      Get.dialog(const ModalError(
+        message: 'Agregue al menos un producto antes de añadir un comentario.',
+      ));
+      return;
+    }
     Get.dialog(
       AddProductDialog(
         product: product,
         price: price,
-        onConfirm: (quantity, comment) =>
-            controller.addToOrder(product, quantity, comment, price: price),
+        currentQuantity: currentQty,
+        onConfirm: (comment) =>
+            controller.addCommentToOrder(product, price, comment),
       ),
     );
   }
@@ -311,13 +319,13 @@ class TakeOrderView extends GetView<TakeOrderController> {
   /* Valida y abre el bottom sheet con el resumen del pedido. */
   void _showOrderSummary(BuildContext context) {
     if (controller.selectedCustomer.value == null) {
-      Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar un cliente.'));
+      Get.dialog(const ModalError(message: 'Se debe seleccionar un cliente.'));
       return;
     }
 
     if (controller.form.control('origin').value == 'SALON' &&
         controller.selectedTableIds.isEmpty) {
-      Get.showSnackbar(const ErrorSnackbar('Se debe seleccionar una mesa.'));
+      Get.dialog(const ModalError(message: 'Se debe seleccionar una mesa.'));
       return;
     }
 

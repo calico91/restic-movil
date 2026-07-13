@@ -13,7 +13,7 @@ import 'package:restic_movil/core/utils/printers/tickets/80mm/order_ticket_80mm.
 import 'package:restic_movil/core/utils/printers/tickets/58mm/precount_ticket_58mm.dart';
 import 'package:restic_movil/core/utils/printers/tickets/80mm/precount_ticket_80mm.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
 
@@ -202,9 +202,7 @@ class GlobalOrderCard extends StatelessWidget {
                                 : 'Impresora no conectada',
                             onPressed: isConnected
                                 ? printComanda
-                                : () => Get.showSnackbar(
-                                      const ErrorSnackbar(
-                                        'Impresora no conectada',
+                                : () => Get.dialog(const ModalError(message: 'Impresora no conectada',
                                       ),
                                     ),
                             constraints: const BoxConstraints(),
@@ -212,26 +210,28 @@ class GlobalOrderCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 4),
                         ],
-                        // Botón de imprimir precuenta
+                        // Botón de imprimir (precuenta o factura según contexto)
                         ActionIconButton(
                           icon: Icons.receipt_long,
                           color: isConnected ? Colors.orange : Colors.red,
                           size: 24,
                           tooltip: isConnected
-                              ? 'Imprimir precuenta'
+                              ? printTooltip
                               : 'Impresora no conectada',
                           onPressed: isConnected
                               ? () {
-                                  Get.showSnackbar(
-                                    const InfoSnackbar(
-                                      'Enviando precuenta a imprimir...',
-                                    ),
-                                  );
-                                  printPrecount();
+                                  if (onPrintCustomAction != null) {
+                                    onPrintCustomAction!();
+                                  } else {
+                                    Get.showSnackbar(
+                                      const InfoSnackbar(
+                                        'Enviando precuenta a imprimir...',
+                                      ),
+                                    );
+                                    printPrecount();
+                                  }
                                 }
-                              : () => Get.showSnackbar(
-                                    const ErrorSnackbar(
-                                      'Impresora no conectada',
+                              : () => Get.dialog(const ModalError(message: 'Impresora no conectada',
                                     ),
                                   ),
                           constraints: const BoxConstraints(),

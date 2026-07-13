@@ -8,7 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
-import 'package:restic_movil/app/routes/app_routes.dart';
+
 
 class BaseHttpClient {
   final StorageService _storageService = Get.find<StorageService>();
@@ -143,52 +143,23 @@ class BaseHttpClient {
   }
 
   Future<dynamic> _executeRequest(
-    Future<http.Response> Function() requestFn, {
-    int retries = 2,
-    Duration delayBetweenRetries = const Duration(seconds: 1),
-  }) async {
-    final int maxAttempts = retries + 1;
-    int wakeUpAttempts = 0;
-    const int maxWakeUpAttempts = 8; // Límite máximo estricto para evitar ciclos infinitos en códigos >= 500
-
-    for (int attempt = 1; attempt <= maxAttempts; attempt++) {
-      try {
-        final response = await requestFn().timeout(const Duration(seconds: 30));
-
-        if (response.statusCode >= 500 && wakeUpAttempts < maxWakeUpAttempts) {
-          wakeUpAttempts++;
-          
-          if (attempt == maxAttempts) attempt--; // Evita salir del loop normal si seguimos reintentando el 500
-          
-          await Future.delayed(const Duration(seconds: 5));
-          continue;
-        }
-
-        return _processResponse(response);
-      } on SocketException {
-        if (attempt == maxAttempts) {
-          throw FetchDataException('No hay conexión a internet', '');
-        }
-        await Future.delayed(delayBetweenRetries);
-      } on TimeoutException {
-        if (attempt == maxAttempts) {
-          throw ApiNotRespondingException(
-            'El servidor tardó demasiado en responder',
-            '',
-          );
-        }
-        await Future.delayed(delayBetweenRetries);
-      } catch (e) {
-        if (e is HttpException) rethrow;
-        
-        if (attempt == maxAttempts) {
-          throw FetchDataException('Error inesperado: $e', '');
-        }
-        await Future.delayed(delayBetweenRetries);
-      }
+    Future<http.Response> Function() requestFn,
+  ) async {
+    try {
+      final response = await requestFn().timeout(const Duration(seconds: 30));
+      return _processResponse(response);
+    } on SocketException {
+      throw FetchDataException('No hay conexión a internet', '');
+    } on TimeoutException {
+      throw ApiNotRespondingException(
+        'El servidor tardó demasiado en responder. ',
+        '',
+      );
+    } catch (e) {
+      if (e is HttpException) rethrow;
+      throw FetchDataException('Error inesperado: $e', '');
     }
     
-    throw FetchDataException('Error desconocido en la comunicación', '');
   }
 
   dynamic _processResponse(http.Response response) {
@@ -213,7 +184,6 @@ class BaseHttpClient {
           if (apiError.code == 'E2') {
             _storageService.deleteToken();
             _storageService.deleteUser();
-            Get.offAllNamed(Routes.LOGIN);
           }
         } catch (_) {
           errorMessage =

@@ -11,6 +11,10 @@ import '../modules/cash_register/bindings/close_shift/close_shift_binding.dart';
 import '../modules/cash_register/views/close_shift/close_shift_view.dart';
 import '../modules/cash_register/bindings/expenses/expenses_binding.dart';
 import '../modules/cash_register/views/expenses/expenses_view.dart';
+import '../modules/cash_register/bindings/pending_closes/pending_closes_binding.dart';
+import '../modules/cash_register/views/pending_closes/pending_closes_view.dart';
+import '../modules/cash_register/bindings/withdrawals_history/withdrawals_history_binding.dart';
+import '../modules/cash_register/views/withdrawals_history/withdrawals_history_view.dart';
 import '../modules/customers/bindings/customer_binding.dart';
 import '../modules/customers/views/customer_view.dart';
 import '../modules/menu/bindings/menu_binding.dart';
@@ -31,6 +35,8 @@ import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/payment_methods/bindings/payment_methods_binding.dart';
 import '../modules/payment_methods/views/payment_methods_view.dart';
+import '../modules/inventory/bindings/inventory_binding.dart';
+import '../modules/inventory/views/inventory_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -88,6 +94,16 @@ class AppPages {
       binding: ExpensesBinding(),
     ),
     GetPage(
+      name: Routes.PENDING_CLOSES,
+      page: () => const PendingClosesView(),
+      binding: PendingClosesBinding(),
+    ),
+    GetPage(
+      name: Routes.WITHDRAWALS_HISTORY,
+      page: () => const WithdrawalsHistoryView(),
+      binding: WithdrawalsHistoryBinding(),
+    ),
+    GetPage(
       name: Routes.CUSTOMERS,
       page: () => const CustomerView(),
       binding: CustomerBinding(),
@@ -116,6 +132,11 @@ class AppPages {
       name: Routes.PAYMENT_METHODS,
       page: () => const PaymentMethodsView(),
       binding: PaymentMethodsBinding(),
+    ),
+    GetPage(
+      name: Routes.INVENTORY,
+      page: () => const InventoryView(),
+      binding: InventoryBinding(),
     ),
   ];
 }

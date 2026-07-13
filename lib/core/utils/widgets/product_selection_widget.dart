@@ -94,8 +94,10 @@ class ProductSelectionWidget extends StatelessWidget {
   // Construye la fila para un producto según su tipo; recibe los productos del mismo subcategory
   Widget _buildProductRow(ProductModel product, List<ProductModel> subcategoryProducts) {
     if (product.productType == 'COMBINADO') {
-      // Hermanos = todos los COMBINADO del mismo subcategoryId excepto el actual
-      final List<ProductModel> siblings = subcategoryProducts
+      // Hermanos = todos los COMBINADO de cualquier categoría/subcategoría excepto el actual
+      final List<ProductModel> siblings = categories
+          .expand((cat) => cat.subcategories ?? <SubcategoryModel>[])
+          .expand((sub) => sub.products ?? <ProductModel>[])
           .where((p) => p.productType == 'COMBINADO' && p.id != product.id)
           .toList();
       return _buildCombinadoProductRow(product, siblings);

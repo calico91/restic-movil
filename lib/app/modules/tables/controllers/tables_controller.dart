@@ -7,7 +7,8 @@ import 'package:restic_movil/app/data/repositories/tables_repository.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/snackbars/error_snackbar.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class TablesController extends GetxController {
@@ -59,8 +60,7 @@ class TablesController extends GetxController {
           tables.value = results[0] as List<TableModel>;
           statuses.value = results[1] as List<TableStatusDTO>;
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -141,8 +141,7 @@ class TablesController extends GetxController {
             ),
           );
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -159,8 +158,7 @@ class TablesController extends GetxController {
           Get.showSnackbar(const InfoSnackbar('Mesa eliminada'));
           await _loadDataWithoutOverlay();
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );
@@ -240,7 +238,7 @@ class TablesController extends GetxController {
           await _loadDataWithoutOverlay();
         } catch (e) {
           final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          Get.dialog(ModalError(message: errorMessage));
         }
       },
     );
@@ -259,8 +257,7 @@ class TablesController extends GetxController {
           clearSelection();
           await _loadDataWithoutOverlay();
         } catch (e) {
-          final String errorMessage = ExceptionHandler.extractMessage(e);
-          Get.showSnackbar(ErrorSnackbar(errorMessage));
+          ErrorHandler.showErrorDialog(e);
         }
       },
     );

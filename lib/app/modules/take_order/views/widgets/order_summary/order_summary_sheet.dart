@@ -9,9 +9,29 @@ import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 /*
   Contenido del bottom sheet de resumen del pedido.
   Muestra los items, cargos adicionales, observaciones y el botón de confirmar.
+  Si se proporcionan parámetros externos (externalItems, etc.), opera en modo externo:
+  solo muestra la lista de items y el botón de confirmar, sin info de cliente/mesa/cargos.
 */
 class OrderSummarySheet extends GetView<TakeOrderController> {
-  const OrderSummarySheet({super.key});
+  // Parámetros opcionales para reutilizar el sheet desde otros contextos
+  final RxList<OrderItemModel>? externalItems;
+  final double Function()? externalTotal;
+  final void Function(OrderItemModel)? externalRemoveItem;
+  final VoidCallback? externalConfirm;
+  final String? externalConfirmLabel;
+  final TextEditingController? externalObservationsController;
+
+  const OrderSummarySheet({
+    super.key,
+    this.externalItems,
+    this.externalTotal,
+    this.externalRemoveItem,
+    this.externalConfirm,
+    this.externalConfirmLabel,
+    this.externalObservationsController,
+  });
+
+  bool get _isExternalMode => externalItems != null;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +47,10 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
         children: [
           _buildHeader(),
           const Divider(),
-          _buildClientAndTableInfo(),
-          const Divider(),
-          _buildObservationsField(),
+          if (!_isExternalMode) ...[_buildClientAndTableInfo(), const Divider()],
+          if (!_isExternalMode) _buildObservationsField(),
+          if (_isExternalMode && externalObservationsController != null)
+            _buildExternalObservationsField(),
           Flexible(child: _buildOrderList(context)),
           const SizedBox(height: 20),
           _buildConfirmButton(),
@@ -47,14 +68,19 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
           style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         Obx(
-          () => Text(
-            'Total: \$${controller.totalOrderAmount.toStringAsFixed(0)}',
-            style: const TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.green,
-            ),
-          ),
+          () {
+            final double total = _isExternalMode
+                ? (externalTotal?.call() ?? 0)
+                : controller.totalOrderAmount;
+            return Text(
+              'Total: \$${total.toStringAsFixed(0)}',
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.green,
+              ),
+            );
+          },
         ),
       ],
     );
@@ -124,17 +150,37 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
     );
   }
 
+  Widget _buildExternalObservationsField() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 10),
+      child: TextField(
+        controller: externalObservationsController,
+        maxLines: 2,
+        decoration: InputDecoration(
+          labelText: 'Observaciones generales',
+          prefixIcon: const Icon(Icons.comment),
+          border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        ),
+        textCapitalization: TextCapitalization.sentences,
+      ),
+    );
+  }
+
   Widget _buildOrderList(BuildContext context) {
     return Obx(() {
+      final List<OrderItemModel> items =
+          _isExternalMode ? externalItems! : controller.currentOrder;
       return ListView(
         shrinkWrap: true,
         children: [
           ListView.builder(
             physics: const NeverScrollableScrollPhysics(),
             shrinkWrap: true,
-            itemCount: controller.currentOrder.length,
+            itemCount: items.length,
             itemBuilder: (context, index) {
-              final OrderItemModel item = controller.currentOrder[index];
+              final OrderItemModel item = items[index];
               final String comboDetails = _buildComboDetails(item);
               final bool isCombinado = item.combinedWith != null;
               return ListTile(
@@ -211,9 +257,13 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        controller.removeFromOrder(item);
-                        if (controller.currentOrder.isEmpty) {
-                          Get.back();
+                        if (_isExternalMode) {
+                          externalRemoveItem?.call(item);
+                        } else {
+                          controller.removeFromOrder(item);
+                          if (controller.currentOrder.isEmpty) {
+                            Get.back();
+                          }
                         }
                       },
                     ),
@@ -223,7 +273,7 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
             },
           ),
           const Divider(),
-          _buildSurchargesSection(context),
+          if (!_isExternalMode) _buildSurchargesSection(context),
         ],
       );
     });
@@ -308,10 +358,10 @@ class OrderSummarySheet extends GetView<TakeOrderController> {
             borderRadius: BorderRadius.circular(10),
           ),
         ),
-        onPressed: controller.createOrder,
-        child: const Text(
-          'Confirmar Pedido',
-          style: TextStyle(fontSize: 18, color: Colors.white),
+        onPressed: _isExternalMode ? externalConfirm : controller.createOrder,
+        child: Text(
+          externalConfirmLabel ?? 'Confirmar Pedido',
+          style: const TextStyle(fontSize: 18, color: Colors.white),
         ),
       ),
     );
