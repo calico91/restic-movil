@@ -384,6 +384,59 @@ class TakeOrderController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
+  /*obtener cantidad de productos sin comentario (para el modal de comentario)*/
+  int getCommentlessProductQuantity(ProductModel product, PriceModel? price) {
+    return currentOrder
+        .where((item) =>
+            item.product.id == product.id &&
+            item.selectedPrice?.id == price?.id &&
+            (item.comment == null || item.comment!.trim().isEmpty) &&
+            (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+            item.combinedWith == null)
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  /*agregar comentario a productos existentes sin comentario*/
+  void addCommentToOrder(ProductModel product, PriceModel? price, String? comment) {
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
+
+    if (normalizedComment == null) {
+      if (Get.isDialogOpen ?? false) Get.back();
+      return;
+    }
+
+    final int commentlessIdx = currentOrder.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
+          (item.comment == null || item.comment!.trim().isEmpty) &&
+          (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+          item.combinedWith == null,
+    );
+
+    final int existingCommentIdx = currentOrder.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
+          item.comment == normalizedComment &&
+          (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+          item.combinedWith == null,
+    );
+
+    if (commentlessIdx != -1 && existingCommentIdx != -1) {
+      currentOrder[existingCommentIdx].quantity += currentOrder[commentlessIdx].quantity;
+      currentOrder.removeAt(commentlessIdx);
+      currentOrder.refresh();
+    } else if (commentlessIdx != -1) {
+      currentOrder[commentlessIdx].comment = normalizedComment;
+      currentOrder.refresh();
+    }
+
+    if (Get.isDialogOpen ?? false) Get.back();
+  }
+
   /*agregar una combinacion 2x1: determina el producto mas caro y lo registra con el acompañante*/
   void addCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     // Determinar cuál es el producto más caro (el que se cobra)

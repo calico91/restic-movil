@@ -292,18 +292,26 @@ class TakeOrderView extends GetView<TakeOrderController> {
     );
   }
 
-  /* Abre el dialogo para especificar cantidad y comentarios de un producto. */
+  /* Abre el dialogo para especificar comentarios de un producto ya agregado. */
   void _showAddProductDialog(
     BuildContext context,
     ProductModel product,
     PriceModel? price,
   ) {
+    final int currentQty = controller.getCommentlessProductQuantity(product, price);
+    if (currentQty == 0) {
+      Get.dialog(const ModalError(
+        message: 'Agregue al menos un producto antes de añadir un comentario.',
+      ));
+      return;
+    }
     Get.dialog(
       AddProductDialog(
         product: product,
         price: price,
-        onConfirm: (quantity, comment) =>
-            controller.addToOrder(product, quantity, comment, price: price),
+        currentQuantity: currentQty,
+        onConfirm: (comment) =>
+            controller.addCommentToOrder(product, price, comment),
       ),
     );
   }

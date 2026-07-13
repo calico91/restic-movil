@@ -100,6 +100,17 @@ class MockInventoryRepository implements InventoryRepository {
 
   @override
   Future<void> updateItem(String id, Map<String, dynamic> data) async {}
+
+  @override
+  Future<List<int>> downloadItemsCsv() async => <int>[];
+
+  @override
+  Future<List<int>> downloadMovementsCsv({
+    String? inventoryItemId,
+    String? type,
+    String? fromDate,
+    String? toDate,
+  }) async => <int>[];
 }
 
 class MockCombosRepository implements CombosRepository {

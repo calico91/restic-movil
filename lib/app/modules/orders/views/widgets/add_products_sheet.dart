@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/price_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/product_model.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
+import 'package:restic_movil/app/modules/take_order/views/widgets/add_product_dialog.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combo/combo_selection_dialog.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/combination_selection_dialog.dart';
 import 'package:restic_movil/app/modules/take_order/views/widgets/order_summary/order_summary_sheet.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/widgets/product_selection_widget.dart';
-import 'package:restic_movil/core/utils/inputs/custom_text_field.dart';
 
 /*
   Hoja modal para agregar productos adicionales a un pedido existente.
@@ -125,50 +125,20 @@ class AddProductsSheet extends GetView<OrdersController> {
   }
 
   void _showAddProductDialog(ProductModel product, PriceModel? price) {
-    final quantityControl = FormControl<int>(value: 1);
-    final commentControl = FormControl<String>(value: '');
-
+    final int currentQty = controller.getCommentlessTempProductQuantity(product, price);
+    if (currentQty == 0) {
+      Get.dialog(const ModalError(
+        message: 'Agregue al menos un producto antes de añadir un comentario.',
+      ));
+      return;
+    }
     Get.dialog(
-      AlertDialog(
-        title: Text(
-          product.productType == 'VARIABLE' && price?.sizeLabel != null
-              ? 'Producto: ${product.name} - ${price!.sizeLabel}'
-              : 'Producto: ${product.name}',
-        ),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomReactiveTextField<int>(
-              formControl: quantityControl,
-              keyboardType: TextInputType.number,
-              labelText: 'Cantidad',
-            ),
-            const SizedBox(height: 10),
-            CustomReactiveTextField<String>(
-              formControl: commentControl,
-              labelText: 'Comentarios',
-              maxLines: 3,
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Get.back(),
-            child: const Text('Cancelar'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              controller.addToTempOrder(
-                product,
-                quantityControl.value ?? 1,
-                commentControl.value,
-                price: price,
-              );
-              Get.back();
-            },
-            child: const Text('Agregar'),
-          ),
-        ],
+      AddProductDialog(
+        product: product,
+        price: price,
+        currentQuantity: currentQty,
+        onConfirm: (comment) =>
+            controller.addCommentToTempOrder(product, price, comment),
       ),
     );
   }
