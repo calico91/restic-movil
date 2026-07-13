@@ -450,6 +450,59 @@ class OrdersController extends GetxController {
         .fold(0, (sum, item) => sum + item.quantity);
   }
 
+  /* Obtener cantidad de productos sin comentario (para el modal de comentario) */
+  int getCommentlessTempProductQuantity(ProductModel product, PriceModel? price) {
+    return tempAdditionalOrderItems
+        .where((item) =>
+            item.product.id == product.id &&
+            item.selectedPrice?.id == price?.id &&
+            (item.comment == null || item.comment!.trim().isEmpty) &&
+            (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+            item.combinedWith == null)
+        .fold(0, (sum, item) => sum + item.quantity);
+  }
+
+  /* Agregar comentario a productos temporales existentes sin comentario */
+  void addCommentToTempOrder(ProductModel product, PriceModel? price, String? comment) {
+    final String? normalizedComment = (comment == null || comment.trim().isEmpty)
+        ? null
+        : comment.trim();
+
+    if (normalizedComment == null) {
+      if (Get.isDialogOpen ?? false) Get.back();
+      return;
+    }
+
+    final int commentlessIdx = tempAdditionalOrderItems.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
+          (item.comment == null || item.comment!.trim().isEmpty) &&
+          (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+          item.combinedWith == null,
+    );
+
+    final int existingCommentIdx = tempAdditionalOrderItems.indexWhere(
+      (item) =>
+          item.product.id == product.id &&
+          item.selectedPrice?.id == price?.id &&
+          item.comment == normalizedComment &&
+          (item.comboSelections == null || item.comboSelections!.isEmpty) &&
+          item.combinedWith == null,
+    );
+
+    if (commentlessIdx != -1 && existingCommentIdx != -1) {
+      tempAdditionalOrderItems[existingCommentIdx].quantity += tempAdditionalOrderItems[commentlessIdx].quantity;
+      tempAdditionalOrderItems.removeAt(commentlessIdx);
+      tempAdditionalOrderItems.refresh();
+    } else if (commentlessIdx != -1) {
+      tempAdditionalOrderItems[commentlessIdx].comment = normalizedComment;
+      tempAdditionalOrderItems.refresh();
+    }
+
+    if (Get.isDialogOpen ?? false) Get.back();
+  }
+
   /* Agregar una combinación 2x1: el más caro se registra con el acompañante */
   void addTempCombination(ProductModel p1, ProductModel p2, int quantity, String? comment) {
     final double price1 = p1.prices?.isNotEmpty == true ? (p1.prices!.first.amount ?? 0) : 0;
