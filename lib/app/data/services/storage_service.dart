@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import '../models/customer_model.dart';
 import '../models/login_response.dart';
 import '../models/network_printer_model.dart';
+import '../models/printer_zone_model.dart';
 
 class StorageService extends GetxService {
   final _storage = const FlutterSecureStorage();
@@ -249,5 +250,79 @@ class StorageService extends GetxService {
 
   Future<bool> getWaiterViewOwnOrdersOnly() async {
     return (await _storage.read(key: 'waiter_view_own_orders_only')) == 'true';
+  }
+
+  // --------------- Zonas de impresion ---------------
+  // Lista persistida de zonas custom (NO incluye "Caja", que es derivada).
+
+  Future<void> savePrinterZones(List<PrinterZoneModel> zones) async {
+    final List<Map<String, dynamic>> data =
+        zones.where((z) => !z.isCaja).map((z) => z.toJson()).toList();
+    await _storage.write(key: 'printer_zones', value: jsonEncode(data));
+  }
+
+  Future<List<PrinterZoneModel>> getPrinterZones() async {
+    final String? str = await _storage.read(key: 'printer_zones');
+    if (str == null) return <PrinterZoneModel>[];
+    try {
+      final List<dynamic> decoded = jsonDecode(str) as List<dynamic>;
+      return decoded
+          .map((e) => PrinterZoneModel.fromJson(e as Map<String, dynamic>))
+          .where((z) => !z.isCaja)
+          .toList();
+    } catch (_) {
+      return <PrinterZoneModel>[];
+    }
+  }
+
+  Future<void> deletePrinterZones() async {
+    await _storage.delete(key: 'printer_zones');
+  }
+
+  // Mapeo categoriaId -> zoneId (la zona "Caja" se representa con el id
+  // reservado "__caja__").
+
+  Future<void> saveCategoryZoneMappings(Map<String, String> mappings) async {
+    await _storage.write(
+      key: 'category_zone_mappings',
+      value: jsonEncode(mappings),
+    );
+  }
+
+  Future<Map<String, String>> getCategoryZoneMappings() async {
+    final String? str = await _storage.read(key: 'category_zone_mappings');
+    if (str == null) return <String, String>{};
+    try {
+      final Map<String, dynamic> decoded =
+          jsonDecode(str) as Map<String, dynamic>;
+      return decoded.map((k, v) => MapEntry(k, v.toString()));
+    } catch (_) {
+      return <String, String>{};
+    }
+  }
+
+  Future<void> deleteCategoryZoneMappings() async {
+    await _storage.delete(key: 'category_zone_mappings');
+  }
+
+  // --------------- Zona por defecto para comandas ---------------
+  // zoneId especial kCajaZoneId ("__caja__") = impresora principal de caja.
+  // Vacio/null = comportamiento por defecto (cae a Caja).
+
+  Future<void> saveDefaultComandaZone(String? zoneId) async {
+    if (zoneId == null || zoneId.isEmpty) {
+      await _storage.delete(key: 'default_comanda_zone_id');
+    } else {
+      await _storage.write(
+        key: 'default_comanda_zone_id',
+        value: zoneId,
+      );
+    }
+  }
+
+  Future<String?> getDefaultComandaZone() async {
+    final String? v = await _storage.read(key: 'default_comanda_zone_id');
+    if (v == null || v.isEmpty) return null;
+    return v;
   }
 }

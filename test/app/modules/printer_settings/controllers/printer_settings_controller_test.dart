@@ -8,10 +8,44 @@ import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
+import 'package:restic_movil/app/data/models/printer_zone_model.dart';
+import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
 import 'package:restic_movil/core/utils/printers/printable_ticket.dart';
+
+class MockCategoriesRepository implements CategoriesRepository {
+  @override
+  Future<List<CategoryModel>> getCategories() async => <CategoryModel>[];
+
+  @override
+  Future<void> createCategory(Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> updateCategory(String id, Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> createSubcategory(Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> updateSubcategory(String id, Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> createProduct(Map<String, dynamic> data) async {}
+
+  @override
+  Future<void> updateProduct(String id, Map<String, dynamic> data) async {}
+
+  @override
+  Future<CategoryModel> updateCategoryPrinter(
+    String id, {
+    required String? printerIp,
+    required int? printerPort,
+  }) async {
+    return CategoryModel(id: id);
+  }
+}
 
 class MockPrinterService extends GetxService implements PrinterService {
   @override
@@ -37,6 +71,67 @@ class MockPrinterService extends GetxService implements PrinterService {
 
   @override
   Rx<PrinterConnectionType> connectionType = PrinterConnectionType.bluetooth.obs;
+
+  @override
+  RxList<PrinterZoneModel> zones = <PrinterZoneModel>[].obs;
+
+  @override
+  RxMap<String, String> categoryZoneMappings = <String, String>{}.obs;
+
+  @override
+  RxString defaultComandaZoneId = ''.obs;
+
+  @override
+  Future<void> persistZones() async {}
+
+  @override
+  Future<void> setCategoryZoneMapping(String categoryId, String? zoneId) async {
+    if (zoneId == null) {
+      categoryZoneMappings.remove(categoryId);
+    } else {
+      categoryZoneMappings[categoryId] = zoneId;
+    }
+  }
+
+  @override
+  Future<void> bulkSetCategoryZoneMapping(
+    List<String> categoryIds,
+    String zoneId,
+  ) async {
+    for (final String id in categoryIds) {
+      categoryZoneMappings[id] = zoneId;
+    }
+  }
+
+  @override
+  Future<void> bulkClearCategoryZoneMapping(List<String> categoryIds) async {
+    for (final String id in categoryIds) {
+      categoryZoneMappings.remove(id);
+    }
+  }
+
+  @override
+  Future<void> persistDefaultComandaZone() async {}
+
+  @override
+  PrinterZoneModel? get cajaZone => networkConfig.value == null
+      ? null
+      : PrinterZoneModel(
+          id: '__caja__',
+          name: 'Caja',
+          ip: networkConfig.value!.ip,
+          port: networkConfig.value!.port,
+          isCaja: true,
+        );
+
+  @override
+  List<PrinterZoneModel> get allZones {
+    final List<PrinterZoneModel> list = <PrinterZoneModel>[];
+    final PrinterZoneModel? caja = cajaZone;
+    if (caja != null) list.add(caja);
+    list.addAll(zones);
+    return list;
+  }
 
   @override
   Future<void> setPrinterSize(String size) async {
@@ -146,6 +241,7 @@ void main() {
       Get.testMode = true;
       mockPrinterService = MockPrinterService();
       Get.put<PrinterService>(mockPrinterService);
+      Get.put<CategoriesRepository>(MockCategoriesRepository());
       controller = Get.put(TestPrinterSettingsController());
     });
 

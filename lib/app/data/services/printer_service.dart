@@ -8,6 +8,7 @@ import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
+import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
 import 'package:restic_movil/core/utils/printers/bluetooth_printer_port.dart';
@@ -32,11 +33,24 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   Rx<PrinterConnectionType> connectionType =
       PrinterConnectionType.bluetooth.obs;
 
+  // Zonas de impresion (persistencia local) y mapeo categoria->zona
+  final RxList<PrinterZoneModel> zones = <PrinterZoneModel>[].obs;
+  final RxMap<String, String> categoryZoneMappings = <String, String>{}.obs;
+
+  // Zona por defecto para comandas de categorias sin asignacion.
+  // Vacio = null = Caja (impresora por defecto).
+  // kCajaZoneId = Caja explicito.
+  // zoneId custom = esa zona (Caja NO recibe comandas en ese caso).
+  final RxString defaultComandaZoneId = ''.obs;
+
   @override
   void onInit() {
     super.onInit();
     WidgetsBinding.instance.addObserver(this);
     _loadPrinterSize();
+    _loadZones();
+    _loadCategoryZoneMappings();
+    _loadDefaultComandaZone();
     _initConnections();
   }
 
@@ -62,6 +76,105 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   /* cargar el tamaño de impresora guardado desde storage */
   Future<void> _loadPrinterSize() async {
     printerSize.value = await _storageService.getPrinterSize();
+  }
+
+  /* cargar zonas de impresion y mapeo categoria->zona desde storage local */
+  Future<void> _loadZones() async {
+    final List<PrinterZoneModel> stored =
+        await _storageService.getPrinterZones();
+    zones.assignAll(stored);
+  }
+
+  Future<void> _loadCategoryZoneMappings() async {
+    final Map<String, String> stored =
+        await _storageService.getCategoryZoneMappings();
+    categoryZoneMappings.assignAll(stored);
+  }
+
+  Future<void> _loadDefaultComandaZone() async {
+    final String? stored = await _storageService.getDefaultComandaZone();
+    defaultComandaZoneId.value = stored ?? '';
+  }
+
+  /* persistir la zona por defecto para comandas (null/vacio = Caja) */
+  Future<void> persistDefaultComandaZone() async {
+    final String current = defaultComandaZoneId.value;
+    if (current.isEmpty) {
+      await _storageService.saveDefaultComandaZone(null);
+    } else {
+      await _storageService.saveDefaultComandaZone(current);
+    }
+  }
+
+  /* persistir la lista de zonas custom (excluyendo Caja) */
+  Future<void> persistZones() async {
+    await _storageService.savePrinterZones(zones.toList());
+  }
+
+  /* asignar una categoria a una zona (o null para quitar la asignacion) */
+  Future<void> setCategoryZoneMapping(
+    String categoryId,
+    String? zoneId,
+  ) async {
+    if (zoneId == null) {
+      categoryZoneMappings.remove(categoryId);
+    } else {
+      categoryZoneMappings[categoryId] = zoneId;
+    }
+    await _storageService.saveCategoryZoneMappings(
+      Map<String, String>.from(categoryZoneMappings),
+    );
+  }
+
+  /* asignar varias categorias a una zona de forma masiva */
+  Future<void> bulkSetCategoryZoneMapping(
+    List<String> categoryIds,
+    String zoneId,
+  ) async {
+    if (categoryIds.isEmpty) return;
+    for (final String id in categoryIds) {
+      if (zoneId == kCajaZoneId) {
+        categoryZoneMappings[id] = kCajaZoneId;
+      } else {
+        categoryZoneMappings[id] = zoneId;
+      }
+    }
+    await _storageService.saveCategoryZoneMappings(
+      Map<String, String>.from(categoryZoneMappings),
+    );
+  }
+
+  /* limpiar asignacion de varias categorias */
+  Future<void> bulkClearCategoryZoneMapping(List<String> categoryIds) async {
+    if (categoryIds.isEmpty) return;
+    for (final String id in categoryIds) {
+      categoryZoneMappings.remove(id);
+    }
+    await _storageService.saveCategoryZoneMappings(
+      Map<String, String>.from(categoryZoneMappings),
+    );
+  }
+
+  /* la zona "Caja" se deriva de la configuracion de red activa. */
+  PrinterZoneModel? get cajaZone {
+    final NetworkPrinterModel? cfg = networkConfig.value;
+    if (cfg == null) return null;
+    return PrinterZoneModel(
+      id: kCajaZoneId,
+      name: 'Caja',
+      ip: cfg.ip,
+      port: cfg.port,
+      isCaja: true,
+    );
+  }
+
+  /* lista combinada con Caja primero, seguida de las zonas custom */
+  List<PrinterZoneModel> get allZones {
+    final List<PrinterZoneModel> list = <PrinterZoneModel>[];
+    final PrinterZoneModel? caja = cajaZone;
+    if (caja != null) list.add(caja);
+    list.addAll(zones);
+    return list;
   }
 
   /* actualizar el tamaño de impresora y persistirlo */
@@ -425,9 +538,19 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     required List<CategoryModel> categories,
     required PrintableTicket Function(OrderModel, List<OrderItemModel>) ticketBuilder,
   }) async {
-    // Agrupar items por impresora destino segun la categoria del producto
+    // Agrupar items por impresora destino segun la categoria del producto,
+    // tomando en cuenta las zonas locales, el mapeo categoria->zona y la
+    // zona por defecto para comandas.
     final Map<NetworkPrinterModel?, List<OrderItemModel>> groups =
-        CategoryPrinterResolver.groupItemsByPrinter(sourceItems, categories);
+        CategoryPrinterResolver.groupItemsByPrinter(
+      sourceItems,
+      categories,
+      zones: zones.toList(),
+      mappings: Map<String, String>.from(categoryZoneMappings),
+      defaultComandaZoneId: defaultComandaZoneId.value.isEmpty
+          ? null
+          : defaultComandaZoneId.value,
+    );
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderItemModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);
@@ -449,9 +572,19 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     required List<CategoryModel> categories,
     required PrintableTicket Function(OrderModel, List<OrderDetailModel>) ticketBuilder,
   }) async {
-    // Agrupar detalles por impresora destino usando categoryId del backend
+    // Agrupar detalles por impresora destino usando categoryId del backend,
+    // tomando en cuenta las zonas locales, el mapeo categoria->zona y la
+    // zona por defecto para comandas.
     final Map<NetworkPrinterModel?, List<OrderDetailModel>> groups =
-        CategoryPrinterResolver.groupDetailsByPrinter(details, categories);
+        CategoryPrinterResolver.groupDetailsByPrinter(
+      details,
+      categories,
+      zones: zones.toList(),
+      mappings: Map<String, String>.from(categoryZoneMappings),
+      defaultComandaZoneId: defaultComandaZoneId.value.isEmpty
+          ? null
+          : defaultComandaZoneId.value,
+    );
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderDetailModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);

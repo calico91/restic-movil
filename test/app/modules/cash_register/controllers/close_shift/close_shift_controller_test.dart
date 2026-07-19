@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/network_printer_model.dart';
+import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/data/models/terminal_model.dart';
 import 'package:restic_movil/app/data/models/cashier_user_model.dart';
 import 'package:restic_movil/app/data/models/cashier_shift.dart';
@@ -208,6 +209,32 @@ class MockStorageService extends GetxService implements StorageService {
 
   @override
   Future<int?> getNetworkPrinterPort() async => null;
+
+  @override
+  Future<void> savePrinterZones(List<PrinterZoneModel> zones) async {}
+
+  @override
+  Future<List<PrinterZoneModel>> getPrinterZones() async =>
+      const <PrinterZoneModel>[];
+
+  @override
+  Future<void> deletePrinterZones() async {}
+
+  @override
+  Future<void> saveCategoryZoneMappings(Map<String, String> mappings) async {}
+
+  @override
+  Future<Map<String, String>> getCategoryZoneMappings() async =>
+      const <String, String>{};
+
+  @override
+  Future<void> deleteCategoryZoneMappings() async {}
+
+  @override
+  Future<void> saveDefaultComandaZone(String? zoneId) async {}
+
+  @override
+  Future<String?> getDefaultComandaZone() async => null;
 }
 
 void main() {

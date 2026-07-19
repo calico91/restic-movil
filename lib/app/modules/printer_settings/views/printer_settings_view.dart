@@ -2,7 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:blue_thermal_printer/blue_thermal_printer.dart';
 import '../controllers/printer_settings_controller.dart';
+import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
+import 'package:restic_movil/core/utils/helpers/error_handler.dart';
+import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/core/utils/validators/ip_validator.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/widgets/expandable_section.dart';
 
@@ -25,32 +30,30 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
             const SizedBox(height: 16),
             _buildPaperSizeSection(),
             const SizedBox(height: 16),
-            Obx(
-              () => ExpandableSection(
-                title: 'Conexión por Red (TCP/IP)',
-                icon: Icons.wifi,
-                initiallyExpanded:
-                    controller.connectionType.value ==
-                    PrinterConnectionType.network,
-                content: _buildNetworkSection(),
-              ),
+             ExpandableSection(
+              title: 'Conexión Bluetooth',
+              icon: Icons.bluetooth,
+              initiallyExpanded: false,
+              content: _buildBluetoothSection(),
             ),
-            Obx(
-              () => ExpandableSection(
-                title: 'Conexión Bluetooth',
-                icon: Icons.bluetooth,
-                initiallyExpanded:
-                    controller.connectionType.value ==
-                    PrinterConnectionType.bluetooth,
-                content: _buildBluetoothSection(),
-              ),
+            ExpandableSection(
+              title: 'Conexión por Red (TCP/IP)',
+              icon: Icons.wifi,
+              initiallyExpanded: false,
+              content: _buildNetworkSection(),
             ),
             const SizedBox(height: 4),
             ExpandableSection(
-              title: 'Impresoras por Categoría',
-              icon: Icons.category_outlined,
+              title: 'Zonas de Impresión',
+              icon: Icons.workspaces_outlined,
               initiallyExpanded: false,
-              content: _buildCategoryPrinterSection(),
+              content: _buildZonesSection(),
+            ),
+            ExpandableSection(
+              title: 'Asignar Categorías a Zonas',
+              icon: Icons.assignment_turned_in_outlined,
+              initiallyExpanded: false,
+              content: _buildCategoryAssignmentSection(),
             ),
             const SizedBox(height: 16),
           ],
@@ -443,6 +446,674 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
   }
 
   // ───────────────────────────────────────────────
+  //  Zonas de Impresión
+  // ───────────────────────────────────────────────
+
+  Widget _buildZonesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const Padding(
+          padding: EdgeInsets.only(bottom: 8),
+          child: Text(
+            'Crea zonas (p. ej. "Jugos", "Caliente") con su IP y puerto. '
+            'Luego asigna categorías a cada zona con un toque. '
+            'La zona "Caja" siempre equivale a la impresora de red principal.',
+            style: TextStyle(fontSize: 12, color: Colors.black54),
+          ),
+        ),
+        _buildCajaZoneCard(),
+        const SizedBox(height: 8),
+        Obx(() {
+          if (controller.zones.isEmpty) {
+            return const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Text(
+                'No hay zonas adicionales configuradas.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey, fontSize: 12),
+              ),
+            );
+          }
+          return Column(
+            children: controller.zones
+                .map((z) => _buildZoneCard(z))
+                .toList(),
+          );
+        }),
+        const SizedBox(height: 8),
+        ElevatedButton.icon(
+          onPressed: () => _openZoneDialog(),
+          icon: const Icon(Icons.add, size: 20),
+          label: const Text('Agregar Zona'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xFF0D47A1),
+            foregroundColor: Colors.white,
+            padding: const EdgeInsets.symmetric(vertical: 12),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCajaZoneCard() {
+    return Obx(() {
+      final PrinterZoneModel? caja = controller.cajaZone;
+      return Card(
+        margin: const EdgeInsets.only(bottom: 8),
+        elevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Colors.green.withValues(alpha: 0.5),
+            width: 1.5,
+          ),
+        ),
+        child: ListTile(
+          leading: const Icon(Icons.point_of_sale, color: Colors.green),
+          title: const Text(
+            'Caja (impresora principal)',
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+          ),
+          subtitle: Text(
+            caja != null
+                ? '${caja.ip}:${caja.port}'
+                : 'Configura la impresora de red arriba para activarla',
+            style: const TextStyle(fontSize: 12),
+          ),
+          trailing: const Chip(
+            label: Text('Automática'),
+            backgroundColor: Color(0x3300C853),
+            labelStyle: TextStyle(fontSize: 10, color: Colors.green),
+            padding: EdgeInsets.zero,
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+        ),
+      );
+    });
+  }
+
+  Widget _buildZoneCard(PrinterZoneModel zone) {
+    return Card(
+      margin: const EdgeInsets.only(bottom: 8),
+      elevation: 2,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: const Color(0xFF0D47A1).withValues(alpha: 0.5),
+          width: 1.5,
+        ),
+      ),
+      child: ListTile(
+        leading: const Icon(Icons.workspaces, color: Color(0xFF0D47A1)),
+        title: Text(
+          zone.name ?? 'Zona',
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+        ),
+        subtitle: Text(
+          '${zone.ip}:${zone.port ?? 9100}',
+          style: const TextStyle(fontSize: 12),
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              tooltip: 'Editar',
+              onPressed: () => _openZoneDialog(zone: zone),
+              icon: const Icon(Icons.edit, color: Color(0xFF0D47A1), size: 20),
+            ),
+            IconButton(
+              tooltip: 'Eliminar',
+              onPressed: () => _confirmDeleteZone(zone),
+              icon: const Icon(Icons.delete_outline, color: Colors.red, size: 20),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _openZoneDialog({PrinterZoneModel? zone}) async {
+    final TextEditingController nameCtrl =
+        TextEditingController(text: zone?.name ?? '');
+    final TextEditingController ipCtrl =
+        TextEditingController(text: zone?.ip ?? '');
+    final TextEditingController portCtrl = TextEditingController(
+      text: (zone?.port ?? 9100).toString(),
+    );
+    final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+
+    final bool? saved = await Get.dialog<bool>(
+      AlertDialog(
+        title: Text(zone == null ? 'Nueva Zona' : 'Editar Zona'),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextFormField(
+                controller: nameCtrl,
+                decoration: const InputDecoration(
+                  labelText: 'Nombre',
+                  hintText: 'Ej. Jugos, Caliente, Barra',
+                ),
+                validator: (v) => (v ?? '').trim().isEmpty
+                    ? 'Ingresa un nombre'
+                    : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: ipCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(
+                  labelText: 'IP',
+                  hintText: '192.168.1.101',
+                ),
+                validator: (v) => IpValidator.validate(v),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: portCtrl,
+                keyboardType: TextInputType.number,
+                decoration: const InputDecoration(labelText: 'Puerto'),
+                validator: (v) {
+                  final int? p = int.tryParse((v ?? '').trim());
+                  if (p == null || p < 1 || p > 65535) {
+                    return 'Puerto inválido';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (!(formKey.currentState?.validate() ?? false)) return;
+              final int port = int.parse(portCtrl.text.trim());
+              if (zone == null) {
+                await controller.addZone(
+                  name: nameCtrl.text,
+                  ip: ipCtrl.text,
+                  port: port,
+                );
+              } else {
+                await controller.updateZone(
+                  zoneId: zone.id!,
+                  name: nameCtrl.text,
+                  ip: ipCtrl.text,
+                  port: port,
+                );
+              }
+              Get.back(result: true);
+            },
+            child: const Text('Guardar'),
+          ),
+        ],
+      ),
+    );
+    if (saved == true) {
+      Get.showSnackbar(
+        InfoSnackbar(
+          zone == null
+              ? 'Zona agregada'
+              : 'Zona actualizada',
+        ),
+      );
+    }
+  }
+
+  Future<void> _confirmDeleteZone(PrinterZoneModel zone) async {
+    final bool? ok = await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Eliminar zona'),
+        content: Text(
+          '¿Eliminar la zona "${zone.name}"? Las categorías que la usaban '
+          'volverán a "Caja".',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Get.back(result: true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (ok == true) {
+      await controller.deleteZone(zone.id!);
+      Get.showSnackbar(const InfoSnackbar('Zona eliminada'));
+    }
+  }
+
+  // ───────────────────────────────────────────────
+  //  Asignacion de categorias a zonas
+  // ───────────────────────────────────────────────
+
+  Widget _buildCategoryAssignmentSection() {
+    return Obx(() {
+      if (controller.isLoadingCategories.value) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 16),
+          child: Center(child: CircularProgressIndicator()),
+        );
+      }
+      if (controller.categories.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 12),
+          child: Text(
+            'No hay categorías disponibles.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey, fontSize: 13),
+          ),
+        );
+      }
+
+      final List<PrinterZoneModel> allZones = controller.allZones;
+      if (allZones.isEmpty) {
+        return const Padding(
+          padding: EdgeInsets.symmetric(vertical: 8),
+          child: Text(
+            'Configura la impresora de red en la sección "Conexión por Red" '
+            'para activar la zona Caja.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: Colors.grey, fontSize: 12),
+          ),
+        );
+      }
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(bottom: 8),
+            child: Text(
+              'Selecciona varias categorías y envíalas a una zona con un solo '
+              'toque. Las categorías sin asignar imprimen sus comandas en la '
+              '"Zona por defecto para comandas" (configurable abajo).',
+              style: TextStyle(fontSize: 12, color: Colors.black54),
+            ),
+          ),
+          _buildDefaultComandaZoneCard(allZones),
+          const SizedBox(height: 8),
+          _buildBulkAssignmentBar(allZones),
+          const SizedBox(height: 8),
+          ...controller.categories
+              .map((c) => _buildCategoryAssignmentTile(c))
+              ,
+        ],
+      );
+    });
+  }
+
+  Widget _buildDefaultComandaZoneCard(List<PrinterZoneModel> allZones) {
+    return Obx(() {
+      // Filtrar zonas disponibles segun si Caja esta configurada.
+      // Si Caja NO esta configurada (sin red), la ocultamos del dropdown
+      // para evitar una asercion de Flutter: "There should be exactly one
+      // item with [DropdownButton]'s value: __caja__".
+      final PrinterZoneModel? caja = controller.cajaZone;
+      final bool cajaAvailable = caja != null;
+      final List<PrinterZoneModel> dropdownZones = cajaAvailable
+          ? allZones
+          : allZones.where((z) => !z.isCaja).toList();
+
+      // Calcular initialValue de forma segura: debe coincidir exactamente
+      // con un item de dropdownZones o ser null.
+      final String stored = controller.defaultComandaZoneId.value;
+      String? current;
+      if (stored.isNotEmpty &&
+          dropdownZones.any((z) => z.id == stored)) {
+        current = stored;
+      } else if (cajaAvailable) {
+        current = kCajaZoneId;
+      } else if (dropdownZones.isNotEmpty) {
+        current = dropdownZones.first.id;
+      }
+
+      return Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: const Color(0xFF0D47A1).withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: const Color(0xFF0D47A1).withValues(alpha: 0.4),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Row(
+              children: [
+                Icon(Icons.flag_outlined, size: 18, color: Color(0xFF0D47A1)),
+                SizedBox(width: 6),
+                Text(
+                  'Zona por defecto para comandas',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D47A1),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 4),
+            const Text(
+              'Las categorías SIN zona asignada enviarán sus comandas a esta '
+              'zona. Elige Caja para que todo lo no asignado caiga a la '
+              'impresora principal, o una zona custom (p. ej. "Caliente") '
+              'para que Caja NUNCA reciba comandas.',
+              style: TextStyle(fontSize: 11, color: Colors.black54),
+            ),
+            if (!cajaAvailable) ...[
+              const SizedBox(height: 6),
+              const Text(
+                'Configura la impresora de red en la sección "Conexión por '
+                'Red" para activar la zona Caja.',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.orange,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Expanded(
+                  child: DropdownButtonFormField<String>(
+                    initialValue: current,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: dropdownZones
+                        .map(
+                          (z) => DropdownMenuItem<String>(
+                            value: z.id ?? kCajaZoneId,
+                            child: Text(
+                              z.isCaja
+                                  ? 'Caja (impresora principal)'
+                                  : (z.name ?? 'Zona'),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (v) async {
+                      if (v == null) return;
+                      // Si elige Caja, guardamos vacio (semantica: default = Caja)
+                      await controller.setDefaultComandaZone(
+                        v == kCajaZoneId ? null : v,
+                      );
+                    },
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Obx(() {
+                  final int unassigned = controller.unassignedCategoryIds().length;
+                  return OutlinedButton.icon(
+                    onPressed: unassigned == 0
+                        ? null
+                        : () => _assignAllUnassigned(allZones),
+                    icon: const Icon(Icons.playlist_add, size: 18),
+                    label: Text(
+                      unassigned == 0
+                          ? 'Sin pendientes'
+                          : 'Asignar $unassigned no asignadas',
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: const Color(0xFF0D47A1),
+                      side: const BorderSide(color: Color(0xFF0D47A1)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      textStyle: const TextStyle(fontSize: 12),
+                    ),
+                  );
+                }),
+              ],
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  Future<void> _assignAllUnassigned(List<PrinterZoneModel> allZones) async {
+    final int pending = controller.unassignedCategoryIds().length;
+    if (pending == 0) return;
+
+    String? selectedZoneId;
+    await Get.dialog<bool>(
+      AlertDialog(
+        title: const Text('Asignar todas las no asignadas'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: Text(
+                'Hay $pending categoría(s) sin zona asignada. Elige la zona '
+                'a la que se enviarán todas:',
+                style: const TextStyle(fontSize: 13),
+              ),
+            ),
+            StatefulBuilder(
+              builder: (ctx, setSt) {
+                return DropdownButtonFormField<String>(
+                  initialValue: selectedZoneId,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: 'Zona destino',
+                    border: OutlineInputBorder(),
+                    isDense: true,
+                  ),
+                  items: allZones
+                      .map(
+                        (z) => DropdownMenuItem<String>(
+                          value: z.id ?? kCajaZoneId,
+                          child: Text(
+                            z.isCaja
+                                ? 'Caja (impresora principal)'
+                                : (z.name ?? 'Zona'),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (v) => setSt(() => selectedZoneId = v),
+                );
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(result: false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (selectedZoneId == null) {
+                ErrorHandler.showErrorDialog('Selecciona una zona');
+                return;
+              }
+              final int count = await controller.assignAllUnassignedToZone(
+                selectedZoneId!,
+              );
+              Get.back(result: true);
+              Get.showSnackbar(
+                InfoSnackbar('Asignadas $count categoría(s)'),
+              );
+            },
+            child: const Text('Asignar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBulkAssignmentBar(List<PrinterZoneModel> allZones) {
+    return Obx(() {
+      final int selectedCount = controller.selectedCategoryIds.length;
+      return Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: selectedCount > 0
+              ? const Color(0xFF0D47A1).withValues(alpha: 0.08)
+              : Colors.grey.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selectedCount > 0
+                ? const Color(0xFF0D47A1).withValues(alpha: 0.4)
+                : Colors.grey.shade300,
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  selectedCount > 0
+                      ? Icons.check_box
+                      : Icons.check_box_outline_blank,
+                  color: selectedCount > 0
+                      ? const Color(0xFF0D47A1)
+                      : Colors.grey,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: Text(
+                    selectedCount == 0
+                        ? 'Selecciona categorías abajo'
+                        : '$selectedCount categoría(s) seleccionada(s)',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: selectedCount > 0
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      color: selectedCount > 0
+                          ? const Color(0xFF0D47A1)
+                          : Colors.black54,
+                    ),
+                  ),
+                ),
+                if (selectedCount > 0)
+                  TextButton(
+                    onPressed: controller.clearSelection,
+                    child: const Text('Limpiar'),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            _buildZoneDropdownForBulk(allZones),
+          ],
+        ),
+      );
+    });
+  }
+
+  Widget _buildZoneDropdownForBulk(List<PrinterZoneModel> allZones) {
+    return _BulkZoneSelector(
+      allZones: allZones,
+      onApply: (zone) async {
+        final List<String> ids = controller.selectedCategoryIds.toList();
+        if (ids.isEmpty) {
+          ErrorHandler.showErrorDialog('Selecciona al menos una categoría');
+          return;
+        }
+        await controller.bulkAssignCategoriesToZone(
+          categoryIds: ids,
+          zoneId: zone.id ?? kCajaZoneId,
+        );
+        Get.showSnackbar(
+          InfoSnackbar(
+            'Asignadas ${ids.length} categoría(s) a "${zone.name ?? 'Caja'}"',
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildCategoryAssignmentTile(cat) {
+    final String? catId = cat.id;
+    if (catId == null) return const SizedBox.shrink();
+
+    return Obx(() {
+      final bool selected = controller.selectedCategoryIds.contains(catId);
+      final String zoneName = controller.zoneNameForCategory(catId);
+      final bool isCaja = controller.zoneIdForCategory(catId) == kCajaZoneId;
+
+      return Card(
+        margin: const EdgeInsets.only(bottom: 6),
+        elevation: selected ? 3 : 1,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+          side: BorderSide(
+            color: selected
+                ? const Color(0xFF0D47A1)
+                : Colors.transparent,
+            width: selected ? 2 : 0,
+          ),
+        ),
+        child: CheckboxListTile(
+          value: selected,
+          onChanged: (_) => controller.toggleCategorySelection(catId),
+          controlAffinity: ListTileControlAffinity.leading,
+          dense: true,
+          title: Text(
+            cat.name ?? 'Categoría',
+            style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+          ),
+          subtitle: Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Row(
+              children: [
+                Icon(
+                  isCaja
+                      ? Icons.point_of_sale
+                      : Icons.workspaces_outlined,
+                  size: 14,
+                  color: isCaja ? Colors.green : const Color(0xFF0D47A1),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  'Zona: $zoneName',
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: isCaja
+                        ? Colors.green.shade700
+                        : const Color(0xFF0D47A1),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    });
+  }
+
+  // ───────────────────────────────────────────────
   //  Helpers compartidos
   // ───────────────────────────────────────────────
 
@@ -482,183 +1153,88 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
       ),
     );
   }
+}
 
-  /* construir la seccion de impresoras asignadas por categoria */
-  Widget _buildCategoryPrinterSection() {
-    return Obx(() {
-      if (controller.isLoadingCategories.value) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 16),
-          child: Center(child: CircularProgressIndicator()),
-        );
-      }
+class _BulkZoneSelector extends StatefulWidget {
+  final List<PrinterZoneModel> allZones;
+  final Future<void> Function(PrinterZoneModel zone) onApply;
 
-      if (controller.categories.isEmpty) {
-        return const Padding(
-          padding: EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'No hay categorías disponibles.',
-            textAlign: TextAlign.center,
-            style: TextStyle(color: Colors.grey, fontSize: 13),
-          ),
-        );
-      }
+  const _BulkZoneSelector({
+    required this.allZones,
+    required this.onApply,
+  });
 
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          const Padding(
-            padding: EdgeInsets.only(bottom: 8),
-            child: Text(
-              'Asigna una impresora de red específica por categoría.\n'
-              'Los productos sin categoría específica se imprimirán en la impresora por defecto.',
-              style: TextStyle(fontSize: 12, color: Colors.black54),
+  @override
+  State<_BulkZoneSelector> createState() => _BulkZoneSelectorState();
+}
+
+class _BulkZoneSelectorState extends State<_BulkZoneSelector> {
+  String? _selectedZoneId;
+
+  @override
+  Widget build(BuildContext context) {
+    final PrinterSettingsController controller = Get.find();
+    return Row(
+      children: [
+        Expanded(
+          child: DropdownButtonFormField<String>(
+            initialValue: _selectedZoneId,
+            isExpanded: true,
+            decoration: const InputDecoration(
+              labelText: 'Enviar seleccionadas a',
+              isDense: true,
+              contentPadding:
+                  EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+              border: OutlineInputBorder(),
             ),
+            items: widget.allZones
+                .map(
+                  (z) => DropdownMenuItem<String>(
+                    value: z.id ?? kCajaZoneId,
+                    child: Text(
+                      z.isCaja
+                          ? 'Caja (impresora principal)'
+                          : (z.name ?? 'Zona'),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                )
+                .toList(),
+            onChanged: (v) => setState(() => _selectedZoneId = v),
           ),
-          ...controller.categories.map((cat) => _buildCategoryPrinterCard(cat)),
-        ],
-      );
-    });
+        ),
+        const SizedBox(width: 8),
+        Obx(() {
+          final bool hasSelection = controller.selectedCategoryIds.isNotEmpty;
+          return ElevatedButton(
+            onPressed: hasSelection
+                ? () => _handleApply(controller)
+                : null,
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D47A1),
+              foregroundColor: Colors.white,
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            ),
+            child: const Text('Aplicar'),
+          );
+        }),
+      ],
+    );
   }
 
-  /* construir tarjeta de configuracion de impresora para una categoria */
-  Widget _buildCategoryPrinterCard(dynamic cat) {
-    final String? catId = cat.id;
-    if (catId == null) return const SizedBox.shrink();
-
-    final bool hasSpecificPrinter =
-        cat.printerIp != null && (cat.printerIp as String).isNotEmpty;
-    final List<TextEditingController>? controllers =
-        controller.categoryControllers[catId];
-    if (controllers == null) return const SizedBox.shrink();
-
-    return Card(
-      margin: const EdgeInsets.only(bottom: 10),
-      elevation: 2,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
-        side: BorderSide(
-          color: hasSpecificPrinter
-              ? const Color(0xFF0D47A1).withValues(alpha: 0.5)
-              : Colors.transparent,
-          width: hasSpecificPrinter ? 1.5 : 0,
-        ),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(14),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              children: [
-                Icon(
-                  Icons.category,
-                  size: 20,
-                  color: hasSpecificPrinter
-                      ? const Color(0xFF0D47A1)
-                      : Colors.grey,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    cat.name ?? 'Categoría',
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
-                      color: hasSpecificPrinter
-                          ? const Color(0xFF0D47A1)
-                          : Colors.black87,
-                    ),
-                  ),
-                ),
-                if (hasSpecificPrinter)
-                  Chip(
-                    label: const Text('Configurada'),
-                    backgroundColor:
-                        const Color(0xFF0D47A1).withValues(alpha: 0.1),
-                    labelStyle: const TextStyle(
-                      fontSize: 11,
-                      color: Color(0xFF0D47A1),
-                    ),
-                    padding: EdgeInsets.zero,
-                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                  ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: controllers[0],
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'IP Impresora',
-                hintText: '192.168.1.101',
-                prefixIcon: const Icon(Icons.router_outlined, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                isDense: true,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: controllers[1],
-              keyboardType: TextInputType.number,
-              decoration: InputDecoration(
-                labelText: 'Puerto',
-                hintText: '9100',
-                prefixIcon: const Icon(Icons.settings_ethernet_outlined, size: 20),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 10,
-                ),
-                isDense: true,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Row(
-              children: [
-                Expanded(
-                  child: ElevatedButton.icon(
-                    onPressed: () => controller.saveCategoryPrinter(catId),
-                    icon: const Icon(Icons.save_outlined, size: 18),
-                    label: const Text('Guardar'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF0D47A1),
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 10),
-                      textStyle: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                ),
-                if (hasSpecificPrinter) ...[
-                  const SizedBox(width: 8),
-                  OutlinedButton.icon(
-                    onPressed: () => controller.removeCategoryPrinter(catId),
-                    icon: const Icon(Icons.link_off, size: 18),
-                    label: const Text('Quitar'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.red,
-                      side: const BorderSide(color: Colors.red),
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 10,
-                        horizontal: 12,
-                      ),
-                      textStyle: const TextStyle(fontSize: 13),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ],
-        ),
-      ),
+  Future<void> _handleApply(PrinterSettingsController controller) async {
+    if (_selectedZoneId == null) {
+      ErrorHandler.showErrorDialog('Selecciona una zona destino');
+      return;
+    }
+    final PrinterZoneModel? zone = widget.allZones.firstWhereOrNull(
+      (z) => z.id == _selectedZoneId,
     );
+    if (zone == null) {
+      ErrorHandler.showErrorDialog('Zona destino no encontrada');
+      return;
+    }
+    await widget.onApply(zone);
   }
 }
