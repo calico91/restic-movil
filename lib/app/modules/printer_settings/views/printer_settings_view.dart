@@ -18,46 +18,50 @@ class PrinterSettingsView extends GetView<PrinterSettingsController> {
 
   @override
   Widget build(BuildContext context) {
-    return const CustomScaffold(
+    return  CustomScaffold(
       title: 'Configuracion de Impresora',
       showBackButton: true,
       resizeToAvoidBottomInset: true,
       body: SingleChildScrollView(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            ConnectionTypeIndicator(),
-            SizedBox(height: 16),
-            PaperSizeSection(),
-            SizedBox(height: 16),
-            ExpandableSection(
+            const ConnectionTypeIndicator(),
+            const SizedBox(height: 16),
+            const PaperSizeSection(),
+            const SizedBox(height: 16),
+            const ExpandableSection(
               title: 'Conexion Bluetooth',
               icon: Icons.bluetooth,
               initiallyExpanded: false,
               content: BluetoothSection(),
             ),
-            ExpandableSection(
+            const ExpandableSection(
               title: 'Conexion por Red (TCP/IP)',
               icon: Icons.wifi,
               initiallyExpanded: false,
               content: NetworkSection(),
             ),
-            SizedBox(height: 4),
-            ExpandableSection(
-              title: 'Zonas de Impresion',
-              icon: Icons.workspaces_outlined,
-              initiallyExpanded: false,
-              content: ZonesSection(),
-            ),
-            ExpandableSection(
-              title: 'Asignar Categorias a Zonas',
-              icon: Icons.assignment_turned_in_outlined,
-              initiallyExpanded: false,
-              content: CategoryAssignmentSection(),
-            ),
-            SizedBox(height: 16),
+            Obx(() => controller.canManageZones
+                ? const Column(children: [
+                    SizedBox(height: 4),
+                    ExpandableSection(
+                      title: 'Zonas de Impresion',
+                      icon: Icons.workspaces_outlined,
+                      initiallyExpanded: false,
+                      content: ZonesSection(),
+                    ),
+                    ExpandableSection(
+                      title: 'Asignar Categorias a Zonas',
+                      icon: Icons.assignment_turned_in_outlined,
+                      initiallyExpanded: false,
+                      content: CategoryAssignmentSection(),
+                    ),
+                  ])
+                : const SizedBox.shrink()),
+            const SizedBox(height: 16),
           ],
         ),
       ),

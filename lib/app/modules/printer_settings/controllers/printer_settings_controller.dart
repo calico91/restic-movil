@@ -7,6 +7,7 @@ import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/printer_zone_repository.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
@@ -19,6 +20,14 @@ class PrinterSettingsController extends GetxController {
   final PrinterService printerService = Get.find<PrinterService>();
   final CategoriesRepository _categoriesRepository = Get.find<CategoriesRepository>();
   final PrinterZoneRepository _printerZoneRepository = Get.find<PrinterZoneRepository>();
+  final StorageService _storageService = Get.find<StorageService>();
+
+  final RxList<String> userRoles = <String>[].obs;
+
+  bool get canManageZones =>
+      userRoles.contains('SUPER') ||
+      userRoles.contains('ADMINISTRADOR') ||
+      userRoles.contains('CAJERO');
 
   RxBool get isConnected => printerService.isConnected;
   RxBool get isBluetoothOn => printerService.isBluetoothOn;
@@ -50,6 +59,7 @@ class PrinterSettingsController extends GetxController {
     _populateNetworkFields();
     _loadCategories();
     _loadZones();
+    _loadUserRoles();
   }
 
   @override
@@ -203,6 +213,11 @@ class PrinterSettingsController extends GetxController {
 
   Future<void> _loadZones() async {
     await printerService.loadZonesFromBackend();
+  }
+
+  Future<void> _loadUserRoles() async {
+    final user = await _storageService.getUser();
+    userRoles.assignAll(user?.roles ?? []);
   }
 
   PrinterZoneModel? get cajaZone => printerService.cajaZone;

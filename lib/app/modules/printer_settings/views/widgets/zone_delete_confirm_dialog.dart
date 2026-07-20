@@ -2,11 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
-import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
+import 'package:restic_movil/core/utils/modals/modal_info.dart';
 
 /// Muestra un dialog de confirmacion para eliminar una zona. Si el usuario
 /// confirma, llama a [PrinterSettingsController.deleteZone] y muestra un
-/// snackbar de exito.
+/// modal de exito.
 Future<void> confirmZoneDelete(PrinterZoneModel zone) async {
   final PrinterSettingsController controller =
       Get.find<PrinterSettingsController>();
@@ -34,6 +34,9 @@ Future<void> confirmZoneDelete(PrinterZoneModel zone) async {
 
   if (ok == true) {
     await controller.deleteZone(zone.id!);
-    Get.showSnackbar(const InfoSnackbar('Zona eliminada'));
+    Get.dialog(ModalInfo(
+      title: 'Zona eliminada',
+      message: 'La zona "${zone.name}" fue eliminada correctamente.',
+    ));
   }
 }
