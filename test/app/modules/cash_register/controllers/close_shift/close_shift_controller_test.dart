@@ -229,12 +229,6 @@ class MockStorageService extends GetxService implements StorageService {
 
   @override
   Future<void> deleteCategoryZoneMappings() async {}
-
-  @override
-  Future<void> saveDefaultComandaZone(String? zoneId) async {}
-
-  @override
-  Future<String?> getDefaultComandaZone() async => null;
 }
 
 void main() {

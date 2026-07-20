@@ -14,12 +14,12 @@ const String kCajaZoneId = '__caja__';
 /// 1. Si existe mapeo local [mappings] para [cat.id]:
 ///    - Si la zona es Caja (id [kCajaZoneId]) => `null` (impresora por defecto).
 ///    - Si la zona es custom => [NetworkPrinterModel] con la IP/puerto de la zona.
-/// 2. Si no hay mapeo local, usar [defaultComandaZoneId]:
-///    - `null` / vacio / Caja => `null` (impresora por defecto = Caja).
-///    - zoneId custom => [NetworkPrinterModel] de esa zona.
-/// 3. NUNCA se usa `cat.printerIp` legacy del backend.
+/// 2. Si no hay mapeo local, la categoria cae a `null` (impresora por defecto).
 ///
-/// Clave null en el mapa retornado = impresora activa por defecto.
+/// NUNCA se usa `cat.printerIp` legacy del backend.
+///
+/// Clave null en el mapa retornado = impresora activa por defecto
+/// (Caja si hay red configurada, o el transporte activo en otro caso).
 class CategoryPrinterResolver {
   CategoryPrinterResolver._();
 
@@ -29,7 +29,6 @@ class CategoryPrinterResolver {
     List<CategoryModel> categories, {
     List<PrinterZoneModel> zones = const [],
     Map<String, String> mappings = const {},
-    String? defaultComandaZoneId,
   }) {
     // Construir mapa subcategoryId -> CategoryModel para busqueda eficiente
     final Map<String, CategoryModel> subToCategory = {};
@@ -45,12 +44,8 @@ class CategoryPrinterResolver {
       final String? subcategoryId = item.product.subcategoryId;
       final CategoryModel? cat =
           subcategoryId != null ? subToCategory[subcategoryId] : null;
-      final NetworkPrinterModel? printer = _printerFromCategory(
-        cat,
-        zones,
-        mappings,
-        defaultComandaZoneId,
-      );
+      final NetworkPrinterModel? printer =
+          _printerFromCategory(cat, zones, mappings);
 
       result.putIfAbsent(printer, () => []).add(item);
     }
@@ -66,7 +61,6 @@ class CategoryPrinterResolver {
     List<CategoryModel> categories, {
     List<PrinterZoneModel> zones = const [],
     Map<String, String> mappings = const {},
-    String? defaultComandaZoneId,
   }) {
     // Mapa categoryId top-level -> CategoryModel
     final Map<String, CategoryModel> catMap = {
@@ -88,12 +82,8 @@ class CategoryPrinterResolver {
       final CategoryModel? cat = detail.categoryId != null
           ? (catMap[detail.categoryId!] ?? subToCategory[detail.categoryId!])
           : null;
-      final NetworkPrinterModel? printer = _printerFromCategory(
-        cat,
-        zones,
-        mappings,
-        defaultComandaZoneId,
-      );
+      final NetworkPrinterModel? printer =
+          _printerFromCategory(cat, zones, mappings);
 
       result.putIfAbsent(printer, () => []).add(detail);
     }
@@ -101,13 +91,11 @@ class CategoryPrinterResolver {
     return result;
   }
 
-  /// Resuelve la impresora destino para una categoria aplicando la prioridad
-  /// documentada en la clase.
+  /// Resuelve la impresora destino para una categoria.
   static NetworkPrinterModel? _printerFromCategory(
     CategoryModel? category,
     List<PrinterZoneModel> zones,
     Map<String, String> mappings,
-    String? defaultComandaZoneId,
   ) {
     // 1) Mapeo local categoria -> zona
     if (category?.id != null) {
@@ -117,12 +105,7 @@ class CategoryPrinterResolver {
       }
     }
 
-    // 2) Fallback a la zona por defecto para comandas
-    if (defaultComandaZoneId != null && defaultComandaZoneId.isNotEmpty) {
-      return _resolveZone(defaultComandaZoneId, zones);
-    }
-
-    // 3) Sin asignacion => impresora por defecto (Caja)
+    // 2) Sin asignacion => impresora por defecto
     return null;
   }
 

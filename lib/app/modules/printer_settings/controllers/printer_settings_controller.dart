@@ -46,9 +46,6 @@ class PrinterSettingsController extends GetxController {
   RxMap<String, String> get categoryZoneMappings =>
       printerService.categoryZoneMappings;
 
-  // Zona por defecto para comandas de categorias sin asignacion
-  RxString get defaultComandaZoneId => printerService.defaultComandaZoneId;
-
   // Seleccion para asignacion masiva
   final RxSet<String> selectedCategoryIds = <String>{}.obs;
 
@@ -390,16 +387,6 @@ class PrinterSettingsController extends GetxController {
     if (ids.isEmpty) return 0;
     await printerService.bulkSetCategoryZoneMapping(ids, zoneId);
     return ids.length;
-  }
-
-  /* actualizar la zona por defecto para comandas y persistir. */
-  Future<void> setDefaultComandaZone(String? zoneId) async {
-    if (zoneId == null || zoneId.isEmpty) {
-      printerService.defaultComandaZoneId.value = '';
-    } else {
-      printerService.defaultComandaZoneId.value = zoneId;
-    }
-    await printerService.persistDefaultComandaZone();
   }
 
   void toggleCategorySelection(String categoryId) {

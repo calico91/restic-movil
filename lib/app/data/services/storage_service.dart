@@ -304,25 +304,4 @@ class StorageService extends GetxService {
   Future<void> deleteCategoryZoneMappings() async {
     await _storage.delete(key: 'category_zone_mappings');
   }
-
-  // --------------- Zona por defecto para comandas ---------------
-  // zoneId especial kCajaZoneId ("__caja__") = impresora principal de caja.
-  // Vacio/null = comportamiento por defecto (cae a Caja).
-
-  Future<void> saveDefaultComandaZone(String? zoneId) async {
-    if (zoneId == null || zoneId.isEmpty) {
-      await _storage.delete(key: 'default_comanda_zone_id');
-    } else {
-      await _storage.write(
-        key: 'default_comanda_zone_id',
-        value: zoneId,
-      );
-    }
-  }
-
-  Future<String?> getDefaultComandaZone() async {
-    final String? v = await _storage.read(key: 'default_comanda_zone_id');
-    if (v == null || v.isEmpty) return null;
-    return v;
-  }
 }

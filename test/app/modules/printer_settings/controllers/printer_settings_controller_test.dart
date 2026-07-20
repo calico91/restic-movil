@@ -79,9 +79,6 @@ class MockPrinterService extends GetxService implements PrinterService {
   RxMap<String, String> categoryZoneMappings = <String, String>{}.obs;
 
   @override
-  RxString defaultComandaZoneId = ''.obs;
-
-  @override
   Future<void> persistZones() async {}
 
   @override
@@ -109,9 +106,6 @@ class MockPrinterService extends GetxService implements PrinterService {
       categoryZoneMappings.remove(id);
     }
   }
-
-  @override
-  Future<void> persistDefaultComandaZone() async {}
 
   @override
   PrinterZoneModel? get cajaZone => networkConfig.value == null

@@ -37,12 +37,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   final RxList<PrinterZoneModel> zones = <PrinterZoneModel>[].obs;
   final RxMap<String, String> categoryZoneMappings = <String, String>{}.obs;
 
-  // Zona por defecto para comandas de categorias sin asignacion.
-  // Vacio = null = Caja (impresora por defecto).
-  // kCajaZoneId = Caja explicito.
-  // zoneId custom = esa zona (Caja NO recibe comandas en ese caso).
-  final RxString defaultComandaZoneId = ''.obs;
-
   @override
   void onInit() {
     super.onInit();
@@ -50,7 +44,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     _loadPrinterSize();
     _loadZones();
     _loadCategoryZoneMappings();
-    _loadDefaultComandaZone();
     _initConnections();
   }
 
@@ -89,21 +82,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     final Map<String, String> stored =
         await _storageService.getCategoryZoneMappings();
     categoryZoneMappings.assignAll(stored);
-  }
-
-  Future<void> _loadDefaultComandaZone() async {
-    final String? stored = await _storageService.getDefaultComandaZone();
-    defaultComandaZoneId.value = stored ?? '';
-  }
-
-  /* persistir la zona por defecto para comandas (null/vacio = Caja) */
-  Future<void> persistDefaultComandaZone() async {
-    final String current = defaultComandaZoneId.value;
-    if (current.isEmpty) {
-      await _storageService.saveDefaultComandaZone(null);
-    } else {
-      await _storageService.saveDefaultComandaZone(current);
-    }
   }
 
   /* persistir la lista de zonas custom (excluyendo Caja) */
@@ -539,17 +517,13 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     required PrintableTicket Function(OrderModel, List<OrderItemModel>) ticketBuilder,
   }) async {
     // Agrupar items por impresora destino segun la categoria del producto,
-    // tomando en cuenta las zonas locales, el mapeo categoria->zona y la
-    // zona por defecto para comandas.
+    // tomando en cuenta las zonas locales y el mapeo categoria->zona.
     final Map<NetworkPrinterModel?, List<OrderItemModel>> groups =
         CategoryPrinterResolver.groupItemsByPrinter(
       sourceItems,
       categories,
       zones: zones.toList(),
       mappings: Map<String, String>.from(categoryZoneMappings),
-      defaultComandaZoneId: defaultComandaZoneId.value.isEmpty
-          ? null
-          : defaultComandaZoneId.value,
     );
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderItemModel>> entry in groups.entries) {
@@ -573,17 +547,13 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     required PrintableTicket Function(OrderModel, List<OrderDetailModel>) ticketBuilder,
   }) async {
     // Agrupar detalles por impresora destino usando categoryId del backend,
-    // tomando en cuenta las zonas locales, el mapeo categoria->zona y la
-    // zona por defecto para comandas.
+    // tomando en cuenta las zonas locales y el mapeo categoria->zona.
     final Map<NetworkPrinterModel?, List<OrderDetailModel>> groups =
         CategoryPrinterResolver.groupDetailsByPrinter(
       details,
       categories,
       zones: zones.toList(),
       mappings: Map<String, String>.from(categoryZoneMappings),
-      defaultComandaZoneId: defaultComandaZoneId.value.isEmpty
-          ? null
-          : defaultComandaZoneId.value,
     );
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderDetailModel>> entry in groups.entries) {
