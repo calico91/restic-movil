@@ -7,13 +7,8 @@ import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart'
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'assign_all_unassigned_dialog.dart';
 
-/// ID privado reservado para la opcion "Sin asignar" en el dropdown bulk.
-/// No es una zona real: indica que se debe limpiar la asignacion de las
-/// categorias seleccionadas (vuelven a la impresora por defecto).
-const String _kUnassignedZoneId = '__unassigned__';
-
 /// Barra de asignacion bulk: contador de seleccion, dropdown con zonas
-/// (incluye "Sin asignar"), boton "Aplicar" y atajo "Asignar todas las
+/// (Caja + custom), boton "Aplicar" y atajo "Asignar todas las
 /// no asignadas a…".
 class BulkAssignmentBar extends StatelessWidget {
   final List<PrinterZoneModel> allZones;
@@ -133,29 +128,19 @@ class BulkAssignmentBar extends StatelessWidget {
       ErrorHandler.showErrorDialog('Selecciona al menos una categoria');
       return;
     }
-    if (zoneId == _kUnassignedZoneId) {
-      await controller.bulkClearAssignments(ids);
-      Get.showSnackbar(
-        InfoSnackbar(
-          'Se quito la asignacion de ${ids.length} categoria(s)',
-        ),
-      );
-    } else {
-      await controller.bulkAssignCategoriesToZone(
-        categoryIds: ids,
-        zoneId: zoneId,
-      );
-      Get.showSnackbar(
-        InfoSnackbar(
-          'Asignadas ${ids.length} categoria(s) a "$displayName"',
-        ),
-      );
-    }
+    await controller.bulkAssignCategoriesToZone(
+      categoryIds: ids,
+      zoneId: zoneId,
+    );
+    Get.showSnackbar(
+      InfoSnackbar(
+        'Asignadas ${ids.length} categoria(s) a "$displayName"',
+      ),
+    );
   }
 }
 
-/// Dropdown con la opcion "Sin asignar" + Caja + zonas custom, y boton
-/// "Aplicar" adyacente.
+/// Dropdown con Caja + zonas custom, y boton "Aplicar" adyacente.
 class BulkZoneSelector extends StatefulWidget {
   final List<PrinterZoneModel> allZones;
   final Future<void> Function(String zoneId, String displayName) onApply;
@@ -190,26 +175,19 @@ class _BulkZoneSelectorState extends State<BulkZoneSelector> {
                   EdgeInsets.symmetric(horizontal: 12, vertical: 10),
               border: OutlineInputBorder(),
             ),
-            items: <DropdownMenuItem<String>>[
-              const DropdownMenuItem<String>(
-                value: _kUnassignedZoneId,
-                child: Text(
-                  'Sin asignar (impresora principal)',
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              ...widget.allZones.map(
-                (z) => DropdownMenuItem<String>(
-                  value: z.id ?? kCajaZoneId,
-                  child: Text(
-                    z.isCaja
-                        ? 'Caja (impresora principal)'
-                        : (z.name ?? 'Zona'),
-                    overflow: TextOverflow.ellipsis,
+            items: widget.allZones
+                .map(
+                  (z) => DropdownMenuItem<String>(
+                    value: z.id ?? kCajaZoneId,
+                    child: Text(
+                      z.isCaja
+                          ? 'Caja (impresora principal)'
+                          : (z.name ?? 'Zona'),
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
-                ),
-              ),
-            ],
+                )
+                .toList(),
             onChanged: (v) => setState(() => _selectedZoneId = v),
           ),
         ),
@@ -237,19 +215,15 @@ class _BulkZoneSelectorState extends State<BulkZoneSelector> {
       ErrorHandler.showErrorDialog('Selecciona una zona destino');
       return;
     }
-    final String selected = _selectedZoneId!;
-    String displayName;
-    if (selected == _kUnassignedZoneId) {
-      displayName = 'Sin asignar';
-    } else {
-      final PrinterZoneModel? zone =
-          widget.allZones.firstWhereOrNull((z) => z.id == selected);
-      if (zone == null) {
-        ErrorHandler.showErrorDialog('Zona destino no encontrada');
-        return;
-      }
-      displayName = zone.isCaja ? 'Caja' : (zone.name ?? 'Zona');
+    final PrinterZoneModel? zone = widget.allZones.firstWhereOrNull(
+      (z) => z.id == _selectedZoneId,
+    );
+    if (zone == null) {
+      ErrorHandler.showErrorDialog('Zona destino no encontrada');
+      return;
     }
-    await widget.onApply(selected, displayName);
+    final String displayName =
+        zone.isCaja ? 'Caja' : (zone.name ?? 'Zona');
+    await widget.onApply(_selectedZoneId!, displayName);
   }
 }

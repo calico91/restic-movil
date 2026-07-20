@@ -366,12 +366,6 @@ class PrinterSettingsController extends GetxController {
     selectedCategoryIds.clear();
   }
 
-  /* quitar la asignacion de varias categorias (vuelven al default) */
-  Future<void> bulkClearAssignments(List<String> categoryIds) async {
-    await printerService.bulkClearCategoryZoneMapping(categoryIds);
-    selectedCategoryIds.clear();
-  }
-
   /* categorias que NO tienen mapeo local (categoria -> zona). */
   List<String> unassignedCategoryIds() {
     return categories

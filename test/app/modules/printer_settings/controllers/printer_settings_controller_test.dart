@@ -101,13 +101,6 @@ class MockPrinterService extends GetxService implements PrinterService {
   }
 
   @override
-  Future<void> bulkClearCategoryZoneMapping(List<String> categoryIds) async {
-    for (final String id in categoryIds) {
-      categoryZoneMappings.remove(id);
-    }
-  }
-
-  @override
   PrinterZoneModel? get cajaZone => networkConfig.value == null
       ? null
       : PrinterZoneModel(

@@ -123,17 +123,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     );
   }
 
-  /* limpiar asignacion de varias categorias */
-  Future<void> bulkClearCategoryZoneMapping(List<String> categoryIds) async {
-    if (categoryIds.isEmpty) return;
-    for (final String id in categoryIds) {
-      categoryZoneMappings.remove(id);
-    }
-    await _storageService.saveCategoryZoneMappings(
-      Map<String, String>.from(categoryZoneMappings),
-    );
-  }
-
   /* la zona "Caja" se deriva de la configuracion de red activa. */
   PrinterZoneModel? get cajaZone {
     final NetworkPrinterModel? cfg = networkConfig.value;
