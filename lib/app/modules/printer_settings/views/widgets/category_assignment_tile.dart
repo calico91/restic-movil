@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
-import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
 
-/// Tile que muestra una categoria con su zona asignada y un checkbox
-/// para seleccionarla y luego aplicar una operacion bulk.
 class CategoryAssignmentTile extends StatelessWidget {
   final dynamic category;
 
@@ -21,8 +18,7 @@ class CategoryAssignmentTile extends StatelessWidget {
     return Obx(() {
       final bool selected = controller.selectedCategoryIds.contains(catId);
       final String zoneName = controller.zoneNameForCategory(catId);
-      final bool isCaja =
-          controller.zoneIdForCategory(catId) == kCajaZoneId;
+      final bool isCaja = category.printerZone == null;
 
       return Card(
         margin: const EdgeInsets.only(bottom: 6),

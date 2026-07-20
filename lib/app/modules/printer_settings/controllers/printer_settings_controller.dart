@@ -5,48 +5,41 @@ import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
+import 'package:restic_movil/app/data/repositories/printer_zone_repository.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_error.dart';
-import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
-import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/validators/ip_validator.dart';
+import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
 class PrinterSettingsController extends GetxController {
   final PrinterService printerService = Get.find<PrinterService>();
   final CategoriesRepository _categoriesRepository = Get.find<CategoriesRepository>();
+  final PrinterZoneRepository _printerZoneRepository = Get.find<PrinterZoneRepository>();
 
-  // Estado Bluetooth
   RxBool get isConnected => printerService.isConnected;
   RxBool get isBluetoothOn => printerService.isBluetoothOn;
   RxList<BluetoothDevice> get devices => printerService.devices;
   Rx<BluetoothDevice?> get selectedDevice => printerService.selectedDevice;
 
-  // Estado de red
   Rx<NetworkPrinterModel?> get networkConfig => printerService.networkConfig;
   RxBool get isNetworkConnected => printerService.isNetworkConnected;
   Rx<PrinterConnectionType> get connectionType => printerService.connectionType;
 
-  // Campos de formulario para conexión de red por defecto
   final TextEditingController ipController = TextEditingController();
   final TextEditingController portController =
       TextEditingController(text: '9100');
 
   final RxString selectedPrinterSize = '58mm'.obs;
 
-  // Categorias con su configuracion de zona
   final RxList<CategoryModel> categories = <CategoryModel>[].obs;
   final RxBool isLoadingCategories = false.obs;
 
-  // Zonas de impresion (custom + Caja)
   RxList<PrinterZoneModel> get zones => printerService.zones;
-  RxMap<String, String> get categoryZoneMappings =>
-      printerService.categoryZoneMappings;
 
-  // Seleccion para asignacion masiva
   final RxSet<String> selectedCategoryIds = <String>{}.obs;
 
   @override
@@ -56,6 +49,7 @@ class PrinterSettingsController extends GetxController {
     _loadPrinterSize();
     _populateNetworkFields();
     _loadCategories();
+    _loadZones();
   }
 
   @override
@@ -65,12 +59,10 @@ class PrinterSettingsController extends GetxController {
     super.onClose();
   }
 
-  /* cargar el tamaño de impresora guardado desde el secure storage */
   Future<void> _loadPrinterSize() async {
     selectedPrinterSize.value = printerService.printerSize.value;
   }
 
-  /* pre-cargar IP y puerto si ya existe una impresora de red configurada */
   void _populateNetworkFields() {
     final config = printerService.networkConfig.value;
     if (config != null) {
@@ -79,18 +71,15 @@ class PrinterSettingsController extends GetxController {
     }
   }
 
-  /* guardar el tamaño de impresora seleccionado en el secure storage */
   Future<void> setPrinterSize(String size) async {
     await printerService.setPrinterSize(size);
     selectedPrinterSize.value = size;
   }
 
-  /* escanear dispositivos bluetooth vinculados */
   Future<void> scanDevices() async {
     await printerService.getDevices();
   }
 
-  /* conectar a la impresora Bluetooth seleccionada */
   Future<void> connect(BluetoothDevice device) async {
     Get.showOverlay(
       asyncFunction: () async {
@@ -112,7 +101,6 @@ class PrinterSettingsController extends GetxController {
     );
   }
 
-  /* desconectar la impresora Bluetooth actual */
   Future<void> disconnect() async {
     Get.showOverlay(
       asyncFunction: () async {
@@ -125,7 +113,6 @@ class PrinterSettingsController extends GetxController {
     );
   }
 
-  /* conectar una impresora de red usando los campos IP y Puerto del formulario */
   Future<void> connectNetwork() async {
     final String ip = ipController.text.trim();
     final String portText = portController.text.trim();
@@ -173,7 +160,6 @@ class PrinterSettingsController extends GetxController {
     );
   }
 
-  /* desconectar la impresora de red y volver a Bluetooth como transporte */
   Future<void> disconnectNetwork() async {
     Get.showOverlay(
       asyncFunction: () async {
@@ -186,7 +172,6 @@ class PrinterSettingsController extends GetxController {
     );
   }
 
-  /* imprimir una página de prueba para verificar la conexión activa */
   Future<void> printTestPage() async {
     Get.showOverlay(
       asyncFunction: () async {
@@ -203,11 +188,11 @@ class PrinterSettingsController extends GetxController {
     );
   }
 
-  /* cargar todas las categorias de la sucursal */
   Future<void> _loadCategories() async {
     isLoadingCategories.value = true;
     try {
-      final List<CategoryModel> result = await _categoriesRepository.getCategories();
+      final List<CategoryModel> result =
+          await _categoriesRepository.getCategories();
       categories.assignAll(result);
     } catch (e) {
       ErrorHandler.showErrorDialog('Error al cargar categorías');
@@ -216,15 +201,14 @@ class PrinterSettingsController extends GetxController {
     }
   }
 
-  // ───────────────────────────────────────────────
-  //  Zonas de impresión
-  // ───────────────────────────────────────────────
+  Future<void> _loadZones() async {
+    await printerService.loadZonesFromBackend();
+  }
 
   PrinterZoneModel? get cajaZone => printerService.cajaZone;
 
   List<PrinterZoneModel> get allZones => printerService.allZones;
 
-  /* agregar una zona custom. Devuelve true si se creó. */
   Future<bool> addZone({
     required String name,
     required String ip,
@@ -251,30 +235,26 @@ class PrinterSettingsController extends GetxController {
       return false;
     }
 
-    final String id = 'zone_${DateTime.now().microsecondsSinceEpoch}';
-    final PrinterZoneModel zone = PrinterZoneModel(
-      id: id,
-      name: trimmedName,
-      ip: trimmedIp,
-      port: port,
-    );
-    zones.add(zone);
-    await printerService.persistZones();
-    return true;
+    try {
+      final zone = await _printerZoneRepository.create(
+        name: trimmedName,
+        ip: trimmedIp,
+        port: port,
+      );
+      zones.add(zone);
+      return true;
+    } catch (e) {
+      ErrorHandler.showErrorDialog('Error al crear zona: $e');
+      return false;
+    }
   }
 
-  /* actualizar una zona custom */
   Future<bool> updateZone({
     required String zoneId,
     required String name,
     required String ip,
     required int port,
   }) async {
-    final int idx = zones.indexWhere((z) => z.id == zoneId);
-    if (idx == -1) {
-      ErrorHandler.showErrorDialog('Zona no encontrada');
-      return false;
-    }
     final String trimmedName = name.trim();
     final String trimmedIp = ip.trim();
     if (trimmedName.isEmpty) {
@@ -295,91 +275,105 @@ class PrinterSettingsController extends GetxController {
       ErrorHandler.showErrorDialog('Puerto inválido (1-65535)');
       return false;
     }
-    zones[idx] = zones[idx].copyWith(
-      name: trimmedName,
-      ip: trimmedIp,
-      port: port,
-    );
-    await printerService.persistZones();
-    return true;
-  }
 
-  /* eliminar una zona custom. Las asignaciones de categoria vuelven a Caja. */
-  Future<bool> deleteZone(String zoneId) async {
-    final PrinterZoneModel? zone =
-        zones.firstWhereOrNull((z) => z.id == zoneId);
-    if (zone == null) {
-      ErrorHandler.showErrorDialog('Zona no encontrada');
+    try {
+      final updated = await _printerZoneRepository.update(
+        id: zoneId,
+        name: trimmedName,
+        ip: trimmedIp,
+        port: port,
+      );
+      final idx = zones.indexWhere((z) => z.id == zoneId);
+      if (idx != -1) {
+        zones[idx] = updated;
+      }
+      return true;
+    } catch (e) {
+      ErrorHandler.showErrorDialog('Error al actualizar zona: $e');
       return false;
     }
-    zones.removeWhere((z) => z.id == zoneId);
-    // Reasignar categorias que usaban esta zona a Caja
-    final List<String> affected = categoryZoneMappings.entries
-        .where((e) => e.value == zoneId)
-        .map((e) => e.key)
-        .toList();
-    for (final String catId in affected) {
-      categoryZoneMappings[catId] = kCajaZoneId;
-    }
-    await printerService.persistZones();
-    await printerService.bulkSetCategoryZoneMapping(affected, kCajaZoneId);
-    return true;
   }
 
-  // ───────────────────────────────────────────────
-  //  Asignacion de categorias a zonas
-  // ───────────────────────────────────────────────
-
-  /* obtener la zona asignada a una categoria (o Caja por defecto) */
-  String zoneIdForCategory(String categoryId) {
-    return categoryZoneMappings[categoryId] ?? kCajaZoneId;
+  Future<bool> deleteZone(String zoneId) async {
+    try {
+      await _printerZoneRepository.delete(zoneId);
+      zones.removeWhere((z) => z.id == zoneId);
+      final affected = categories
+          .where((c) => c.printerZone?.id == zoneId)
+          .map((c) => c.id)
+          .where((id) => id != null)
+          .cast<String>()
+          .toList();
+      for (final catId in affected) {
+        await assignCategoryToZone(catId, null);
+      }
+      return true;
+    } catch (e) {
+      ErrorHandler.showErrorDialog('Error al eliminar zona: $e');
+      return false;
+    }
   }
 
   String zoneNameForCategory(String categoryId) {
-    final String zoneId = zoneIdForCategory(categoryId);
-    if (zoneId == kCajaZoneId) {
+    final cat = categories.firstWhereOrNull((c) => c.id == categoryId);
+    if (cat == null) return 'Sin asignar';
+    if (cat.printerZone == null) {
       return printerService.cajaZone != null ? 'Caja' : 'Sin asignar';
     }
-    final PrinterZoneModel? z =
-        zones.firstWhereOrNull((z) => z.id == zoneId);
-    return z?.name ?? 'Sin asignar';
+    return cat.printerZone!.name ?? 'Sin asignar';
   }
 
-  /* asignar una categoria individual a una zona */
   Future<void> assignCategoryToZone(
     String categoryId,
-    String zoneId,
+    String? zoneId,
   ) async {
-    await printerService.setCategoryZoneMapping(categoryId, zoneId);
+    try {
+      final updated = await _categoriesRepository.updateCategoryPrinter(
+        categoryId,
+        printerZoneId: zoneId,
+      );
+      final idx = categories.indexWhere((c) => c.id == categoryId);
+      if (idx != -1) {
+        categories[idx] = updated;
+      }
+    } catch (e) {
+      ErrorHandler.showErrorDialog('Error al asignar zona: $e');
+    }
   }
 
-  /* asignar varias categorias a una zona de forma masiva */
   Future<void> bulkAssignCategoriesToZone({
     required List<String> categoryIds,
-    required String zoneId,
+    required String? zoneId,
   }) async {
-    if (zoneId == kCajaZoneId) {
-      await printerService.bulkSetCategoryZoneMapping(categoryIds, kCajaZoneId);
-    } else {
-      await printerService.bulkSetCategoryZoneMapping(categoryIds, zoneId);
+    try {
+      for (final catId in categoryIds) {
+        await _categoriesRepository.updateCategoryPrinter(
+          catId,
+          printerZoneId: zoneId,
+        );
+      }
+      await _loadCategories();
+      selectedCategoryIds.clear();
+    } catch (e) {
+      ErrorHandler.showErrorDialog('Error en asignación masiva: $e');
     }
-    selectedCategoryIds.clear();
   }
 
-  /* categorias que NO tienen mapeo local (categoria -> zona). */
   List<String> unassignedCategoryIds() {
     return categories
         .map((c) => c.id)
-        .where((id) => id != null && !categoryZoneMappings.containsKey(id))
+        .where((id) => id != null && categories
+            .firstWhereOrNull((cat) => cat.id == id)
+            ?.printerZone ==
+            null)
         .cast<String>()
         .toList();
   }
 
-  /* asignar TODAS las categorias sin zona a la zona indicada. */
-  Future<int> assignAllUnassignedToZone(String zoneId) async {
+  Future<int> assignAllUnassignedToZone(String? zoneId) async {
     final List<String> ids = unassignedCategoryIds();
     if (ids.isEmpty) return 0;
-    await printerService.bulkSetCategoryZoneMapping(ids, zoneId);
+    await bulkAssignCategoriesToZone(categoryIds: ids, zoneId: zoneId);
     return ids.length;
   }
 

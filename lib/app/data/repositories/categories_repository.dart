@@ -64,16 +64,15 @@ class CategoriesRepository {
     }
   }
 
-  /* Actualizar la impresora asignada a una categoria; enviar ip=null para eliminarla */
+  /* Actualizar la zona de impresion asignada a una categoria; enviar printerZoneId=null para desasociar */
   Future<CategoryModel> updateCategoryPrinter(
     String id, {
-    required String? printerIp,
-    required int? printerPort,
+    required String? printerZoneId,
   }) async {
     try {
       final response = await _client.patch(
         '${UrlPaths.updateCategoryPrinter}/$id/printer',
-        body: {'printerIp': printerIp, 'printerPort': printerPort},
+        body: {'printerZoneId': printerZoneId},
       );
       return CategoryModel.fromJson(response);
     } catch (e) {

@@ -3,13 +3,9 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
-import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'assign_all_unassigned_dialog.dart';
 
-/// Barra de asignacion bulk: contador de seleccion, dropdown con zonas
-/// (Caja + custom), boton "Aplicar" y atajo "Asignar todas las
-/// no asignadas a…".
 class BulkAssignmentBar extends StatelessWidget {
   final List<PrinterZoneModel> allZones;
 
@@ -120,7 +116,7 @@ class BulkAssignmentBar extends StatelessWidget {
 
   Future<void> _handleApply(
     PrinterSettingsController controller,
-    String zoneId,
+    String? zoneId,
     String displayName,
   ) async {
     final List<String> ids = controller.selectedCategoryIds.toList();
@@ -140,10 +136,9 @@ class BulkAssignmentBar extends StatelessWidget {
   }
 }
 
-/// Dropdown con Caja + zonas custom, y boton "Aplicar" adyacente.
 class BulkZoneSelector extends StatefulWidget {
   final List<PrinterZoneModel> allZones;
-  final Future<void> Function(String zoneId, String displayName) onApply;
+  final Future<void> Function(String? zoneId, String displayName) onApply;
 
   const BulkZoneSelector({
     super.key,
@@ -178,7 +173,7 @@ class _BulkZoneSelectorState extends State<BulkZoneSelector> {
             items: widget.allZones
                 .map(
                   (z) => DropdownMenuItem<String>(
-                    value: z.id ?? kCajaZoneId,
+                    value: z.id,
                     child: Text(
                       z.isCaja
                           ? 'Caja (impresora principal)'
@@ -218,12 +213,10 @@ class _BulkZoneSelectorState extends State<BulkZoneSelector> {
     final PrinterZoneModel? zone = widget.allZones.firstWhereOrNull(
       (z) => z.id == _selectedZoneId,
     );
-    if (zone == null) {
-      ErrorHandler.showErrorDialog('Zona destino no encontrada');
-      return;
-    }
-    final String displayName =
-        zone.isCaja ? 'Caja' : (zone.name ?? 'Zona');
-    await widget.onApply(_selectedZoneId!, displayName);
+    final String displayName = zone?.isCaja == true
+        ? 'Caja'
+        : (zone?.name ?? 'Zona');
+    final String? zoneIdToSend = zone?.isCaja == true ? null : _selectedZoneId;
+    await widget.onApply(zoneIdToSend, displayName);
   }
 }

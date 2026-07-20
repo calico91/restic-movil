@@ -3,11 +3,8 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/modules/printer_settings/controllers/printer_settings_controller.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
-import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
 import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 
-/// Muestra un dialog para asignar TODAS las categorias sin zona a una
-/// zona destino elegida en un dropdown.
 Future<void> showAssignAllUnassignedDialog(
   List<PrinterZoneModel> allZones,
 ) async {
@@ -45,7 +42,7 @@ Future<void> showAssignAllUnassignedDialog(
                 items: allZones
                     .map(
                       (z) => DropdownMenuItem<String>(
-                        value: z.id ?? kCajaZoneId,
+                        value: z.id,
                         child: Text(
                           z.isCaja
                               ? 'Caja (impresora principal)'
@@ -72,8 +69,13 @@ Future<void> showAssignAllUnassignedDialog(
               ErrorHandler.showErrorDialog('Selecciona una zona');
               return;
             }
+            final PrinterZoneModel? zone = allZones.firstWhereOrNull(
+              (z) => z.id == selectedZoneId,
+            );
+            final String? zoneIdToSend =
+                zone?.isCaja == true ? null : selectedZoneId;
             final int count = await controller.assignAllUnassignedToZone(
-              selectedZoneId!,
+              zoneIdToSend,
             );
             Get.back(result: true);
             Get.showSnackbar(

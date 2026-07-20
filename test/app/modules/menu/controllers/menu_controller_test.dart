@@ -54,7 +54,7 @@ class MockCategoriesRepository implements CategoriesRepository {
   Future<void> deleteProduct(String id) async {}
 
   @override
-  Future<CategoryModel> updateCategoryPrinter(String id, {required String? printerIp, required int? printerPort}) async {
+  Future<CategoryModel> updateCategoryPrinter(String id, {required String? printerZoneId}) async {
     return CategoryModel(id: id, name: '', subcategories: []);
   }
 }

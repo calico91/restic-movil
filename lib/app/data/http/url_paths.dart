@@ -51,6 +51,12 @@ class UrlPaths {
   static const String updateCategory = 'categories/update'; // /:id
   static const String updateCategoryPrinter = 'categories'; // /:id/printer
 
+  // Print Zones
+  static const String getPrintZones = 'print-zones/all';
+  static const String createPrintZone = 'print-zones/create';
+  static const String updatePrintZone = 'print-zones/update'; // /:id
+  static const String deletePrintZone = 'print-zones/delete'; // /:id
+
   // Subcategories
   static const String createSubcategories = 'subcategories/create';
   static const String updateSubcategory = 'subcategories/update'; // /:id
