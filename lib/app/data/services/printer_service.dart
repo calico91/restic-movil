@@ -11,6 +11,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/printer_zone_model.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/printers/bluetooth_printer_port.dart';
 import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
 import 'package:restic_movil/core/utils/printers/network_printer_port.dart';
@@ -490,22 +491,32 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* imprimir un ticket en una impresora de red especifica sin alterar la configuracion activa */
+  /* imprimir un ticket en una impresora de red especifica sin alterar la configuracion activa.
+     Propaga el error para que el caller (printComandaMultiPrinter*) lo registre y muestre
+     un dialogo resumen al usuario. */
   Future<void> printTicketToSpecificNetwork(
     PrintableTicket ticket,
     String ip,
-    int port,
-  ) async {
+    int port, {
+    String? displayName,
+  }) async {
     NetworkPrinterPort? printerPort;
     try {
       printerPort = await NetworkPrinterPort.connect(ip, port);
       await ticket.printReceipt(printerPort);
       await printerPort.close();
-    } catch (e) {
-      _logger.e('Error imprimiendo en impresora especifica $ip:$port — $e');
+    } catch (e, st) {
+      _logger.e('Error imprimiendo en impresora especifica $ip:$port — $e',
+          stackTrace: st);
       try {
         await printerPort?.close();
       } catch (_) {}
+      throw _PrintZoneError(
+        displayName: displayName ?? '$ip:$port',
+        ip: ip,
+        port: port,
+        cause: e,
+      );
     }
   }
 
@@ -526,16 +537,41 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       mappings: Map<String, String>.from(categoryZoneMappings),
     );
 
+    final List<_PrintZoneError> failures = <_PrintZoneError>[];
+
     for (final MapEntry<NetworkPrinterModel?, List<OrderItemModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);
 
       if (entry.key != null) {
         // Impresora especifica de categoria
-        await printTicketToSpecificNetwork(ticket, entry.key!.ip, entry.key!.port);
+        try {
+          await printTicketToSpecificNetwork(
+            ticket,
+            entry.key!.ip,
+            entry.key!.port,
+            displayName: entry.key!.name,
+          );
+        } on _PrintZoneError catch (e) {
+          failures.add(e);
+        }
       } else {
         // Impresora por defecto
-        await printTicket(ticket);
+        try {
+          await printTicket(ticket);
+        } catch (_) {
+          // El error en la impresora por defecto tambien se reporta.
+          failures.add(_PrintZoneError(
+            displayName: 'Impresora principal',
+            ip: '',
+            port: 0,
+            cause: 'No se pudo imprimir en la impresora activa.',
+          ));
+        }
       }
+    }
+
+    if (failures.isNotEmpty) {
+      _showPrintFailuresModal(failures);
     }
   }
 
@@ -556,16 +592,73 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
       mappings: Map<String, String>.from(categoryZoneMappings),
     );
 
+    final List<_PrintZoneError> failures = <_PrintZoneError>[];
+
     for (final MapEntry<NetworkPrinterModel?, List<OrderDetailModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);
 
       if (entry.key != null) {
         // Impresora especifica de categoria
-        await printTicketToSpecificNetwork(ticket, entry.key!.ip, entry.key!.port);
+        try {
+          await printTicketToSpecificNetwork(
+            ticket,
+            entry.key!.ip,
+            entry.key!.port,
+            displayName: entry.key!.name,
+          );
+        } on _PrintZoneError catch (e) {
+          failures.add(e);
+        }
       } else {
         // Impresora por defecto
-        await printTicket(ticket);
+        try {
+          await printTicket(ticket);
+        } catch (_) {
+          failures.add(_PrintZoneError(
+            displayName: 'Impresora principal',
+            ip: '',
+            port: 0,
+            cause: 'No se pudo imprimir en la impresora activa.',
+          ));
+        }
       }
     }
+
+    if (failures.isNotEmpty) {
+      _showPrintFailuresModal(failures);
+    }
   }
+
+  /* Mostrar un dialogo resumen con las impresoras que fallaron durante la
+     impresion multi-zona. Las comandas que SI se imprimieron no se reintentan. */
+  void _showPrintFailuresModal(List<_PrintZoneError> failures) {
+    final String body = failures.map((f) => '- ${f.displayName}').join('\n');
+    Get.dialog(
+      ModalError(
+        title: failures.length == 1
+            ? 'No se pudo imprimir la comanda'
+            : 'Algunas comandas no se imprimieron',
+        message: 'Zonas con error de impresion:\n$body',
+      ),
+    );
+  }
+}
+
+/// Excepcion interna usada para distinguir errores de impresion por zona
+/// de cualquier otro fallo, y para que el caller muestre un mensaje claro.
+class _PrintZoneError implements Exception {
+  final String displayName;
+  final String ip;
+  final int port;
+  final Object cause;
+
+  _PrintZoneError({
+    required this.displayName,
+    required this.ip,
+    required this.port,
+    required this.cause,
+  });
+
+  @override
+  String toString() => 'PrintZoneError($displayName @ $ip:$port): $cause';
 }

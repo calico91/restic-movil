@@ -218,5 +218,69 @@ void main() {
       expect(groups.containsKey(null), isTrue,
           reason: 'Mapeo explicito a Caja => null');
     });
+
+    test(
+        'Regresion: dos zonas con la MISMA IP:puerto generan 2 grupos separados',
+        () {
+      // Caso del usuario durante pruebas: ambas zonas apuntan a la misma
+      // IP:puerto (una sola impresora fisica). El resolver debe generar
+      // DOS grupos (uno por zona) para que se emita un ticket por zona.
+      final categories = [
+        buildCategory(id: 'cat_bebidas', subId: 'sub_bebidas'),
+        buildCategory(id: 'cat_desayunos', subId: 'sub_desayunos'),
+      ];
+      final items = [
+        buildItem('sub_bebidas'),
+        buildItem('sub_desayunos'),
+      ];
+
+      const String sharedIp = '192.168.1.50';
+      const int sharedPort = 9100;
+
+      final zonas = [
+        const PrinterZoneModel(
+          id: 'zone_bebidas',
+          name: 'Bebidas',
+          ip: sharedIp,
+          port: sharedPort,
+        ),
+        const PrinterZoneModel(
+          id: 'zone_primer_piso',
+          name: 'Primer Piso',
+          ip: sharedIp,
+          port: sharedPort,
+        ),
+      ];
+      final mappings = {
+        'cat_bebidas': 'zone_bebidas',
+        'cat_desayunos': 'zone_primer_piso',
+      };
+
+      final groups = CategoryPrinterResolver.groupItemsByPrinter(
+        items,
+        categories,
+        zones: zonas,
+        mappings: mappings,
+      );
+
+      // Deben ser 2 grupos (no 1), uno por zona, gracias al == que incluye name.
+      expect(groups.length, 2,
+          reason: 'Zonas con misma IP:puerto deben separarse por nombre');
+      expect(groups.containsKey(null), isFalse);
+
+      final bebidasKey = groups.keys.firstWhere(
+        (k) => k != null && k.name == 'Bebidas',
+        orElse: () => null,
+      );
+      expect(bebidasKey, isNotNull);
+      expect(groups[bebidasKey]!.length, 1);
+
+      final primerPisoKey = groups.keys.firstWhere(
+        (k) => k != null && k.name == 'Primer Piso',
+        orElse: () => null,
+      );
+      expect(primerPisoKey, isNotNull);
+      expect(groups[primerPisoKey]!.length, 1);
+    });
   });
 }

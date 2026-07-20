@@ -177,7 +177,12 @@ class MockPrinterService extends GetxService implements PrinterService {
   Future<void> printTestPage() async {}
 
   @override
-  Future<void> printTicketToSpecificNetwork(PrintableTicket ticket, String ip, int port) async {}
+  Future<void> printTicketToSpecificNetwork(
+    PrintableTicket ticket,
+    String ip,
+    int port, {
+    String? displayName,
+  }) async {}
 
   @override
   Future<void> printComandaMultiPrinter({
