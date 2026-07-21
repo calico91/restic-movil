@@ -208,6 +208,7 @@ class MockStorageService extends GetxService implements StorageService {
 
   @override
   Future<int?> getNetworkPrinterPort() async => null;
+
 }
 
 void main() {
