@@ -219,9 +219,5 @@ class CommandsController extends GetxController {
     // _webSocketService.ordersStream.listen((order) { ... });
   }
 
-  @override
-  void onClose() {
-    _webSocketService.disconnect();
-    super.onClose();
-  }
+ 
 }

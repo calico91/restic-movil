@@ -22,6 +22,8 @@ class WebSocketService extends GetxService {
   // URL del WebSocket se construirá dinámicamente usando StorageService
 
   Future<void> connect() async {
+    if (_client != null) return;
+
     final branchId = await _storageService.getBranchId();
 
     if (branchId == null) {

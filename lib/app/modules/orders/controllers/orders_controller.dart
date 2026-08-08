@@ -110,7 +110,6 @@ class OrdersController extends GetxController {
   void onClose() {
     searchController.dispose();
     additionalObservationsController.dispose();
-    _webSocketService.disconnect();
     super.onClose();
   }
 

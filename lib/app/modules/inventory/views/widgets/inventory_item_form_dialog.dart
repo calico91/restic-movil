@@ -11,7 +11,7 @@ class InventoryItemFormDialog extends StatelessWidget {
   const InventoryItemFormDialog({super.key, required this.controller, this.item});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) {  
     return AlertDialog(
       title: Text(item == null ? 'Nuevo insumo' : 'Editar insumo'),
       content: ReactiveForm(
