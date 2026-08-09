@@ -67,11 +67,6 @@ class CashRegisterController extends GetxController {
     _loadInitialData();
   }
 
-  @override
-  void onClose() {
-    _webSocketService.disconnect();
-    super.onClose();
-  }
 
   /*conectar al websocket */
   void _connectWebSocket() {
