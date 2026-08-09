@@ -62,10 +62,15 @@ class WebSocketService extends GetxService {
         beforeConnect: () async {
           debugPrint('Connecting to WebSocket...');
         },
-        onWebSocketError: (dynamic error) =>
-            debugPrint('WebSocket error: $error'),
+        onWebSocketError: (dynamic error) {
+          debugPrint('WebSocket error: $error');
+          _client = null;
+        },
         onStompError: (frame) => debugPrint('Stomp error: ${frame.body}'),
-        onDisconnect: (frame) => debugPrint('Disconnected from WebSocket'),
+        onDisconnect: (frame) {
+          debugPrint('Disconnected from WebSocket');
+          _client = null;
+        },
       ),
     );
 
@@ -123,5 +128,6 @@ class WebSocketService extends GetxService {
 
   void disconnect() {
     _client?.deactivate();
+    _client = null;
   }
 }
