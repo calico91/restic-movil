@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
@@ -34,6 +36,9 @@ class CashRegisterController extends GetxController {
   final StorageService _storageService = Get.find<StorageService>();
   final WebSocketService _webSocketService = Get.find<WebSocketService>();
   final PrinterService _printerService = Get.find<PrinterService>();
+
+  StreamSubscription<List<OrderModel>>? _openOrdersSub;
+  StreamSubscription<OrderModel>? _ordersSub;
 
   CashRegisterController({
     required this.ordersRepository,
@@ -73,20 +78,29 @@ class CashRegisterController extends GetxController {
     _webSocketService.connect();
 
     // Escuchar actualizaciones completas de ordenes abiertas
-    _webSocketService.openOrdersStream.listen((updatedOrders) {
+    _openOrdersSub?.cancel();
+    _openOrdersSub = _webSocketService.openOrdersStream.listen((updatedOrders) {
       if (currentTab.value == 0) {
         loadPendingOrders(withOverlay: false);
       }
     });
 
     // Escuchar ordenes individuales para recargar si es necesario
-    _webSocketService.ordersStream.listen((order) {
+    _ordersSub?.cancel();
+    _ordersSub = _webSocketService.ordersStream.listen((order) {
       if (currentTab.value == 0) {
         loadPendingOrders(withOverlay: false);
       } else {
         loadHistoryOrders(withOverlay: false);
       }
     });
+  }
+
+  @override
+  void onClose() {
+    _openOrdersSub?.cancel();
+    _ordersSub?.cancel();
+    super.onClose();
   }
 
   Future<void> _loadInitialData() async {

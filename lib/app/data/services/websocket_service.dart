@@ -19,6 +19,10 @@ class WebSocketService extends GetxService {
   final _openOrdersController = StreamController<List<OrderModel>>.broadcast();
   Stream<List<OrderModel>> get openOrdersStream => _openOrdersController.stream;
 
+  /* Controlador de flujo para transmitir cambios de estado de órdenes individuales (pago, anulación, etc.) */
+  final _orderStatusController = StreamController<OrderModel>.broadcast();
+  Stream<OrderModel> get orderStatusStream => _orderStatusController.stream;
+
   // URL del WebSocket se construirá dinámicamente usando StorageService
 
   Future<void> connect() async {
@@ -70,10 +74,15 @@ class WebSocketService extends GetxService {
         beforeConnect: () async {
           debugPrint('Connecting to WebSocket...');
         },
-        onWebSocketError: (dynamic error) =>
-            debugPrint('WebSocket error: $error'),
+        onWebSocketError: (dynamic error) {
+          debugPrint('WebSocket error: $error');
+          _client = null;
+        },
         onStompError: (frame) => debugPrint('Stomp error: ${frame.body}'),
-        onDisconnect: (frame) => debugPrint('Disconnected from WebSocket'),
+        onDisconnect: (frame) {
+          debugPrint('Disconnected from WebSocket');
+          _client = null;
+        },
       ),
     );
 
@@ -127,9 +136,28 @@ class WebSocketService extends GetxService {
         }
       },
     );
+
+    /* Suscribirse a cambios de estado de órdenes (pago, anulación, etc.) */
+    final statusDestination = '/topic/branch/$branchId/orders/status';
+    debugPrint('Subscribing to $statusDestination');
+    _client?.subscribe(
+      destination: statusDestination,
+      callback: (frame) {
+        if (frame.body != null) {
+          try {
+            final Map<String, dynamic> json = jsonDecode(frame.body!);
+            final order = OrderModel.fromJson(json);
+            _orderStatusController.add(order);
+          } catch (e) {
+            debugPrint('Error parsing order status: $e');
+          }
+        }
+      },
+    );
   }
 
   void disconnect() {
     _client?.deactivate();
+    _client = null;
   }
 }

@@ -74,7 +74,6 @@ class FiscalDataModel {
   Map<String, dynamic> toJson() {
     final Map<String, dynamic> data = {
       'businessName': businessName,
-      'taxId': taxId,
       'address': address,
       'city': city,
       'dianResolution': dianResolution,
@@ -83,6 +82,7 @@ class FiscalDataModel {
       'branchId': branchId,
     };
 
+    if (taxId.isNotEmpty) data['taxId'] = taxId;
     if (taxIdDigit != null) data['taxIdDigit'] = taxIdDigit;
     if (department != null) data['department'] = department;
     if (resolutionStartDate != null) {

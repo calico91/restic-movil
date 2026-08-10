@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
@@ -20,6 +22,10 @@ class OrdersController extends GetxController {
   final CategoriesRepository categoriesRepository;
   final StorageService _storageService = Get.find<StorageService>();
   final WebSocketService _webSocketService = Get.find<WebSocketService>();
+
+  StreamSubscription<List<OrderModel>>? _openOrdersSub;
+  StreamSubscription<OrderModel>? _ordersSub;
+  StreamSubscription<OrderModel>? _orderStatusSub;
 
   OrdersController({
     required this.ordersRepository,
@@ -85,19 +91,49 @@ class OrdersController extends GetxController {
     _webSocketService.connect();
 
     // Escuchar actualizaciones completas de ordenes abiertas
-    _webSocketService.openOrdersStream.listen((updatedOrders) {
+    _openOrdersSub?.cancel();
+    _openOrdersSub = _webSocketService.openOrdersStream.listen((updatedOrders) {
       _allOrders.assignAll(updatedOrders);
-      if (currentTab.value == 0) {
-        _filterOrders();
-      }
+      _filterOrders();
     });
 
     // Escuchar ordenes individuales para recargar si es necesario
-    _webSocketService.ordersStream.listen((order) {
+    _ordersSub?.cancel();
+    _ordersSub = _webSocketService.ordersStream.listen((order) {
       if (currentTab.value == 1) {
         loadFinalizedOrders(withOverlay: false);
       }
     });
+
+    // Escuchar cambios de estado de ordenes (pago, anulación, etc.)
+    _orderStatusSub?.cancel();
+    _orderStatusSub = _webSocketService.orderStatusStream.listen(_onOrderStatusChanged);
+  }
+
+  /*manejar un cambio de estado de una orden: quitar de las listas si el estado es terminal*/
+  void _onOrderStatusChanged(OrderModel order) {
+    if (order.id == null) return;
+    final status = order.status;
+    if (status == null) return;
+
+    // Quitar la orden de las listas de Activos y Finalizados cuando pasa a PAID o CANCELED
+    if (status == 'PAID' || status == 'CANCELED') {
+      _allOrders.removeWhere((o) => o.id == order.id);
+      _allFinalizedOrders.removeWhere((o) => o.id == order.id);
+    } else if (status == 'FINALIZED') {
+      // Si la orden acaba de pasar a FINALIZED, agregarla a finalizados si no estaba
+      if (!_allFinalizedOrders.any((o) => o.id == order.id)) {
+        _allFinalizedOrders.add(order);
+      }
+      _allOrders.removeWhere((o) => o.id == order.id);
+    } else if (status == 'OPEN') {
+      if (!_allOrders.any((o) => o.id == order.id)) {
+        _allOrders.add(order);
+      }
+      _allFinalizedOrders.removeWhere((o) => o.id == order.id);
+    }
+
+    _filterOrders();
   }
 
   @override
@@ -108,6 +144,9 @@ class OrdersController extends GetxController {
 
   @override
   void onClose() {
+    _openOrdersSub?.cancel();
+    _ordersSub?.cancel();
+    _orderStatusSub?.cancel();
     searchController.dispose();
     additionalObservationsController.dispose();
     super.onClose();
