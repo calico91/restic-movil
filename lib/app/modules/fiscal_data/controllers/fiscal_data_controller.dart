@@ -46,7 +46,9 @@ class FiscalDataController extends GetxController {
           Validators.pattern(RegExp(r'^[0-9]+$')),
         ],
       ),
-      'taxIdDigit': FormControl<String>(validators: [Validators.maxLength(2)]),
+      'taxIdDigit': FormControl<String>(
+        validators: [Validators.maxLength(2), Validators.pattern(RegExp(r'^[0-9]+$'))],
+      ),
       'address': FormControl<String>(
         validators: [Validators.maxLength(300)],
       ),

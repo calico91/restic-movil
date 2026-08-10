@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -14,6 +16,8 @@ class CommandsController extends GetxController {
   final OrdersRepository ordersRepository;
   final WebSocketService _webSocketService = Get.find<WebSocketService>();
   final StorageService _storageService = Get.find<StorageService>();
+
+  StreamSubscription<List<OrderModel>>? _openOrdersSub;
 
   // Tab Handling
   final RxInt currentTab = 0.obs; // 0: Open, 1: Finalized
@@ -207,7 +211,8 @@ class CommandsController extends GetxController {
     _webSocketService.connect();
 
     // Escuchar actualizaciones completas de ordenes abiertas
-    _webSocketService.openOrdersStream.listen((updatedOrders) {
+    _openOrdersSub?.cancel();
+    _openOrdersSub = _webSocketService.openOrdersStream.listen((updatedOrders) {
       // Solo actualizar si estamos en la pestaña de pedidos activos (0)
       if (currentTab.value == 0) {
         orders.assignAll(updatedOrders);
@@ -219,5 +224,10 @@ class CommandsController extends GetxController {
     // _webSocketService.ordersStream.listen((order) { ... });
   }
 
- 
+  @override
+  void onClose() {
+    _openOrdersSub?.cancel();
+    super.onClose();
+  }
+
 }

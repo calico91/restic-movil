@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
+import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
 import '../controllers/users_controller.dart';
 import 'widgets/user_form_dialog.dart';
 
@@ -164,7 +165,9 @@ class UsersView extends GetView<UsersController> {
           },
         );
       }),
-      floatingActionButton: null,
+      floatingActionButton: CustomFloatingActionButton(
+        onPressed: () => _showUserForm(context),
+      ),
     );
   }
 }
