@@ -48,11 +48,12 @@ class WebSocketService extends GetxService {
     final String baseUrlStr =
         rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
 
-    /* HTTPS → SockJS con https:// (evita el esquema wss:// no soportado en Android)
-       HTTP  → WebSocket nativo con ws:// */
+    /* Construir URL con esquema WebSocket nativo:
+       https → wss, http → ws. Railway termina TLS en el edge y reenvía
+       el header Upgrade al backend, por lo que wss:// funciona correctamente. */
     final bool isSecure = baseUrlStr.startsWith('https');
     final String socketUrl = isSecure
-        ? '$baseUrlStr/ws'
+        ? '${baseUrlStr.replaceFirst('https', 'wss')}/ws'
         : '${baseUrlStr.replaceFirst('http', 'ws')}/ws';
 
     /* Obtener credenciales para los headers de la conexión */
@@ -66,8 +67,8 @@ class WebSocketService extends GetxService {
     _client = StompClient(
       config: StompConfig(
         url: socketUrl,
-        // SockJS usa http/https directamente — evita el esquema wss:// no soportado en Android
-        useSockJS: isSecure,
+        // WebSocket nativo (stomp_dart_client + web_socket_channel soportan wss:// en Android)
+        useSockJS: false,
         webSocketConnectHeaders: authHeaders,
         stompConnectHeaders: authHeaders,
         onConnect: (frame) => _onConnect(frame, branchId),
