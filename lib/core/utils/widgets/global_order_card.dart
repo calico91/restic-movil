@@ -29,6 +29,8 @@ class GlobalOrderCard extends StatelessWidget {
   final VoidCallback? onCancelPressed;
   final bool showPrintButton;
   final bool showCommandaButton;
+  final VoidCallback? onEditPaymentPressed;
+  final String? editPaymentText;
   // Categorias con configuracion de impresora para enrutamiento multi-printer
   final List<CategoryModel>? categories;
 
@@ -45,6 +47,8 @@ class GlobalOrderCard extends StatelessWidget {
     this.onCancelPressed,
     this.showPrintButton = true,
     this.showCommandaButton = false,
+    this.onEditPaymentPressed,
+    this.editPaymentText,
     this.categories,
   });
 
@@ -289,7 +293,18 @@ class GlobalOrderCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if (onDetailsPressed != null && onActionPressed != null)
+                if (onDetailsPressed != null && onEditPaymentPressed != null)
+                  const SizedBox(width: 10),
+                if (onEditPaymentPressed != null && editPaymentText != null) ...[
+                  Expanded(
+                    child: CardOutlinedButton(
+                      text: editPaymentText!,
+                      onPressed: onEditPaymentPressed!,
+                    ),
+                  ),
+                ],
+                if ((onEditPaymentPressed != null || onDetailsPressed != null) &&
+                    onActionPressed != null)
                   const SizedBox(width: 10),
                 if (onActionPressed != null && actionText != null) ...[
                   Expanded(

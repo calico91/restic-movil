@@ -24,6 +24,7 @@ class UrlPaths {
   static const String getTransactionTypes = 'transactions/types';
   static const String createTransaction = 'transactions/create';
   static const String getTransactionInvoice = 'transactions'; // /:id/invoice
+  static const String changeTransactionPayment = 'transactions'; // /:id/payment-details
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';

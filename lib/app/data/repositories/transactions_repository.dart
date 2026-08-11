@@ -34,4 +34,20 @@ class TransactionsRepository {
     );
     return response as Map<String, dynamic>;
   }
+
+  Future<Map<String, dynamic>> changePaymentDetails(
+    String transactionId,
+    List<Map<String, dynamic>> paymentDetails, {
+    String? reason,
+  }) async {
+    final body = <String, dynamic>{
+      'paymentDetails': paymentDetails,
+      if (reason != null && reason.isNotEmpty) 'reason': reason,
+    };
+    final response = await _client.put(
+      '${UrlPaths.changeTransactionPayment}/$transactionId/payment-details',
+      body: body,
+    );
+    return response as Map<String, dynamic>;
+  }
 }
