@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 import '../modules/auth/bindings/auth_binding.dart';
+import '../modules/change_password/bindings/change_password_binding.dart';
+import '../modules/change_password/views/change_password_view.dart';
 import '../modules/auth/views/login_view.dart';
 import '../modules/home/bindings/home_binding.dart';
 import '../modules/home/views/home_view.dart';
@@ -137,6 +139,11 @@ class AppPages {
       name: Routes.INVENTORY,
       page: () => const InventoryView(),
       binding: InventoryBinding(),
+    ),
+    GetPage(
+      name: Routes.CHANGE_PASSWORD,
+      page: () => const ChangePasswordView(),
+      binding: ChangePasswordBinding(),
     ),
   ];
 }

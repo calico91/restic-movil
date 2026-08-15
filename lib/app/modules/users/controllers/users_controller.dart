@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/app/data/repositories/users_repository.dart';
@@ -103,22 +104,57 @@ class UsersController extends GetxController {
     return isSuccess;
   }
 
-  /// Restablece la contraseña de un usuario a su valor por defecto
-  Future<void> resetUserPassword(String id) async {
+  /// Restablece la contraseña de un usuario generando una temporal con SecureRandom.
+  Future<void> resetUserPassword(String username, String id) async {
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          await _repository.resetPassword(id);
-          Get.showSnackbar(
-            const InfoSnackbar(
-              'Contraseña restablecida exitosamente a "cambio"',
-            ),
-          );
+          final result = await _repository.resetPassword(id);
+          _showGeneratedPasswordDialog(username, result.temporaryPassword);
         } catch (e) {
           ErrorHandler.showErrorDialog(e);
         }
       },
+    );
+  }
+
+  void _showGeneratedPasswordDialog(String username, String password) {
+    Get.dialog(
+      AlertDialog(
+        title: const Text('Contrasena temporal generada'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Usuario: $username'),
+            const SizedBox(height: 12),
+            const Text(
+              'Comparte esta contrasena con el usuario. Se mostrara solo una vez:',
+            ),
+            const SizedBox(height: 8),
+            SelectableText(
+              password,
+              style: const TextStyle(
+                fontFamily: 'monospace',
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            const Text(
+              'El usuario debera cambiarla en su proximo inicio de sesion.',
+              style: TextStyle(color: Colors.grey, fontSize: 12),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: const Text('Cerrar'),
+          ),
+        ],
+      ),
     );
   }
 

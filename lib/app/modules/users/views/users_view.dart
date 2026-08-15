@@ -135,7 +135,7 @@ class UsersView extends GetView<UsersController> {
                           AlertDialog(
                             title: const Text('Restablecer Contraseña'),
                             content: Text(
-                              '¿Estás seguro de que quieres restablecer la contraseña a "cambio" para ${user.username}?'
+                              '¿Estas seguro de que quieres restablecer la contrasena de ${user.username}? Se generara una nueva contrasena temporal.'
                             ),
                             actions: [
                               TextButton(
@@ -146,7 +146,7 @@ class UsersView extends GetView<UsersController> {
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE52E2D)),
                                 onPressed: () {
                                   Get.back();
-                                  controller.resetUserPassword(user.id!);
+                                  controller.resetUserPassword(user.username!, user.id!);
                                 },
                                 child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
                               ),
