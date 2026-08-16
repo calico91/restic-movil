@@ -17,7 +17,6 @@ class FiscalDataModel {
   final String? phone;
   final String? website;
   final bool? active;
-  final String branchId;
   final String? createdAt;
   final String? updatedAt;
 
@@ -40,7 +39,6 @@ class FiscalDataModel {
     this.phone,
     this.website,
     this.active,
-    required this.branchId,
     this.createdAt,
     this.updatedAt,
   });
@@ -65,7 +63,6 @@ class FiscalDataModel {
       phone: json['phone'] as String?,
       website: json['website'] as String?,
       active: json['active'] as bool?,
-      branchId: json['branchId'] as String? ?? '',
       createdAt: json['createdAt'] as String?,
       updatedAt: json['updatedAt'] as String?,
     );
@@ -79,7 +76,6 @@ class FiscalDataModel {
       'dianResolution': dianResolution,
       'taxRegime': taxRegime,
       'email': email,
-      'branchId': branchId,
     };
 
     if (taxId.isNotEmpty) data['taxId'] = taxId;

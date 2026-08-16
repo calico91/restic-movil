@@ -610,7 +610,6 @@ class _TransactionModalState extends State<TransactionModal> {
     // Create Request
     final request = CreateTransactionRequest(
       orderId: order.id,
-      totalAmount: order.total,
       tipAmount: tipAmount,
       transactionType: values['transactionType'] as String?,
       originalTransactionId: values['originalTransactionId'] as String?,

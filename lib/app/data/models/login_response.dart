@@ -6,6 +6,7 @@ class LoginResponse {
   final String? name;
   final List<String>? roles;
   final String? token;
+  final bool? mustChangePassword;
 
   LoginResponse({
     this.branches,
@@ -15,6 +16,7 @@ class LoginResponse {
     this.name,
     this.roles,
     this.token,
+    this.mustChangePassword,
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) {
@@ -28,6 +30,7 @@ class LoginResponse {
       name: json['name'],
       roles: json['roles'] != null ? List<String>.from(json['roles']) : null,
       token: json['token'],
+      mustChangePassword: json['must_change_password'] as bool?,
     );
   }
 
@@ -40,6 +43,7 @@ class LoginResponse {
       'name': name,
       'roles': roles,
       'token': token,
+      'must_change_password': mustChangePassword,
     };
   }
 }

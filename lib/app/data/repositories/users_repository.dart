@@ -1,5 +1,6 @@
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
+import 'package:restic_movil/app/data/models/reset_password_response.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 
 class UsersRepository {
@@ -55,8 +56,13 @@ class UsersRepository {
     return UserModel.fromJson(data);
   }
 
-  Future<void> resetPassword(String id) async {
-    await _httpClient.patch('${UrlPaths.resetPassword}/$id/reset-password');
+  Future<ResetPasswordResponse> resetPassword(String id) async {
+    final response = await _httpClient.patch('${UrlPaths.resetPassword}/$id/reset-password');
+    final Map<String, dynamic> data =
+        response is Map<String, dynamic> && response.containsKey('data')
+        ? response['data']
+        : response;
+    return ResetPasswordResponse.fromJson(data);
   }
 
   Future<void> toggleUserStatus(String id) async {

@@ -89,12 +89,17 @@ class LoginController extends GetxController {
           }
         },
       ).then((response) async {
-        /* 
+        /*
         si el usuario tiene una sola sucursal, se guarda y se navega al home
         si tiene mas de una sucursal, se muestra el modal para seleccionar
         si no tiene sucursales, se muestra un error
         */
         if (response == null) return;
+
+        if (response.mustChangePassword == true) {
+          Get.offAllNamed(Routes.CHANGE_PASSWORD);
+          return;
+        }
 
         if (response.branches!.length == 1) {
           await storageService.saveBranchId(response.branches!.first.id!);
