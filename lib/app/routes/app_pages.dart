@@ -39,6 +39,8 @@ import '../modules/payment_methods/bindings/payment_methods_binding.dart';
 import '../modules/payment_methods/views/payment_methods_view.dart';
 import '../modules/inventory/bindings/inventory_binding.dart';
 import '../modules/inventory/views/inventory_view.dart';
+import '../modules/app_update/bindings/app_update_binding.dart';
+import '../modules/app_update/views/app_update_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -144,6 +146,11 @@ class AppPages {
       name: Routes.CHANGE_PASSWORD,
       page: () => const ChangePasswordView(),
       binding: ChangePasswordBinding(),
+    ),
+    GetPage(
+      name: Routes.APP_UPDATE,
+      page: () => const AppUpdateView(),
+      binding: AppUpdateBinding(),
     ),
   ];
 }
