@@ -60,6 +60,11 @@ class WebSocketService extends GetxService {
     _client = StompClient(
       config: StompConfig(
         url: socketUrl,
+        // WebSocket nativo (stomp_dart_client + web_socket_channel soportan wss:// en Android)
+        useSockJS: false,
+        // Falla rapido si el backend esta dormido (serverless) para que la reconexion
+        // nativa de stomp_dart_client (reconnectDelay 5s) reintente antes.
+        connectionTimeout: const Duration(seconds: 10),
         webSocketConnectHeaders: authHeaders,
         stompConnectHeaders: authHeaders,
         onConnect: (frame) => _onConnect(frame, branchId),
@@ -68,12 +73,10 @@ class WebSocketService extends GetxService {
         },
         onWebSocketError: (dynamic error) {
           debugPrint('WebSocket error: $error');
-          _client = null;
         },
         onStompError: (frame) => debugPrint('Stomp error: ${frame.body}'),
         onDisconnect: (frame) {
           debugPrint('Disconnected from WebSocket');
-          _client = null;
         },
       ),
     );
