@@ -61,8 +61,8 @@ class SplashController extends GetxController {
     AppVersionInfo info;
     try {
       info = await appVersionRepository.getAppVersionInfo();
-    } catch (_) {
-      debugPrint('version check fail-open: no se pudo consultar la version central');
+    } catch (e) {
+      debugPrint('version check fail-open: ${_classifyError(e)}');
       return false;
     }
 
@@ -76,5 +76,27 @@ class SplashController extends GetxController {
     }
     debugPrint('forzar actualizacion: no');
     return false;
+  }
+
+  /// Clasifica una excepcion del version check en una razon corta y segura
+  /// (sin exponer nombres de clases) para logging.
+  String _classifyError(Object e) {
+    final s = e.toString();
+    if (s.contains('APP_VERSION_CHECK_URL')) return 'url no configurada';
+    if (s.contains('respondio con status')) return 'http no exitoso';
+    if (s.contains('JSON no valido')) return 'json no valido';
+    if (s.contains('Timeout') || s.contains('timeout')) return 'timeout';
+    if (s.contains('SocketException') ||
+        s.contains('Failed host lookup') ||
+        s.contains('Connection refused') ||
+        s.contains('Connection reset') ||
+        s.contains('Network is unreachable')) {
+      return 'sin conexion';
+    }
+    if (s.contains('HandshakeException') || s.contains('Certificate')) {
+      return 'error tls';
+    }
+    if (s.contains('FormatException')) return 'json invalido';
+    return 'error de red';
   }
 }

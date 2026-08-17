@@ -8,8 +8,8 @@ import 'package:restic_movil/app/data/repositories/app_version_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/helpers/version_helper.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:url_launcher/url_launcher.dart';
-
 
 class AppUpdateController extends GetxController {
   final AppVersionRepository appVersionRepository;
@@ -69,7 +69,8 @@ class AppUpdateController extends GetxController {
 
       final packageInfo = await PackageInfo.fromPlatform();
       final min = info.minRequiredVersion ?? 'desconocida';
-      debugPrint('version minima $min version instalada ${packageInfo.version}');
+      debugPrint(
+          'version minima $min version instalada ${packageInfo.version}');
 
       if (!VersionHelper.isLowerThan(
           packageInfo.version, info.minRequiredVersion)) {
@@ -77,8 +78,12 @@ class AppUpdateController extends GetxController {
         await _navigateToNormalFlow();
       } else {
         debugPrint('forzar actualizacion: si');
-        _showError(
-            'La versión instalada aún no cumple el requisito mínimo.');
+        Get.dialog(
+          const ModalError(
+            message:
+                'La versión instalada aún no cumple el requisito mínimo.',
+          ),
+        );
       }
     } catch (_) {
       _showError(
