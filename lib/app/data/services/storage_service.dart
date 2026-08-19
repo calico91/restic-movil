@@ -250,4 +250,5 @@ class StorageService extends GetxService {
   Future<bool> getWaiterViewOwnOrdersOnly() async {
     return (await _storage.read(key: 'waiter_view_own_orders_only')) == 'true';
   }
+
 }

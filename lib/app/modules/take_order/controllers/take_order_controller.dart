@@ -92,8 +92,7 @@ class TakeOrderController extends GetxController {
           id: cat.id,
           name: cat.name,
           description: cat.description,
-          printerIp: cat.printerIp,
-          printerPort: cat.printerPort,
+          printerZone: cat.printerZone,
           subcategories: filteredSubs,
         ));
       }

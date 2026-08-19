@@ -18,4 +18,6 @@ abstract class Routes {
   static const PROFILE = '/profile';
   static const PAYMENT_METHODS = '/payment-methods';
   static const INVENTORY = '/inventory';
+  static const CHANGE_PASSWORD = '/change-password';
+  static const APP_UPDATE = '/app-update';
 }

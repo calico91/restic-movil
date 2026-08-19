@@ -8,8 +8,11 @@ import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
+import 'package:restic_movil/app/data/models/printer_zone_model.dart';
+import 'package:restic_movil/app/data/repositories/printer_zone_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/enums/printer_connection_type.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/printers/bluetooth_printer_port.dart';
 import 'package:restic_movil/core/utils/printers/category_printer_resolver.dart';
 import 'package:restic_movil/core/utils/printers/network_printer_port.dart';
@@ -26,11 +29,12 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
   RxBool isBluetoothOn = false.obs;
   RxString printerSize = '58mm'.obs;
 
-  // Estado de impresora de red
   Rx<NetworkPrinterModel?> networkConfig = Rx<NetworkPrinterModel?>(null);
   RxBool isNetworkConnected = false.obs;
   Rx<PrinterConnectionType> connectionType =
       PrinterConnectionType.bluetooth.obs;
+
+  final RxList<PrinterZoneModel> zones = <PrinterZoneModel>[].obs;
 
   @override
   void onInit() {
@@ -40,7 +44,11 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     _initConnections();
   }
 
-  /* inicializar conexiones en orden: red primero, Bluetooth después */
+  PrinterZoneRepository? get _printerZoneRepository {
+    if (!Get.isRegistered<PrinterZoneRepository>()) return null;
+    return Get.find<PrinterZoneRepository>();
+  }
+
   Future<void> _initConnections() async {
     await _autoConnectNetwork();
     await initBluetooth();
@@ -59,18 +67,49 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* cargar el tamaño de impresora guardado desde storage */
   Future<void> _loadPrinterSize() async {
     printerSize.value = await _storageService.getPrinterSize();
   }
 
-  /* actualizar el tamaño de impresora y persistirlo */
+  Future<void> loadZonesFromBackend() async {
+    final repo = _printerZoneRepository;
+    if (repo == null) return;
+    try {
+      final List<PrinterZoneModel> backendZones = await repo.getAll();
+      zones.assignAll(backendZones);
+    } catch (e) {
+      _logger.w('No se pudieron cargar zonas del backend: $e');
+    }
+  }
+
+  Future<void> persistZones() async {}
+
+  PrinterZoneModel? get cajaZone {
+    final NetworkPrinterModel? cfg = networkConfig.value;
+    if (cfg == null) return null;
+    return PrinterZoneModel(
+      id: '__caja__',
+      name: 'Caja',
+      ip: cfg.ip,
+      port: cfg.port,
+      isCaja: true,
+    );
+  }
+
+  List<PrinterZoneModel> get allZones {
+    final List<PrinterZoneModel> list = <PrinterZoneModel>[];
+    final PrinterZoneModel? caja = cajaZone;
+    if (caja != null) list.add(caja);
+    list.addAll(zones);
+    return list;
+  }
+
   Future<void> setPrinterSize(String size) async {
     await _storageService.savePrinterSize(size);
     printerSize.value = size;
   }
 
-  /* verifica el estado actual del bluetooth al volver a la app */  Future<void> _checkBluetoothState() async {
+  Future<void> _checkBluetoothState() async {
     try {
       bool? isOn = await bluetooth.isOn;
       isBluetoothOn.value = isOn == true;
@@ -93,7 +132,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* inicializar bluetooth y escuchar estado */
   Future<void> initBluetooth() async {
     try {
       bool? isOn = await bluetooth.isOn;
@@ -101,8 +139,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
 
       if (isOn == true) {
         await getDevices();
-
-        // Intentar conectar con la impresora guardada
         await autoConnect();
       }
 
@@ -135,7 +171,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
             break;
           case BlueThermalPrinter.STATE_ON:
             isBluetoothOn.value = true;
-            // No hacemos disconnect() porque podríamos interrumpir el autoConnect
             getDevices();
             break;
           default:
@@ -147,7 +182,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* obtener lista de dispositivos vinculados */
   Future<void> getDevices() async {
     try {
       List<BluetoothDevice> pairedDevices = await bluetooth.getBondedDevices();
@@ -157,9 +191,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* conectar a un dispositivo especÃ­fico */
   Future<bool> connect(BluetoothDevice device) async {
-    // Si hay una conexión de red activa, desconectarla primero
     if (isNetworkConnected.value) {
       _logger.i('Desconectando impresora de red antes de conectar por Bluetooth...');
       await disconnectNetwork();
@@ -183,14 +215,11 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* reconexión automática de la impresora Bluetooth guardada */
   Future<void> autoConnect() async {
-    // Si la impresora de red ya está activa, no interferir con Bluetooth
     if (isNetworkConnected.value) {
       _logger.i('Conexión de red activa, omitiendo auto-conexión Bluetooth');
       return;
     }
-    // Si el último tipo guardado fue red, respetar la preferencia del usuario
     final String? savedType = await _storageService.getConnectionType();
     if (savedType == 'network') {
       _logger.i('Tipo guardado es red, omitiendo auto-conexión Bluetooth');
@@ -205,28 +234,18 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
         );
         if (device != null) {
           _logger.i("Intentando auto-conectar a la impresora guardada...");
-          
-          // Desconexión preventiva para limpiar sockets fantasmas
           try {
             await bluetooth.disconnect();
           } catch (_) {}
-          
-          // Pausa antes de conectar
           await Future.delayed(const Duration(milliseconds: 500));
-          
           bool success = await connect(device);
-          
-          // Reintento en caso de fallo  
           if (!success) {
             _logger.w("Primer intento fallido, reintentando tras 1 seg...");
             await Future.delayed(const Duration(seconds: 1));
-            
-            // Intento final limpieza agresiva
             try {
               await bluetooth.disconnect();
             } catch (_) {}
             await Future.delayed(const Duration(milliseconds: 300));
-            
             await connect(device);
           }
         }
@@ -236,12 +255,9 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* desconectar impresora */
   Future<void> disconnect() async {
-    // Actualización inmediata para asegurar que la UI refleje el nuevo estado
     isConnected.value = false;
     selectedDevice.value = null;
-
     try {
       await bluetooth.disconnect();
     } catch (e) {
@@ -249,7 +265,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* imprimir cualquier tipo de ticket despachando al puerto activo (Bluetooth o Red) */
   Future<void> printTicket(PrintableTicket ticket) async {
     if (connectionType.value == PrinterConnectionType.network) {
       final config = networkConfig.value;
@@ -288,9 +303,7 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* conectar una impresora por red TCP: desconecta BT si está activo, prueba la conexión y persiste la configuración */
   Future<bool> connectNetwork(NetworkPrinterModel config) async {
-    // Si hay una conexión Bluetooth activa, desconectarla primero
     if (isConnected.value) {
       _logger.i('Desconectando Bluetooth antes de conectar por red...');
       await disconnect();
@@ -318,7 +331,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* desconectar la impresora de red y restaurar Bluetooth como transporte activo */
   Future<void> disconnectNetwork() async {
     isNetworkConnected.value = false;
     networkConfig.value = null;
@@ -326,7 +338,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     await _storageService.saveConnectionType('bluetooth');
   }
 
-  /* reconexión automática de la impresora de red guardada al iniciar la app */
   Future<void> _autoConnectNetwork() async {
     try {
       final String? savedType = await _storageService.getConnectionType();
@@ -352,7 +363,6 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* imprimir página de prueba para verificar la conexión activa */
   Future<void> printTestPage() async {
     if (connectionType.value == PrinterConnectionType.network) {
       final config = networkConfig.value;
@@ -399,70 +409,146 @@ class PrinterService extends GetxService with WidgetsBindingObserver {
     }
   }
 
-  /* imprimir un ticket en una impresora de red especifica sin alterar la configuracion activa */
   Future<void> printTicketToSpecificNetwork(
     PrintableTicket ticket,
     String ip,
-    int port,
-  ) async {
+    int port, {
+    String? displayName,
+  }) async {
     NetworkPrinterPort? printerPort;
     try {
       printerPort = await NetworkPrinterPort.connect(ip, port);
       await ticket.printReceipt(printerPort);
       await printerPort.close();
-    } catch (e) {
-      _logger.e('Error imprimiendo en impresora especifica $ip:$port — $e');
+    } catch (e, st) {
+      _logger.e('Error imprimiendo en impresora especifica $ip:$port — $e',
+          stackTrace: st);
       try {
         await printerPort?.close();
       } catch (_) {}
+      throw _PrintZoneError(
+        displayName: displayName ?? '$ip:$port',
+        ip: ip,
+        port: port,
+        cause: e,
+      );
     }
   }
 
-  /* imprimir una comanda distribuyendo items a cada impresora segun la categoria */
   Future<void> printComandaMultiPrinter({
     required OrderModel order,
     required List<OrderItemModel> sourceItems,
     required List<CategoryModel> categories,
     required PrintableTicket Function(OrderModel, List<OrderItemModel>) ticketBuilder,
   }) async {
-    // Agrupar items por impresora destino segun la categoria del producto
     final Map<NetworkPrinterModel?, List<OrderItemModel>> groups =
         CategoryPrinterResolver.groupItemsByPrinter(sourceItems, categories);
+
+    final List<_PrintZoneError> failures = <_PrintZoneError>[];
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderItemModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);
 
       if (entry.key != null) {
-        // Impresora especifica de categoria
-        await printTicketToSpecificNetwork(ticket, entry.key!.ip, entry.key!.port);
+        try {
+          await printTicketToSpecificNetwork(
+            ticket,
+            entry.key!.ip,
+            entry.key!.port,
+            displayName: entry.key!.name,
+          );
+        } on _PrintZoneError catch (e) {
+          failures.add(e);
+        }
       } else {
-        // Impresora por defecto
-        await printTicket(ticket);
+        try {
+          await printTicket(ticket);
+        } catch (_) {
+          failures.add(_PrintZoneError(
+            displayName: 'Impresora principal',
+            ip: '',
+            port: 0,
+            cause: 'No se pudo imprimir en la impresora activa.',
+          ));
+        }
       }
+    }
+
+    if (failures.isNotEmpty) {
+      _showPrintFailuresModal(failures);
     }
   }
 
-  /* imprimir comandas de una orden existente distribuyendo por categoria (reimpresion) */
   Future<void> printComandaMultiPrinterFromDetails({
     required OrderModel order,
     required List<OrderDetailModel> details,
     required List<CategoryModel> categories,
     required PrintableTicket Function(OrderModel, List<OrderDetailModel>) ticketBuilder,
   }) async {
-    // Agrupar detalles por impresora destino usando categoryId del backend
     final Map<NetworkPrinterModel?, List<OrderDetailModel>> groups =
         CategoryPrinterResolver.groupDetailsByPrinter(details, categories);
+
+    final List<_PrintZoneError> failures = <_PrintZoneError>[];
 
     for (final MapEntry<NetworkPrinterModel?, List<OrderDetailModel>> entry in groups.entries) {
       final PrintableTicket ticket = ticketBuilder(order, entry.value);
 
       if (entry.key != null) {
-        // Impresora especifica de categoria
-        await printTicketToSpecificNetwork(ticket, entry.key!.ip, entry.key!.port);
+        try {
+          await printTicketToSpecificNetwork(
+            ticket,
+            entry.key!.ip,
+            entry.key!.port,
+            displayName: entry.key!.name,
+          );
+        } on _PrintZoneError catch (e) {
+          failures.add(e);
+        }
       } else {
-        // Impresora por defecto
-        await printTicket(ticket);
+        try {
+          await printTicket(ticket);
+        } catch (_) {
+          failures.add(_PrintZoneError(
+            displayName: 'Impresora principal',
+            ip: '',
+            port: 0,
+            cause: 'No se pudo imprimir en la impresora activa.',
+          ));
+        }
       }
     }
+
+    if (failures.isNotEmpty) {
+      _showPrintFailuresModal(failures);
+    }
   }
+
+  void _showPrintFailuresModal(List<_PrintZoneError> failures) {
+    final String body = failures.map((f) => '- ${f.displayName}').join('\n');
+    Get.dialog(
+      ModalError(
+        title: failures.length == 1
+            ? 'No se pudo imprimir la comanda'
+            : 'Algunas comandas no se imprimieron',
+        message: 'Zonas con error de impresion:\n$body',
+      ),
+    );
+  }
+}
+
+class _PrintZoneError implements Exception {
+  final String displayName;
+  final String ip;
+  final int port;
+  final Object cause;
+
+  _PrintZoneError({
+    required this.displayName,
+    required this.ip,
+    required this.port,
+    required this.cause,
+  });
+
+  @override
+  String toString() => 'PrintZoneError($displayName @ $ip:$port): $cause';
 }

@@ -52,18 +52,23 @@ class FiscalDataView extends GetView<FiscalDataController> {
                       validationMessages: {
                         ValidationMessage.pattern: (error) =>
                             'Solo debe contener números',
-                        ValidationMessage.minLength: (error) =>
-                            'Mínimo 6 dígitos',
+                        ValidationMessage.maxLength: (error) =>
+                            'Máximo 15 dígitos',
                       },
                     ),
                   ),
                   const SizedBox(width: 16),
-                  const Expanded(
+                  Expanded(
                     flex: 1,
                     child: CustomReactiveTextField<String>(
                       formControlName: 'taxIdDigit',
                       labelText: 'DV',
                       keyboardType: TextInputType.number,
+                      validationMessages: {
+                        ValidationMessage.pattern: (error) => 'Solo números',
+                        ValidationMessage.maxLength: (error) =>
+                            'Máximo 2 caracteres',
+                      },
                     ),
                   ),
                 ],

@@ -24,14 +24,20 @@ class NetworkPrinterModel {
         'port': port,
       };
 
-  // Igualdad basada en IP y puerto para que funcione como clave de Map
+  // Igualdad basada en IP, puerto y nombre para que funcione como clave de Map.
+  // Incluir `name` permite distinguir varias zonas con la misma IP:puerto
+  // (util durante pruebas con una sola impresora fisica), generando un
+  // ticket por zona en lugar de colapsarlos en uno solo.
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      other is NetworkPrinterModel && other.ip == ip && other.port == port;
+      other is NetworkPrinterModel &&
+          other.ip == ip &&
+          other.port == port &&
+          other.name == name;
 
   @override
-  int get hashCode => ip.hashCode ^ port.hashCode;
+  int get hashCode => Object.hash(ip, port, name);
 
   @override
   String toString() => 'NetworkPrinterModel($name, $ip:$port)';

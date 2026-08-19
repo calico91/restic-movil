@@ -19,6 +19,18 @@ subprojects {
     project.evaluationDependsOn(":app")
 }
 
+subprojects {
+    project.plugins.whenPluginAdded {
+        if (this is com.android.build.gradle.LibraryPlugin) {
+            project.extensions.configure<com.android.build.gradle.LibraryExtension> {
+                if (namespace.isNullOrEmpty()) {
+                    namespace = project.group.toString().ifEmpty { "com.example.${project.name.replace("-", "_")}" }
+                }
+            }
+        }
+    }
+}
+
 tasks.register<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }

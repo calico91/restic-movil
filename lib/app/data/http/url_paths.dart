@@ -24,6 +24,7 @@ class UrlPaths {
   static const String getTransactionTypes = 'transactions/types';
   static const String createTransaction = 'transactions/create';
   static const String getTransactionInvoice = 'transactions'; // /:id/invoice
+  static const String changeTransactionPayment = 'transactions'; // /:id/payment-details
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
@@ -50,6 +51,12 @@ class UrlPaths {
   static const String createCategories = 'categories/create';
   static const String updateCategory = 'categories/update'; // /:id
   static const String updateCategoryPrinter = 'categories'; // /:id/printer
+
+  // Print Zones
+  static const String getPrintZones = 'print-zones/all';
+  static const String createPrintZone = 'print-zones/create';
+  static const String updatePrintZone = 'print-zones/update'; // /:id
+  static const String deletePrintZone = 'print-zones/delete'; // /:id
 
   // Subcategories
   static const String createSubcategories = 'subcategories/create';

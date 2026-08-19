@@ -3,19 +3,19 @@ import 'package:restic_movil/app/data/models/network_printer_model.dart';
 import 'package:restic_movil/app/data/models/order_detail_model.dart';
 import 'package:restic_movil/app/data/models/order_item_model.dart';
 
-/// Agrupa items de una orden por impresora destino usando la configuracion
-/// de impresora asignada a cada categoria.
-/// Clave null = impresora activa por defecto.
 class CategoryPrinterResolver {
   CategoryPrinterResolver._();
 
   /// Agrupa [OrderItemModel] (nueva orden o adicionales) por impresora destino.
-  /// Resuelve la categoria buscando la subcategoria del producto en el arbol de categorias.
+  /// La resolucion usa directamente [CategoryModel.printerZone] de cada categoria.
+  ///
+  /// Prioridad:
+  /// 1. Si [cat.printerZone] no es null y tiene IP valida => esa impresora.
+  /// 2. Si no => `null` (impresora por defecto / Caja).
   static Map<NetworkPrinterModel?, List<OrderItemModel>> groupItemsByPrinter(
     List<OrderItemModel> items,
     List<CategoryModel> categories,
   ) {
-    // Construir mapa subcategoryId -> CategoryModel para busqueda eficiente
     final Map<String, CategoryModel> subToCategory = {};
     for (final CategoryModel cat in categories) {
       for (final sub in cat.subcategories ?? []) {
@@ -27,28 +27,27 @@ class CategoryPrinterResolver {
 
     for (final OrderItemModel item in items) {
       final String? subcategoryId = item.product.subcategoryId;
-      final CategoryModel? cat = subcategoryId != null ? subToCategory[subcategoryId] : null;
+      final CategoryModel? cat =
+          subcategoryId != null ? subToCategory[subcategoryId] : null;
       final NetworkPrinterModel? printer = _printerFromCategory(cat);
-
       result.putIfAbsent(printer, () => []).add(item);
     }
 
     return result;
   }
 
-  /// Agrupa [OrderDetailModel] (reprints de ordenes existentes) por impresora destino.
-  /// Intenta resolver por categoryId top-level y, si no encuentra, por subcategoryId.
+  /// Agrupa [OrderDetailModel] (reimpresiones) por impresora destino.
+  /// Intenta resolver por categoryId top-level y, si no encuentra,
+  /// por subcategoryId.
   static Map<NetworkPrinterModel?, List<OrderDetailModel>> groupDetailsByPrinter(
     List<OrderDetailModel> details,
     List<CategoryModel> categories,
   ) {
-    // Mapa categoryId top-level -> CategoryModel
     final Map<String, CategoryModel> catMap = {
       for (final CategoryModel c in categories)
         if (c.id != null) c.id!: c,
     };
 
-    // Mapa subcategoryId -> CategoryModel padre (para cuando el backend envía el ID de subcategoria)
     final Map<String, CategoryModel> subToCategory = {};
     for (final CategoryModel cat in categories) {
       for (final sub in cat.subcategories ?? []) {
@@ -59,22 +58,27 @@ class CategoryPrinterResolver {
     final Map<NetworkPrinterModel?, List<OrderDetailModel>> result = {};
 
     for (final OrderDetailModel detail in details) {
-      // Buscar primero por categoria directa, luego por subcategoria padre
       final CategoryModel? cat = detail.categoryId != null
           ? (catMap[detail.categoryId!] ?? subToCategory[detail.categoryId!])
           : null;
       final NetworkPrinterModel? printer = _printerFromCategory(cat);
-
       result.putIfAbsent(printer, () => []).add(detail);
     }
 
     return result;
   }
 
-  /// Retorna un [NetworkPrinterModel] si la categoria tiene IP configurada, o null.
+  /// Resuelve la impresora destino para una categoria.
+  /// Null = impresora por defecto (Caja).
   static NetworkPrinterModel? _printerFromCategory(CategoryModel? category) {
-    if (category?.printerIp == null || category!.printerIp!.isEmpty) return null;
-    final int port = category.printerPort ?? 9100;
-    return NetworkPrinterModel(name: category.name ?? '', ip: category.printerIp!, port: port);
+    final zone = category?.printerZone;
+    if (zone != null && (zone.ip ?? '').isNotEmpty) {
+      return NetworkPrinterModel(
+        name: zone.name ?? '',
+        ip: zone.ip!,
+        port: zone.port ?? 9100,
+      );
+    }
+    return null;
   }
 }

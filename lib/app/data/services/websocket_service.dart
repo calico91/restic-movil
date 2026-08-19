@@ -19,9 +19,15 @@ class WebSocketService extends GetxService {
   final _openOrdersController = StreamController<List<OrderModel>>.broadcast();
   Stream<List<OrderModel>> get openOrdersStream => _openOrdersController.stream;
 
+  /* Controlador de flujo para transmitir cambios de estado de órdenes individuales (pago, anulación, etc.) */
+  final _orderStatusController = StreamController<OrderModel>.broadcast();
+  Stream<OrderModel> get orderStatusStream => _orderStatusController.stream;
+
   // URL del WebSocket se construirá dinámicamente usando StorageService
 
   Future<void> connect() async {
+    if (_client != null) return;
+
     final branchId = await _storageService.getBranchId();
 
     if (branchId == null) {
@@ -42,11 +48,12 @@ class WebSocketService extends GetxService {
     final String baseUrlStr =
         rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
 
-    /* HTTPS → SockJS con https:// (evita el esquema wss:// no soportado en Android)
-       HTTP  → WebSocket nativo con ws:// */
+    /* Construir URL con esquema WebSocket nativo:
+       https → wss, http → ws. Railway termina TLS en el edge y reenvía
+       el header Upgrade al backend, por lo que wss:// funciona correctamente. */
     final bool isSecure = baseUrlStr.startsWith('https');
     final String socketUrl = isSecure
-        ? '$baseUrlStr/ws'
+        ? '${baseUrlStr.replaceFirst('https', 'wss')}/ws'
         : '${baseUrlStr.replaceFirst('http', 'ws')}/ws';
 
     /* Obtener credenciales para los headers de la conexión */
@@ -60,18 +67,24 @@ class WebSocketService extends GetxService {
     _client = StompClient(
       config: StompConfig(
         url: socketUrl,
-        // SockJS usa http/https directamente — evita el esquema wss:// no soportado en Android
-        useSockJS: isSecure,
+        // WebSocket nativo (stomp_dart_client + web_socket_channel soportan wss:// en Android)
+        useSockJS: false,
+        // Falla rapido si el backend esta dormido (serverless) para que la reconexion
+        // nativa de stomp_dart_client (reconnectDelay 5s) reintente antes.
+        connectionTimeout: const Duration(seconds: 10),
         webSocketConnectHeaders: authHeaders,
         stompConnectHeaders: authHeaders,
         onConnect: (frame) => _onConnect(frame, branchId),
         beforeConnect: () async {
           debugPrint('Connecting to WebSocket...');
         },
-        onWebSocketError: (dynamic error) =>
-            debugPrint('WebSocket error: $error'),
+        onWebSocketError: (dynamic error) {
+          debugPrint('WebSocket error: $error');
+        },
         onStompError: (frame) => debugPrint('Stomp error: ${frame.body}'),
-        onDisconnect: (frame) => debugPrint('Disconnected from WebSocket'),
+        onDisconnect: (frame) {
+          debugPrint('Disconnected from WebSocket');
+        },
       ),
     );
 
@@ -125,9 +138,28 @@ class WebSocketService extends GetxService {
         }
       },
     );
+
+    /* Suscribirse a cambios de estado de órdenes (pago, anulación, etc.) */
+    final statusDestination = '/topic/branch/$branchId/orders/status';
+    debugPrint('Subscribing to $statusDestination');
+    _client?.subscribe(
+      destination: statusDestination,
+      callback: (frame) {
+        if (frame.body != null) {
+          try {
+            final Map<String, dynamic> json = jsonDecode(frame.body!);
+            final order = OrderModel.fromJson(json);
+            _orderStatusController.add(order);
+          } catch (e) {
+            debugPrint('Error parsing order status: $e');
+          }
+        }
+      },
+    );
   }
 
   void disconnect() {
     _client?.deactivate();
+    _client = null;
   }
 }

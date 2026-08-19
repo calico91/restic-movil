@@ -2,7 +2,6 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/fiscal_data_model.dart';
 import 'package:restic_movil/app/data/repositories/fiscal_data_repository.dart';
-import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -11,13 +10,11 @@ import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class FiscalDataController extends GetxController {
   final FiscalDataRepository _repository = Get.find<FiscalDataRepository>();
-  final StorageService _storageService = Get.find<StorageService>();
 
   late FormGroup form;
 
   final isEditing = false.obs;
   String? _currentFiscalDataId;
-  String? _branchId;
 
   // Options for tax regime
   final taxRegimes = ['SIMPLE', 'ORDINARIO', 'NO_RESPONSABLE_IVA'];
@@ -46,7 +43,9 @@ class FiscalDataController extends GetxController {
           Validators.pattern(RegExp(r'^[0-9]+$')),
         ],
       ),
-      'taxIdDigit': FormControl<String>(validators: [Validators.maxLength(2)]),
+      'taxIdDigit': FormControl<String>(
+        validators: [Validators.maxLength(2), Validators.pattern(RegExp(r'^[0-9]+$'))],
+      ),
       'address': FormControl<String>(
         validators: [Validators.maxLength(300)],
       ),
@@ -86,15 +85,7 @@ class FiscalDataController extends GetxController {
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          _branchId = await _storageService.getBranchId();
-
-          if (_branchId == null) {
-            Get.dialog(const ModalError(message: 'No se encontró sucursal configurada'),
-            );
-            return;
-          }
-
-          final data = await _repository.getActiveFiscalData(_branchId!);
+          final data = await _repository.getActiveFiscalData();
 
           if (data != null) {
             isEditing.value = true;
@@ -119,19 +110,11 @@ class FiscalDataController extends GetxController {
       return;
     }
 
-    if (_branchId == null) {
-      Get.dialog(const ModalError(message: 'No se encontró sucursal configurada'));
-      return;
-    }
-
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          final formData = Map<String, dynamic>.from(form.value);
-          formData['branchId'] = _branchId;
-
-          final fiscalData = FiscalDataModel.fromJson(formData);
+          final fiscalData = FiscalDataModel.fromJson(Map<String, dynamic>.from(form.value));
 
           if (isEditing.value && _currentFiscalDataId != null) {
             await _repository.updateFiscalData(

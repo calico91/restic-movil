@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
@@ -14,6 +16,7 @@ import 'package:restic_movil/app/data/repositories/transactions_repository.dart'
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/transaction_modal.dart';
+import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/change_payment_method_modal.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
@@ -35,6 +38,9 @@ class CashRegisterController extends GetxController {
   final WebSocketService _webSocketService = Get.find<WebSocketService>();
   final PrinterService _printerService = Get.find<PrinterService>();
 
+  StreamSubscription<List<OrderModel>>? _openOrdersSub;
+  StreamSubscription<OrderModel>? _ordersSub;
+
   CashRegisterController({
     required this.ordersRepository,
     required this.paymentMethodsRepository,
@@ -54,6 +60,7 @@ class CashRegisterController extends GetxController {
   final RxList<TransactionTypeModel> transactionTypes =
       <TransactionTypeModel>[].obs;
   final RxString defaultTipPercentage = '0'.obs;
+  final RxBool canEditPaymentMethod = false.obs;
 
   @override
   void onInit() {
@@ -67,25 +74,22 @@ class CashRegisterController extends GetxController {
     _loadInitialData();
   }
 
-  @override
-  void onClose() {
-    _webSocketService.disconnect();
-    super.onClose();
-  }
 
   /*conectar al websocket */
   void _connectWebSocket() {
     _webSocketService.connect();
 
     // Escuchar actualizaciones completas de ordenes abiertas
-    _webSocketService.openOrdersStream.listen((updatedOrders) {
+    _openOrdersSub?.cancel();
+    _openOrdersSub = _webSocketService.openOrdersStream.listen((updatedOrders) {
       if (currentTab.value == 0) {
         loadPendingOrders(withOverlay: false);
       }
     });
 
     // Escuchar ordenes individuales para recargar si es necesario
-    _webSocketService.ordersStream.listen((order) {
+    _ordersSub?.cancel();
+    _ordersSub = _webSocketService.ordersStream.listen((order) {
       if (currentTab.value == 0) {
         loadPendingOrders(withOverlay: false);
       } else {
@@ -94,9 +98,21 @@ class CashRegisterController extends GetxController {
     });
   }
 
+  @override
+  void onClose() {
+    _openOrdersSub?.cancel();
+    _ordersSub?.cancel();
+    super.onClose();
+  }
+
   Future<void> _loadInitialData() async {
     final tipVal = await _storageService.getDefaultTipPercentage() ?? '0';
     defaultTipPercentage.value = tipVal.isEmpty ? '0' : tipVal;
+
+    final user = await _storageService.getUser();
+    final roles = user?.roles ?? const <String>[];
+    canEditPaymentMethod.value =
+        roles.contains('SUPER') || roles.contains('ADMINISTRADOR');
 
     await Future.wait([
       loadPendingOrders(withOverlay: true),
@@ -258,6 +274,75 @@ class CashRegisterController extends GetxController {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       enableDrag: true,
+    );
+  }
+
+  Future<void> showChangePaymentMethodModal(OrderModel order) async {
+    if (!canEditPaymentMethod.value) {
+      Get.dialog(const ModalError(
+          message: 'No tiene permisos para cambiar el método de pago.'));
+      return;
+    }
+    if (order.transactionId == null) {
+      Get.dialog(const ModalError(
+          message: 'Esta orden no tiene una factura asociada.'));
+      return;
+    }
+    if (order.status == 'Anulada' || order.status == 'CANCELED') {
+      Get.dialog(const ModalError(
+          message: 'No se puede cambiar el método de pago de una orden anulada.'));
+      return;
+    }
+
+    if (paymentMethods.isEmpty) {
+      await loadPaymentMethods();
+      if (paymentMethods.isEmpty) {
+        Get.dialog(const ModalError(
+            message: 'No hay métodos de pago activos configurados.'));
+        return;
+      }
+    }
+
+    Get.bottomSheet(
+      ChangePaymentMethodModal(order: order),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      enableDrag: true,
+    );
+  }
+
+  Future<void> submitChangePaymentMethod({
+    required String transactionId,
+    required List<Map<String, dynamic>> paymentDetails,
+    String? reason,
+  }) async {
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await transactionsRepository.changePaymentDetails(
+            transactionId,
+            paymentDetails,
+            reason: reason,
+          );
+          Get.back();
+          Get.dialog(
+            ModalInfo(
+              title: 'Método de pago actualizado',
+              message: 'El cambio se registró correctamente.',
+              buttonText: 'Aceptar',
+              onClose: () async {
+                Get.back();
+                await loadHistoryOrders(withOverlay: false);
+              },
+            ),
+            barrierDismissible: false,
+          );
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.dialog(ModalError(message: errorMessage));
+        }
+      },
     );
   }
 

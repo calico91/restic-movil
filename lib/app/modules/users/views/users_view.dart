@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/user_model.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 import 'package:restic_movil/core/utils/buttons/custom_edit_button.dart';
+import 'package:restic_movil/core/utils/buttons/custom_floating_action_button.dart';
 import '../controllers/users_controller.dart';
 import 'widgets/user_form_dialog.dart';
 
@@ -134,7 +135,7 @@ class UsersView extends GetView<UsersController> {
                           AlertDialog(
                             title: const Text('Restablecer Contraseña'),
                             content: Text(
-                              '¿Estás seguro de que quieres restablecer la contraseña a "cambio" para ${user.username}?'
+                              '¿Estas seguro de que quieres restablecer la contrasena de ${user.username}? Se generara una nueva contrasena temporal.'
                             ),
                             actions: [
                               TextButton(
@@ -145,7 +146,7 @@ class UsersView extends GetView<UsersController> {
                                 style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFE52E2D)),
                                 onPressed: () {
                                   Get.back();
-                                  controller.resetUserPassword(user.id!);
+                                  controller.resetUserPassword(user.username!, user.id!);
                                 },
                                 child: const Text('Aceptar', style: TextStyle(color: Colors.white)),
                               ),
@@ -164,7 +165,9 @@ class UsersView extends GetView<UsersController> {
           },
         );
       }),
-      floatingActionButton: null,
+      floatingActionButton: CustomFloatingActionButton(
+        onPressed: () => _showUserForm(context),
+      ),
     );
   }
 }

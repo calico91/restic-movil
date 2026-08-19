@@ -7,11 +7,10 @@ class FiscalDataRepository {
 
   FiscalDataRepository(this._client);
 
-  Future<FiscalDataModel?> getActiveFiscalData(String branchId) async {
+  Future<FiscalDataModel?> getActiveFiscalData() async {
     try {
       final response = await _client.get(
         UrlPaths.fiscalDataActive,
-        parameters: {'branchId': branchId},
       );
       if (response != null) {
         return FiscalDataModel.fromJson(response);
