@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_register_view.dart';
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -27,6 +28,7 @@ class NavigationItem {
 class HomeController extends GetxController {
   final StorageService _storageService = Get.find<StorageService>();
   final BaseHttpClient _httpClient = Get.find<BaseHttpClient>();
+  final WebSocketService _webSocketService = Get.find<WebSocketService>();
   final currentIndex = 0.obs;
   final RxList<NavigationItem> navigationItems = <NavigationItem>[].obs;
   final RxList<String> modules = <String>[].obs;
@@ -39,6 +41,7 @@ class HomeController extends GetxController {
     super.onInit();
     _loadNavigationItems();
     _loadAppVersion();
+    _webSocketService.connect();
   }
 
   Future<void> _loadAppVersion() async {
@@ -132,6 +135,7 @@ class HomeController extends GetxController {
   }
 
   Future<void> logout() async {
+    _webSocketService.disconnect();
     await _storageService.deleteToken();
     await _storageService.deleteUser();
     await _storageService.deleteBranchId();
