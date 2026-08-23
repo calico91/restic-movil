@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 import 'package:stomp_dart_client/stomp_dart_client.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
@@ -10,7 +10,7 @@ import 'package:restic_movil/core/config/app_config.dart';
 
 enum WsConnectionState { disconnected, connecting, connected }
 
-class WebSocketService extends GetxService {
+class WebSocketService extends GetxService with WidgetsBindingObserver {
   StompClient? _client;
   final StorageService _storageService = Get.find<StorageService>();
 
@@ -27,13 +27,23 @@ class WebSocketService extends GetxService {
   Stream<OrderModel> get orderStatusStream => _orderStatusController.stream;
 
   static const List<int> _backoffSeconds = [1, 2, 5, 10, 30];
+  static const int _maxRetries = 5;
   int _backoffIndex = 0;
+  int _retryCount = 0;
+  bool _inForeground = true;
+  bool _connectedOnce = false;
   Timer? _reconnectTimer;
   final Random _random = Random();
   bool _disposed = false;
 
   Future<void> connect() async {
     if (_client != null) return;
+    if (!_inForeground) return;
+
+    if (!_connectedOnce) {
+      WidgetsBinding.instance.addObserver(this);
+      _connectedOnce = true;
+    }
 
     final branchId = await _storageService.getBranchId();
     if (branchId == null || branchId.isEmpty) {
@@ -80,6 +90,7 @@ class WebSocketService extends GetxService {
         onConnect: (frame) {
           connectionState.value = WsConnectionState.connected;
           _backoffIndex = 0;
+          _retryCount = 0;
           _onConnect(frame, branchId);
         },
         beforeConnect: () async {
@@ -166,8 +177,16 @@ class WebSocketService extends GetxService {
   }
 
   void _scheduleReconnect() {
-    if (_disposed) return;
+    if (_disposed || !_inForeground) return;
+
     _client = null;
+
+    if (_retryCount >= _maxRetries) {
+      connectionState.value = WsConnectionState.disconnected;
+      debugPrint('WebSocket: maxima cantidad de reintentos alcanzada ($_maxRetries)');
+      return;
+    }
+
     _reconnectTimer?.cancel();
     if (_backoffIndex >= _backoffSeconds.length) {
       _backoffIndex = _backoffSeconds.length - 1;
@@ -178,8 +197,36 @@ class WebSocketService extends GetxService {
         Duration(milliseconds: baseSeconds * 1000 + jitter);
     _backoffIndex =
         (_backoffIndex + 1).clamp(0, _backoffSeconds.length - 1);
-    debugPrint('Reconnecting WebSocket in ${baseSeconds}s (+jitter)');
+    _retryCount++;
+    debugPrint('Reconnecting WebSocket in ${baseSeconds}s (+jitter) '
+        '(intento $_retryCount/$_maxRetries)');
     _reconnectTimer = Timer(delay, connect);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if (!_inForeground) {
+        _inForeground = true;
+        debugPrint('WebSocket: app en foreground, reanudando');
+        if (_client == null) {
+          _retryCount = 0;
+          _backoffIndex = 0;
+          connect();
+        }
+      }
+    } else if (state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      if (_inForeground) {
+        _inForeground = false;
+        debugPrint('WebSocket: app en background, desconectando');
+        _reconnectTimer?.cancel();
+        _reconnectTimer = null;
+        _client?.deactivate();
+        _client = null;
+        connectionState.value = WsConnectionState.disconnected;
+      }
+    }
   }
 
   void disconnect() {
@@ -188,6 +235,10 @@ class WebSocketService extends GetxService {
     _client?.deactivate();
     _client = null;
     connectionState.value = WsConnectionState.disconnected;
+    if (_connectedOnce) {
+      WidgetsBinding.instance.removeObserver(this);
+      _connectedOnce = false;
+    }
   }
 
   @override
