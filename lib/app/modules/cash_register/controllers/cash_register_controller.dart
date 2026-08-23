@@ -77,8 +77,6 @@ class CashRegisterController extends GetxController {
 
   /*conectar al websocket */
   void _connectWebSocket() {
-    _webSocketService.connect();
-
     // Escuchar actualizaciones completas de ordenes abiertas
     _openOrdersSub?.cancel();
     _openOrdersSub = _webSocketService.openOrdersStream.listen((updatedOrders) {
