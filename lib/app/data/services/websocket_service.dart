@@ -85,6 +85,7 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
       config: StompConfig(
         url: socketUrl,
         useSockJS: false,
+        reconnectDelay: Duration.zero,
         webSocketConnectHeaders: authHeaders,
         stompConnectHeaders: authHeaders,
         onConnect: (frame) {
@@ -179,6 +180,7 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
   void _scheduleReconnect() {
     if (_disposed || !_inForeground) return;
 
+    _client?.deactivate();
     _client = null;
 
     if (_retryCount >= _maxRetries) {
