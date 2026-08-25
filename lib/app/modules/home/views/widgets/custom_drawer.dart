@@ -78,11 +78,21 @@ class CustomDrawer extends GetView<HomeController> {
                       ),
                       _buildDrawerSubItem(
                         title: 'Cierres Pendientes',
-                        onTap: () => Get.toNamed(Routes.PENDING_CLOSES),
+                        onTap: () => Get.toNamed(
+                          Routes.PENDING_CLOSES,
+                        ),
+                        visible: controller.modules.contains(
+                          'CIERRES_PENDIENTES',
+                        ),
                       ),
                       _buildDrawerSubItem(
                         title: 'Historial de Egresos',
-                        onTap: () => Get.toNamed(Routes.WITHDRAWALS_HISTORY),
+                        onTap: () => Get.toNamed(
+                          Routes.WITHDRAWALS_HISTORY,
+                        ),
+                        visible: controller.modules.contains(
+                          'HISTORIAL_EGRESOS',
+                        ),
                       ),
                     ],
                   );
@@ -298,7 +308,11 @@ class CustomDrawer extends GetView<HomeController> {
   Widget _buildDrawerSubItem({
     required String title,
     required VoidCallback onTap,
+    bool visible = true,
   }) {
+    if (!visible) {
+      return const SizedBox.shrink();
+    }
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 72.0),
       title: Text(
