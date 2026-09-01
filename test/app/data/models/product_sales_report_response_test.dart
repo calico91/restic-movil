@@ -3,7 +3,7 @@ import 'package:restic_movil/app/data/models/product_sales_report_response.dart'
 
 void main() {
   group('ProductSalesReportResponse.fromJson', () {
-    test('parsea correctamente el reporte con eventos de venta', () {
+    test('parsea correctamente el reporte de productos seleccionados (sin eventos)', () {
       final json = {
         'startDateTime': '2026-04-22T08:00:00',
         'endDateTime': '2026-04-22T22:00:00',
@@ -21,22 +21,6 @@ void main() {
             'timesSold': 2,
             'totalQuantity': 3,
             'totalRevenue': 36000.00,
-            'events': [
-              {
-                'orderNumber': 101,
-                'soldAt': '2026-04-22T12:05:00',
-                'quantity': 1,
-                'unitPrice': 12000.00,
-                'subtotal': 12000.00,
-              },
-              {
-                'orderNumber': 102,
-                'soldAt': '2026-04-22T19:30:00',
-                'quantity': 2,
-                'unitPrice': 12000.00,
-                'subtotal': 24000.00,
-              },
-            ],
           },
         ],
       };
@@ -55,14 +39,12 @@ void main() {
       expect(summary.productName, 'Hamburguesa');
       expect(summary.categoryName, 'Comidas');
       expect(summary.timesSold, 2);
-      expect(summary.events, hasLength(2));
-      expect(summary.events!.first.orderNumber, 101);
-      expect(summary.events!.first.soldAt, DateTime(2026, 4, 22, 12, 5));
-      expect(summary.events!.first.quantity, 1);
-      expect(summary.events!.last.quantity, 2);
+      expect(summary.totalQuantity, 3);
+      expect(summary.totalRevenue, 36000.00);
+      expect(summary.percentage, isNull);
     });
 
-    test('parsea correctamente el reporte de top-products (sin eventos)', () {
+    test('parsea correctamente el reporte de top-products con porcentaje', () {
       final json = {
         'startDateTime': '2026-04-22T00:00:00',
         'endDateTime': '2026-04-22T23:59:59',
@@ -88,7 +70,6 @@ void main() {
       final response = ProductSalesReportResponse.fromJson(json);
 
       expect(response.totalTransactions, 2);
-      expect(response.products!.first.events, isNull);
       expect(response.products!.first.percentage, 50.0);
     });
 

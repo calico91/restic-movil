@@ -19,7 +19,7 @@ class ProductSalesResultsView extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _SummaryCard(data: data),
+        _SummaryCard(data: data, currency: oCcy),
         const SizedBox(height: 16),
         if (products.isEmpty)
           const Card(
@@ -43,18 +43,13 @@ class ProductSalesResultsView extends StatelessWidget {
 }
 
 class _SummaryCard extends StatelessWidget {
-  const _SummaryCard({required this.data});
+  const _SummaryCard({required this.data, required this.currency});
   final ProductSalesReportResponse data;
+  final NumberFormat currency;
 
   @override
   Widget build(BuildContext context) {
-    final oCcy = NumberFormat.currency(
-      locale: 'es_CO',
-      symbol: '\$',
-      decimalDigits: 0,
-    );
     const color = Color(0xFF0D47A1);
-
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -79,7 +74,7 @@ class _SummaryCard extends StatelessWidget {
                 _summaryStat('Unidades', '${data.totalUnitsSold ?? 0}', Icons.shopping_bag),
                 _summaryStat(
                   'Ingreso total',
-                  oCcy.format(data.totalRevenue ?? 0),
+                  currency.format(data.totalRevenue ?? 0),
                   Icons.payments,
                 ),
               ],
@@ -121,7 +116,6 @@ class _ProductCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final hasSales = (summary.totalQuantity ?? 0) > 0;
-    final events = summary.events ?? const [];
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -203,24 +197,6 @@ class _ProductCard extends StatelessWidget {
                   _stat('Ingreso', currency.format(summary.totalRevenue ?? 0)),
                 ],
               ),
-            if (events.isNotEmpty) ...[
-              const SizedBox(height: 12),
-              const Divider(),
-              const Padding(
-                padding: EdgeInsets.only(top: 8, bottom: 8),
-                child: Row(
-                  children: [
-                    Icon(Icons.event_note, size: 18),
-                    SizedBox(width: 8),
-                    Text(
-                      'Detalle de ventas (con hora)',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
-              ...events.map((e) => _EventTile(event: e, currency: currency)),
-            ],
           ],
         ),
       ),
@@ -244,49 +220,6 @@ class _ProductCard extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-}
-
-class _EventTile extends StatelessWidget {
-  const _EventTile({required this.event, required this.currency});
-  final ProductSaleEvent event;
-  final NumberFormat currency;
-
-  @override
-  Widget build(BuildContext context) {
-    final timeStr = event.soldAt != null
-        ? DateFormat('HH:mm').format(event.soldAt!)
-        : '—';
-    final dateStr = event.soldAt != null
-        ? DateFormat('dd/MM/yyyy').format(event.soldAt!)
-        : null;
-
-    return ListTile(
-      dense: true,
-      contentPadding: EdgeInsets.zero,
-      leading: const CircleAvatar(
-        radius: 16,
-        backgroundColor: Color(0xFFE3F2FD),
-        child: Icon(
-          Icons.access_time,
-          size: 16,
-          color: Color(0xFF0D47A1),
-        ),
-      ),
-      title: Text(
-        '#${event.orderNumber ?? "-"} · $timeStr'
-        '${dateStr != null ? ' · $dateStr' : ''}',
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-      ),
-      subtitle: Text('Cant: ${event.quantity ?? 0}'),
-      trailing: Text(
-        currency.format(event.subtotal ?? 0),
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-          color: Colors.green,
-        ),
       ),
     );
   }

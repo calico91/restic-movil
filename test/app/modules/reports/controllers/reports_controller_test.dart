@@ -96,15 +96,6 @@ class MockReportsRepository implements ReportsRepository {
           timesSold: 2,
           totalQuantity: 3,
           totalRevenue: 36000.0,
-          events: [
-            ProductSaleEvent(
-              orderNumber: 101,
-              soldAt: DateTime(2026, 4, 22, 12, 5),
-              quantity: 1,
-              unitPrice: 12000,
-              subtotal: 12000,
-            ),
-          ],
         ),
       ],
     );
@@ -278,7 +269,8 @@ void main() {
       final data = controller.productReportData.value;
       expect(data, isNotNull);
       expect(data!.totalProducts, 2);
-      expect(data.products!.first.events!.first.orderNumber, 101);
+      expect(data.products!.first.productName, 'Hamburguesa');
+      expect(data.products!.first.totalQuantity, 3);
     });
 
     testWidgets('fetchTopProductsReport carga el ranking desde el repositorio', (tester) async {

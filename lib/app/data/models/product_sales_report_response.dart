@@ -59,7 +59,6 @@ class ProductSalesSummary {
   final int? totalQuantity;
   final double? totalRevenue;
   final double? percentage;
-  final List<ProductSaleEvent>? events;
 
   ProductSalesSummary({
     this.productId,
@@ -71,7 +70,6 @@ class ProductSalesSummary {
     this.totalQuantity,
     this.totalRevenue,
     this.percentage,
-    this.events,
   });
 
   factory ProductSalesSummary.fromJson(Map<String, dynamic> json) {
@@ -93,45 +91,6 @@ class ProductSalesSummary {
               : null),
       totalRevenue: (json['totalRevenue'] as num?)?.toDouble(),
       percentage: (json['percentage'] as num?)?.toDouble(),
-      events: json['events'] != null
-          ? (json['events'] as List)
-              .map((i) => ProductSaleEvent.fromJson(i as Map<String, dynamic>))
-              .toList()
-          : null,
-    );
-  }
-}
-
-class ProductSaleEvent {
-  final int? orderNumber;
-  final DateTime? soldAt;
-  final int? quantity;
-  final double? unitPrice;
-  final double? subtotal;
-
-  ProductSaleEvent({
-    this.orderNumber,
-    this.soldAt,
-    this.quantity,
-    this.unitPrice,
-    this.subtotal,
-  });
-
-  factory ProductSaleEvent.fromJson(Map<String, dynamic> json) {
-    return ProductSaleEvent(
-      orderNumber: json['orderNumber'] is int
-          ? json['orderNumber'] as int
-          : (json['orderNumber'] != null
-              ? int.tryParse(json['orderNumber'].toString())
-              : null),
-      soldAt: _parseDateTime(json['soldAt']),
-      quantity: json['quantity'] is int
-          ? json['quantity'] as int
-          : (json['quantity'] != null
-              ? int.tryParse(json['quantity'].toString())
-              : null),
-      unitPrice: (json['unitPrice'] as num?)?.toDouble(),
-      subtotal: (json['subtotal'] as num?)?.toDouble(),
     );
   }
 }
