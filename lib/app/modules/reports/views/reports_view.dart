@@ -4,6 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/sales_report_response.dart';
 import 'package:restic_movil/app/data/models/shift_sales_report_response.dart';
 import 'package:restic_movil/app/modules/reports/controllers/reports_controller.dart';
+import 'package:restic_movil/app/modules/reports/views/widgets/product_sales_results_view.dart';
+import 'package:restic_movil/app/modules/reports/views/widgets/product_selection_section.dart';
+import 'package:restic_movil/app/modules/reports/views/widgets/top_products_results_view.dart';
 import 'package:restic_movil/core/utils/widgets/custom_scaffold.dart';
 
 class ReportsView extends GetView<ReportsController> {
@@ -139,6 +142,25 @@ class ReportsView extends GetView<ReportsController> {
                     _buildCashierSummaryCard(data.cashierSummary ?? []),
                   ],
                 );
+              } else if (type == ReportType.productSales) {
+                final data = controller.productReportData.value;
+                if (data == null) {
+                  return const Center(
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      child: Text(
+                        'Selecciona al menos un producto y pulsa "Consultar reporte".',
+                      ),
+                    ),
+                  );
+                }
+                return ProductSalesResultsView(data: data);
+              } else if (type == ReportType.topProducts) {
+                final data = controller.productReportData.value;
+                if (data == null) {
+                  return const Center(child: Text('Cargando reporte o sin datos...'));
+                }
+                return TopProductsResultsView(data: data);
               } else {
                 final sData = controller.shiftReportData.value;
                 if (sData == null) {
@@ -181,6 +203,8 @@ class ReportsView extends GetView<ReportsController> {
             DropdownMenuItem(value: ReportType.exactDateTimeRange, child: Text('Rango de Fecha-Hora Exacto')),
             DropdownMenuItem(value: ReportType.shiftById, child: Text('Turno Específico (ID)')),
             DropdownMenuItem(value: ReportType.shiftByDate, child: Text('Fecha de Apertura de Turno')),
+            DropdownMenuItem(value: ReportType.productSales, child: Text('Ventas por Producto (selección)')),
+            DropdownMenuItem(value: ReportType.topProducts, child: Text('Top de Productos Vendidos')),
           ],
         )),
       ),
@@ -197,6 +221,16 @@ class ReportsView extends GetView<ReportsController> {
         return _buildShiftIdInput();
       case ReportType.shiftByDate:
         return _buildSingleDateSelector(context);
+      case ReportType.productSales:
+        return Column(
+          children: [
+            const ProductSelectionSection(),
+            const SizedBox(height: 12),
+            _buildExactDateTimeSelector(context),
+          ],
+        );
+      case ReportType.topProducts:
+        return _buildExactDateTimeSelector(context);
     }
   }
 

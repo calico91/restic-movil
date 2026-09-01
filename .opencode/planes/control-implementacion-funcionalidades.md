@@ -29,13 +29,13 @@
 | 5 | Comandas (cocina) | `[x]` | — |
 | 6 | Pagos / Caja (registrar pago) | `[~]` | Reembolso/anulación transacción, cambio método post-factura, precuenta, propina guardable |
 | 7 | Opciones de Caja (apertura/cierre/egresos) | `[x]` | Cierres pendientes: sin acción de aprobar |
-| 8 | Clientes (CRUD) | `[ ]` | Stub vacío |
-| 9 | Mesas (CRUD) | `[ ]` | Stub vacío |
+| 8 | Clientes (CRUD) | `[x]` | — |
+| 9 | Mesas (CRUD) | `[x]` | — |
 | 10 | Menú (categorías + productos + recetas) | `[ ]` | Stub vacío |
-| 11 | Usuarios (CRUD) | `[ ]` | Stub vacío |
-| 12 | Métodos de Pago (configuración) | `[ ]` | Stub vacío |
+| 11 | Usuarios (CRUD) | `[x]` | — |
+| 12 | Métodos de Pago (configuración) | `[x]` | — |
 | 13 | Inventario | `[ ]` | Stub vacío |
-| 14 | Datos Fiscales | `[ ]` | Stub vacío |
+| 14 | Datos Fiscales | `[x]` | — |
 | 15 | Reportes | `[ ]` | Stub vacío |
 | 16 | Perfil (cambio contraseña + config) | `[ ]` | Stub vacío |
 | 17 | WebSocket tiempo real | `[x]` | — |
@@ -141,7 +141,10 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Carrito (agregar/quitar/incrementar/decrementar) | `[x]` | `addItem()`, `updateQuantity()`, `removeItem()` |
 | Agrupar items duplicados en carrito (mismo product+price+obs+combo) | `[x]` | Lógica en `addItem()` |
 | Recargos adicionales (surcharges) | `[x]` | `AddSurchargeDialogComponent` |
+| Eliminar cargos adicionales antes de enviar | `[x]` | Botón `remove_circle_outline` por cargo en `.surcharges-section` → `service.removeSurcharge(index)` |
 | Total computado en tiempo real (items + recargos) | `[x]` | Signal computed `cartTotal` |
+| Observaciones generales del pedido (textarea) | `[x]` | Textarea en `.cart-observations` bound a `service.observations`; enviado en payload `observations` (`take-order.service.ts:518`) |
+| Anidación de subcategorías en el catálogo | `[x]` | `selectedCategorySubcategories` agrupa productos por subcategoría dentro de la categoría activa (con título); si la categoría tiene 1 sola subcategoría, se muestran productos directos |
 | Submit → `POST orders/create` | `[x]` | `orders.repository.ts` createOrder |
 | Validaciones: origen obligatorio, mesa si SALON, ≥1 producto | `[x]` | En `submit()` |
 | Reset de estado tras éxito | `[x]` | `reset()` en servicio |
@@ -195,6 +198,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Tabs Abiertos (OPEN) / Finalizados (FINALIZED) | `[x]` | `currentTab` signal |
 | Navegador de fecha (`DateNavigatorComponent`) | `[x]` | Shared |
 | Carga de pedidos por estado + fecha | `[x]` | `getOrdersByStatuses(statuses, date)` |
+| **Búsqueda de pedidos (nº / cliente / mesa)** | `[x]` | Input en `.search-box` (header) + computeds `displayedOpenOrders`/`displayedFinalizedOrders` que filtran por `orderNumber`, `customer.name + lastName` y `tables[].name` (case-insensitive, `contains`); estado vacío contextual cuando hay query |
 | WebSocket en tiempo real (recarga automática) | `[x]` | `websocket.service.ts` → signals |
 | Card de pedido (`GlobalOrderCard`-equivalente en línea) | `[x]` | ListView en `orders.component.html` |
 | Detalle de pedido (modal) | `[x]` | `OrderDetailDialogComponent` (inline en `orders.component.ts`) |
@@ -263,7 +267,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 6. Pagos / Caja (Registrar Pago)
 
-### Estado global: `[~]` Parcial
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -272,7 +276,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Modal Registrar Pago (`TransactionModalComponent`) | `[x]` | 621 líneas equivalentes en web |
 | Resumen del pedido en el modal | `[x]` | Número, total, mesa, cliente |
 | Propina (botones 0/5/10/15% + input manual) | `[x]` | `tipPercent` signal, opciones hardcodeadas |
-| Cálculo bidireccional propina (% ↔ monto ↔ total) | `[~]` | Verificar; móvil tiene sync bidireccional completo |
+| Cálculo bidireccional propina (% ↔ monto ↔ total) | `[x]` | Inputs independientes con recálculo cruzado y guarda anti-bucle; si hay 1 pago, su `amount` se sincroniza al total a pagar (`updateInitialPayment`) |
 | Múltiples pagos (split payment) | `[x]` | FormArray de pagos |
 | Campos condicionales para tarjeta (últimos 4, marca) | `[x]` | Si method es CREDIT/DEBIT_CARD |
 | Validación de cobertura (totalPaid ≥ totalToPay) | `[x]` | |
@@ -283,23 +287,26 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Anular pedido desde caja (cancelar antes de pagar) | `[x]` | `PUT orders/update-status CANCELED` |
 | WebSocket en tiempo real (refresh al recibir evento) | `[x]` | |
 | Cargar métodos de pago activos | `[x]` | `payment-methods.repository.ts` getActive |
-| **Reembolso de transacción (REFUND)** | `[ ]` | Endpoint `transactions/refund` definido en `url-paths.ts` pero no implementado |
-| **Anulación de transacción (CANCEL)** | `[ ]` | Endpoint `transactions/cancel` definido pero no implementado |
-| **Cambio de método de pago post-factura** | `[ ]` | Falta `ChangePaymentMethodModalComponent` y uso de `transactions/{id}/payment-details` |
-| **Precuenta** (visualizador modal con total estimado + prop. opcional) | `[ ]` | No existe. OrderDetailsDialog muestra pedido, pero no es precuenta |
-| **Propina predeterminada guardable** (default % persistente) | `[ ]` | Constantes en `app.constants.ts` listas; sin uso en `TransactionModalComponent` |
-| Editar cargos (surcharges) del pedido antes de pagar | `[~]` | Existe `surcharges-dialog.component.ts`, verificar flujo completo |
-| Selección de terminal en transacciones | `[ ]` | `terminals/all` se carga pero no se asigna al cashier shift en web |
-| Verificar que solo SUPER/ADMIN pueden cambiar método post-factura | `[ ]` | Pendiente de regla de negocio |
+| **Reembolso de transacción (REFUND)** | `[x]` | En `TransactionModalComponent`: selector de tipo alimentado por `service.transactionTypes`; si `REFUND` muestra campo `originalTransactionId`; submit envía `transactionType` + `originalTransactionId` a `POST transactions/create` (sin motivo, sin rol — igual al móvil) |
+| **Cambio de método de pago post-factura** | `[x]` | `ChangePaymentMethodDialogComponent`: total bloqueado, FormArray de pagos (con campos tarjeta condicionales), motivo opcional; endpoint `PUT transactions/{id}/payment-details`; botón "Cambiar pago" en tarjeta de historial PAID (solo SUPER/ADMIN) |
+| **Precuenta** (visualizador modal con total estimado + prop. opcional) | `[x]` | `PrecountDialogComponent`: items agrupados por nombre+precio (omite CANCELED), cargos, propina sugerida (del % predeterminado), TOTAL A PAGAR; botón "Ir a cobrar" abre `TransactionModalComponent` pre-llenado con esa propina. Reemplazo web del ticket impreso (descartado) |
+| **Propina predeterminada guardable** (default % persistente) | `[x]` | `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()`; carga al abrir el modal; botón guardar (`save`) en la fila de propina que persiste el % actual |
+| Selección de terminal en transacciones | `~~Descartado~~` | El móvil no asigna `terminalId` a la transacción; el terminal se asocia al abrir turno y el backend resuelve el shift por `cashierId` (ya enviado). Paridad con móvil |
+| Anulación de transacción (CANCEL) | `~~Descartado~~` | El móvil no la usa; anula la **orden** antes de pagar (la web ya lo tiene con `PUT orders/update-status/{id}?status=CANCELED`). Paridad con móvil |
+| Verificar que solo SUPER/ADMIN pueden cambiar método post-factura | `[x]` | Gate por rol en el botón "Cambiar pago" vía `isAdminOrSuper()` (`storage.roles()` incluye `SUPER` o `ADMINISTRADOR`). Único gate de rol en este módulo, igual al móvil |
 
 **Archivos clave (web):**
 - `src/app/features/payments/payments.component.ts`
-- `src/app/features/payments/pending-orders/pending-orders.component.ts` (523 líneas, incluye `TransactionModalComponent`)
+- `src/app/features/payments/pending-orders/pending-orders.component.ts` (incluye `TransactionModalComponent`)
 - `src/app/features/payments/order-details-dialog/order-details-dialog.component.ts`
 - `src/app/features/payments/invoice-details-dialog/invoice-details-dialog.component.ts`
 - `src/app/features/payments/surcharges-dialog/surcharges-dialog.component.ts`
-- `src/app/core/services/cash-register.service.ts` (318 líneas)
-- `src/app/data/repositories/transactions.repository.ts`
+- `src/app/features/payments/precount-dialog/precount-dialog.component.ts` **(nuevo)**
+- `src/app/features/payments/change-payment-method-dialog/change-payment-method-dialog.component.ts` **(nuevo)**
+- `src/app/core/services/cash-register.service.ts` (con `changePaymentMethod()`)
+- `src/app/core/services/storage.service.ts` (con `saveDefaultTipPercentage()`/`getDefaultTipPercentage()`)
+- `src/app/core/config/url-paths.ts` (con `CHANGE_PAYMENT_DETAILS`)
+- `src/app/data/repositories/transactions.repository.ts` (con `changePaymentDetails()`)
 - `src/app/data/repositories/payment-methods.repository.ts`
 - `src/app/data/repositories/terminals.repository.ts`
 - `src/app/data/models/transaction-request.model.ts`
@@ -318,36 +325,21 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 **Endpoints clave:**
 - `GET payment-methods/config/active`
 - `GET transactions/types`
-- `POST transactions/create`
+- `POST transactions/create` (SALE y REFUND; REFUND añade `originalTransactionId`)
 - `GET transactions/{id}/invoice`
 - `GET transactions/{id}`
-- `PUT transactions/{id}/payment-details` (cambio de método, **no usado en web**)
-- `POST transactions/refund` (**no usado en web**)
-- `POST transactions/cancel` (**no usado en web**)
+- `PUT transactions/{id}/payment-details` (cambio de método post-factura)
+- `POST transactions/refund` — **no se usa en web** (REFUND se hace vía `POST transactions/create` con `transactionType:"REFUND"`, igual que el móvil)
+- `POST transactions/cancel` — **no se usa en web** (la anulación es de orden, no de transacción; igual que el móvil)
 
-**Detalle de tareas pendientes (Pagos):**
-1. **Reembolso (REFUND)**
-   - Método `refund(transactionId, reason)` en `TransactionsRepository` → `POST transactions/refund`
-   - UI: en `InvoiceDetailsDialogComponent`, agregar botón "Reembolsar" si rol es admin/super
-   - Modal de confirmación con campo "motivo"
-2. **Anulación de transacción (CANCEL)**
-   - Método `cancel(transactionId, reason)` en `TransactionsRepository` → `POST transactions/cancel`
-   - UI: en historial, botón "Anular transacción" (solo si `order.status === PAID` y rol admin/super)
-3. **Cambio de método de pago post-factura**
-   - `ChangePaymentMethodModalComponent` con selector de método + campos tarjeta condicionales
-   - Endpoint: `PUT transactions/{id}/payment-details` con `{ paymentDetails, reason }`
-   - UI: botón "Cambiar método de pago" en `InvoiceDetailsDialogComponent` (solo admin/super)
-4. **Precuenta**
-   - `PrecountDialogComponent`: muestra resumen del pedido + items + total + campo "propina sugerida"
-   - Acción: "Ir a cobrar" → abre el `TransactionModalComponent` pre-llenado con la propina
-5. **Propina predeterminada guardable**
-   - `StorageService`: agregar `saveDefaultTipPercentage()`, `getDefaultTipPercentage()`
-   - UI: en módulo Perfil (o en el propio modal de transacción con checkbox "Guardar como predeterminado")
-   - `TransactionModalComponent`: al abrir, leer `defaultTipPercentage` del storage; al cerrar con éxito, si checkbox activo, persistir
-6. **Selección de terminal**
-   - En `TransactionModalComponent`: si el usuario es cajero y tiene turno activo, auto-asignar `terminalId` desde `cashierRepo.getActiveShiftByTerminal()`
-7. **Sync bidireccional de propina (% ↔ monto ↔ total)**
-   - Verificar que al cambiar `%`, el monto se actualice; al cambiar el monto, el `%` se recalcula; al cambiar el total, la propina se mantenga consistente
+**Detalle de implementación realizada (Pagos — 2026-08-26):**
+1. **Reembolso (REFUND)** — selector de tipo (SALE/REFUND) en `TransactionModalComponent` + campo `originalTransactionId` cuando REFUND; submit envía `transactionType` + `originalTransactionId` (sin motivo, sin rol — igual al móvil).
+2. **Anulación de transacción (CANCEL)** — **no implementada**; el móvil anula la orden (la web ya lo hace). Marcado `~~Descartado~~` por paridad.
+3. **Cambio de método de pago post-factura** — `ChangePaymentMethodDialogComponent` con total bloqueado, FormArray de pagos (campos tarjeta condicionales) y motivo opcional; endpoint `PUT transactions/{id}/payment-details`; botón "Cambiar pago" en tarjeta de historial PAID con `transactionId`, gate por rol SUPER/ADMIN.
+4. **Precuenta** — `PrecountDialogComponent`: replica el contenido del ticket móvil (items agrupados por nombre+precio, omitiendo CANCELED, cargos, propina sugerida del % predeterminado, TOTAL A PAGAR); botón "Ir a cobrar" → abre `TransactionModalComponent` pre-llenado con esa propina.
+5. **Propina predeterminada guardable** — `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()`; carga al abrir el modal; botón `save` en la fila de propina para persistir el % actual.
+6. **Selección de terminal** — **no implementada**; el móvil no asigna `terminalId` a la transacción. Marcado `~~Descartado~~` por paridad. El backend resuelve el shift vía `cashierId` (ya enviado por la web).
+7. **Sync bidireccional de propina** — implementados inputs de %, monto y total a pagar con recálculo cruzado bidireccional y guarda anti-bucle; si hay 1 pago, su `amount` se sincroniza al total a pagar.
 
 ---
 
@@ -360,7 +352,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | **Apertura de caja** (`open-shift`) | `[x]` | Selección de terminal, monto inicial, observaciones → `POST cashier-shifts/open` |
 | **Cierre de caja** (`close-shift`) | `[x]` | Monto declarado, observaciones, cálculo sobrante/faltante → `PUT cashier-shifts/close/cashier/{cashierId}` |
 | **Registrar egreso** (`expenses`) | `[x]` | Monto, concepto, motivo, fuente de pago (con campos bancarios), voucher → `POST cash-withdrawals/register` |
-| **Cierres pendientes** (`pending-closes`) | `[~]` | Vista de tabla OK; **falta acción de aprobar/reconciliar un cierre pendiente** |
+| **Cierres pendientes** (`pending-closes`) | `[x]` | Dos secciones (Sin Cerrar = OPEN / Pendientes de Conciliar = CLOSED) con cards; "Ver Arqueo" (`GET cashier-shifts/{id}/summary`) abre modal con resumen; "Conciliar" (`PUT cashier-shifts/{id}/reconcile`, sin body) solo visible para SUPER/ADMIN, con diálogo de confirmación sí/no y snackbar de éxito |
 | **Historial de egresos + CSV** (`withdrawals-history`) | `[x]` | Filtros + descarga CSV vía navegador |
 
 **Archivos clave (web):**
@@ -393,16 +385,16 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `GET cash-withdrawals/history`, `/export` (CSV)
 
 **Detalle de tareas pendientes (Opciones de Caja):**
-1. **Aprobar/Reconciliar cierre pendiente**
-   - Acción "Reconciliar" en `pending-closes.component.ts` (solo admin/super)
-   - Modal con resumen del turno + campo "observaciones del supervisor"
-   - Endpoint: `POST cashier-shifts/{id}/reconcile`
+1. ✅ **Aprobar/Reconciliar cierre pendiente** — completado 2026-08-27.
+   - Acción "Conciliar" en cards CLOSED (solo SUPER/ADMIN) → diálogo confirmación sí/no (sin inputs, fiel al móvil) → `PUT cashier-shifts/{id}/reconcile` (body vacío) → snackbar de éxito + recarga.
+   - Además: nueva sección "Sin Cerrar" (turnos OPEN) con card por caja abierta; botón "Ver Arqueo" en todas las cards → modal con `ShiftSummaryModel`.
+   - Nota: el plan viejo sugería "observaciones del supervisor" y `POST`, pero el móvil real usa `PUT` sin body y sin inputs. Se siguió el comportamiento del móvil.
 
 ---
 
 ## 8. Clientes (CRUD)
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -437,7 +429,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 9. Mesas (CRUD)
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -512,7 +504,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 11. Usuarios (CRUD)
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -545,7 +537,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 12. Métodos de Pago (configuración)
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -612,7 +604,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 14. Datos Fiscales
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -658,20 +650,29 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Reporte por rango exacto de fecha-hora | `[ ]` | |
 | Reporte por ID de turno (shift) | `[ ]` | |
 | Reporte por fecha de apertura de turno | `[ ]` | |
+| Reporte de ventas por productos seleccionados (fecha-hora + checklist) | `[ ]` | Implementado en móvil (ReportsController + ProductSelectionSection + ProductSalesResultsView) y backend (`GET /reports/sales/products`). Web debe portarlo. |
+| Reporte "Top de Productos Vendidos" (rango fecha-hora) | `[ ]` | Implementado en móvil (TopProductsResultsView) y backend (`GET /reports/sales/top-products`). Web debe portarlo. |
 | Exportación a PDF/Excel (alternativa web) | `[ ]` | |
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/reports/controllers/reports_controller.dart`
 - `lib/app/modules/reports/views/reports_view.dart`
+- `lib/app/modules/reports/views/widgets/product_selection_section.dart`
+- `lib/app/modules/reports/views/widgets/product_sales_results_view.dart`
+- `lib/app/modules/reports/views/widgets/top_products_results_view.dart`
 - `lib/app/data/repositories/reports_repository.dart`
+- `lib/app/data/repositories/categories_repository.dart` (catálogo cargado para el checklist)
 - `lib/app/data/models/sales_report_response.dart`
 - `lib/app/data/models/shift_sales_report_response.dart`
+- `lib/app/data/models/product_sales_report_response.dart`
 
 **Endpoints backend disponibles:**
 - `GET reports/sales?startDate=...&endDate=...`
-- `GET reports/sales/exact?startDateTime=...&endDateTime=...`
-- `GET reports/shift/{shiftId}`
-- `GET reports/shift-by-date?date=...`
+- `GET reports/sales/datetime?startDateTime=...&endDateTime=...`
+- `GET reports/sales/shift/{shiftId}`
+- `GET reports/sales/shift?openDate=...`
+- `GET reports/sales/products?startDateTime=...&endDateTime=...&productIds=...` (nuevo)
+- `GET reports/sales/top-products?startDateTime=...&endDateTime=...` (nuevo)
 
 **Por hacer en web:**
 1. Selector de tipo de reporte + filtros
@@ -795,6 +796,11 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 |---|---|---|
 | 2026-08-19 | Creación inicial del archivo. Análisis completo de web vs móvil con todas las funcionalidades. | opencode |
 | 2026-08-19 | Implementación completa de **Tomar Pedido** y **Pedidos**. Cambios: (a) `ProductType.COMBINADO` agregado; (b) `TakeOrderService` extendido con `addCombination`/`decrementCombination`/`getCombinationQuantity`/`getCombinadoSiblings`/`defaultCustomer`/`applyDefaultCustomer` y `itemTotal` corregido para combinados (solo el más caro); (c) nuevos diálogos shared `AddProductDialogComponent` y `SizeSelectorDialogComponent`; (d) nuevos diálogos feature `ComboSelectionDialogComponent` y `CombinationSelectionDialogComponent`; (e) nuevo `AddProductsDialogComponent` para agregar productos a pedido existente con catálogo + carrito temporal; (f) `OrderDetailDialogComponent` con botones "+ Productos" y "Cargos" + refresco automático; (g) `OrdersService.getOrder(id)`; (h) `StorageService` con métodos `getWaiterViewOwnOrdersOnly`/`saveWaiterViewOwnOrdersOnly`/`deleteWaiterViewOwnOrdersOnly`; (i) flag del mesero persistido en `BranchSelectionModalComponent` y `LoginComponent`; (j) filtro mesero aplicado en `OrdersService` y `CashRegisterService`; (k) `HomeComponent` con toggle `MatSlideToggle` en drawer (visible solo si rol MESERO) que actualiza `branches/waiter-filter` y recarga listas. Build verificado con `npm run build` (sin errores). | opencode |
+| 2026-08-26 | Paridad orders/take-order vs móvil: (a) take-order — textarea "Observaciones generales del pedido" bound a `service.observations` y enviado en payload; (b) take-order — botón eliminar por cargo en `.surcharges-section` (`removeSurcharge(index)`); (c) take-order — anidación de subcategorías en el catálogo (`selectedCategorySubcategories`); (d) orders — búsqueda por nº/cliente/mesa (`searchQuery` + `displayedOpenOrders`/`displayedFinalizedOrders`); (e) `OrderDetailDialogComponent.statusLabel` añade `DELIVERED → 'Entregado'`. Build verificado con `npm run build`. | opencode |
+| 2026-08-26 | Paridad completa del módulo **Pagos / Caja**. Cambios: (a) **Propina bidireccional** en `TransactionModalComponent` con inputs independientes %/monto/total y guarda anti-bucle; (b) **Propina predeterminada guardable** — `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()` y botón guardar en el modal; (c) **REFUND** — selector de tipo + `originalTransactionId` condicional; submit envía `transactionType` + `originalTransactionId`; (d) **Precuenta** — nuevo `PrecountDialogComponent` (items agrupados, cargos, propina sugerida, TOTAL A PAGAR) con botón "Ir a cobrar" que abre el modal de pago pre-llenado; botón "Precuenta" en tarjeta de pendientes; (e) **Cambio de método de pago post-factura** — nuevo `ChangePaymentMethodDialogComponent` (total bloqueado, FormArray de pagos, motivo opcional), endpoint `PUT transactions/{id}/payment-details` (constante + repo + service), botón "Cambiar pago" en historial PAID con `transactionId` gateado por rol SUPER/ADMIN; (f) helper `isAdminOrSuper()`; (g) `transactions.repository.changePaymentDetails()` + `cash-register.service.changePaymentMethod()`. Módulo marcado `[x]` Completado. Items **descartados por paridad con móvil**: `transactions/cancel` (el móvil anula la orden) y `terminalId` en transacciones (el móvil no lo asigna). Build verificado con `npm run build`. | opencode |
+| 2026-08-27 | Paridad completa del módulo **Cierres Pendientes** (`pending-closes`). Cambios: (a) **Servicio** — nuevo signal `openShifts`; `loadPendingCloses()` ahora carga en paralelo `by-status/OPEN` + `by-status/CLOSED`; nuevo método `reconcileShift(shiftId)` → `cashierRepo.reconcileShift(shiftId)` + recarga; (b) **Componente `pending-closes.component.ts`** — reestructurado en dos secciones de cards: "Sin Cerrar" (OPEN, chip naranja) y "Pendientes de Conciliar" (CLOSED, chip azul); cada card muestra shiftNumber, cajero, terminal, apertura, monto inicial; botones "Ver Arqueo" (siempre) y "Conciliar" (solo SUPER/ADMIN, en CLOSED); (c) **Nuevo `ShiftSummaryDialogComponent`** — muestra el arqueo completo del turno (cajero, terminal, estado, totales ventas/egresos/propinas, efectivo disponible/esperado/declarado, diferencia, observaciones, desglose por método de pago); (d) **Inline `ConfirmReconcileDialogComponent`** — diálogo sí/no sin inputs (fiel al móvil); tras éxito snackbar "Turno #X conciliado". Módulo 7 "Cierres pendientes" `[~]` → `[x]`. Build verificado con `npm run build`. | opencode |
+| 2026-08-28 | Implementación completa de **5 módulos administrativos** que eran stubs vacíos. Cambios: (a) **Correcciones de infraestructura** — `users.repository.ts`: `resetPassword`/`toggleStatus` cambiados a `PATCH` con id en el medio de la URL; `changeMyPassword` cambiado a `PATCH`; constantes `RESET_PASSWORD`/`TOGGLE_USER_STATUS` ajustadas a `'users'`. `fiscal-data.repository.ts`: `deactivate` corregido (id en el medio); agregado `activate(id)` (PATCH `/{id}/activate`). `table.model.ts`: reemplazados `capacity`/`active` por `tableNumber?`/`branchId?`; quitado `INACTIVE` del enum. `customer.model.ts`: `taxId`→`document`, `mobileNumber`→`phone`, quitado `active`, agregado `notes?`. Ajustado `take-order` para usar `customer.phone`. (b) **Mesas** — `TablesService` + `tables.component.ts` con grid de cards coloreadas por estado (AVAILABLE/OCCUPIED/RESERVED), selección múltiple (tap) con FAB contextual Reservar/Liberar (PUT en lote), CRUD + `TableFormDialogComponent`. (c) **Clientes** — `CustomersService` (con cliente predeterminado en localStorage) + lista de cards, CRUD + `CustomerFormDialogComponent`. (d) **Usuarios** — `UsersService` + lista de cards con switch activo, botón reset password (PATCH), CRUD + `UserFormDialogComponent` con envío `isActive`. (e) **Métodos de Pago** — `PaymentMethodsService` (orden por `displayOrder`) + lista con botón editar + `PaymentMethodFormDialogComponent`. (f) **Datos Fiscales** — `FiscalDataService` + form único que detecta create/edit según `getActive(branchId)` + `FiscalDataComponent` con todos los campos DIAN. Módulos 8, 9, 11, 12, 14 `[ ]` → `[x]`. Build verificado con `npm run build` + lint OK. | opencode |
+| 2026-09-01 | Reportes — agregado al alcance móvil + backend el **"Ventas por Producto (selección)"** y el **"Top de Productos Vendidos"**. Móvil: extiende `ReportsController` con 2 tipos en el dropdown + carga `CategoriesRepository` para el checklist, nuevos widgets `ProductSelectionSection` / `ProductSalesResultsView` / `TopProductsResultsView`, modelo `product_sales_report_response.dart`, métodos en `ReportsRepository`, constantes `getProductSalesReport` / `getTopProductsReport` en `UrlPaths`, registro de `CategoriesRepository` en `ReportsBinding`. Backend (`restic-back`): DTOs `ProductSalesReportResponseDTO` / `ProductSalesSummaryDTO` / `ProductSaleEventDTO`; queries JPQL nuevas en `OrderDetailRepository`; `ProductSalesReportService` + Impl agregado en `reports/` con agregación en memoria y chunking de IN(500) para escalar; dos endpoints `@AdminAccess` (`reports/sales/products`, `reports/sales/top-products`); test unitario con 8 casos; `TECHNICAL_DOCUMENTATION.md` actualizado. Reglas alineadas con el resto de reportes: solo SALE+COMPLETED, detalles CANCELED excluidos, filtrado por `X-Branch-Id`. Web sigue `[ ]` (mantener en el TODO). Mobile-first, build verificado (`mvn compile` + 8 unit tests + `flutter test` para reports y model OK). | opencode |
 | _Pendiente_ | _Actualizar al implementar cada funcionalidad_ | _—_ |
 
 ---

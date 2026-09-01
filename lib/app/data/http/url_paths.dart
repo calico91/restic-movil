@@ -113,6 +113,8 @@ class UrlPaths {
   static const String getSalesReport = 'reports/sales';
   static const String getSalesReportByDateTime = 'reports/sales/datetime';
   static const String getSalesReportByShift = 'reports/sales/shift';
+  static const String getProductSalesReport = 'reports/sales/products';
+  static const String getTopProductsReport = 'reports/sales/top-products';
 
   // Branches
   static const String updateBranch = 'branches'; // put /{id}
