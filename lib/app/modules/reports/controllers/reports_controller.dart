@@ -235,9 +235,4 @@ class ReportsController extends GetxController {
     return total;
   }
 
-  @override
-  void onClose() {
-    shiftIdController.dispose();
-    super.onClose();
-  }
 }

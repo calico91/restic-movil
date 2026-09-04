@@ -61,3 +61,40 @@ class NotFoundException extends HttpException {
         body: body,
       );
 }
+
+class SubscriptionGuardException extends HttpException {
+  const SubscriptionGuardException({
+    required super.message,
+    required super.prefix,
+    required super.url,
+    super.body,
+  });
+}
+
+class SubscriptionRequiredException extends SubscriptionGuardException {
+  final int graceDays;
+  final DateTime? tenantSince;
+
+  const SubscriptionRequiredException({
+    required super.message,
+    required super.url,
+    super.body,
+    required this.graceDays,
+    this.tenantSince,
+  }) : super(prefix: 'Payment Required');
+}
+
+class SubscriptionSuspendedException extends SubscriptionGuardException {
+  final String status;
+  final String? suspendedReason;
+  final DateTime? trialEndsAt;
+
+  const SubscriptionSuspendedException({
+    required super.message,
+    required super.url,
+    super.body,
+    required this.status,
+    this.suspendedReason,
+    this.trialEndsAt,
+  }) : super(prefix: 'Payment Required');
+}

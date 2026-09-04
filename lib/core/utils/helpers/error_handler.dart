@@ -6,6 +6,7 @@ import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class ErrorHandler {
   static void showErrorDialog(dynamic error) {
+    if (error is SubscriptionGuardException) return;
     final sessionExpired = _isSessionExpired(error);
     final message = error is String
         ? error

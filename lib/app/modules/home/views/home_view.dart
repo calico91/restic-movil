@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
+import 'package:restic_movil/app/data/services/subscription_service.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
@@ -51,9 +52,16 @@ class HomeView extends GetView<HomeController> {
                 }),
               ]
             : null,
-        body: LazyIndexedStack(
-          index: currentIndex,
-          children: controller.navigationItems.map((e) => e.view).toList(),
+        body: Column(
+          children: [
+            _buildSubscriptionBanner(),
+            Expanded(
+              child: LazyIndexedStack(
+                index: currentIndex,
+                children: controller.navigationItems.map((e) => e.view).toList(),
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: Padding(
           padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
@@ -61,6 +69,69 @@ class HomeView extends GetView<HomeController> {
         ),
       );
     });
+  }
+
+  Widget _buildSubscriptionBanner() {
+    try {
+      final svc = Get.find<SubscriptionService>();
+      return Obx(() {
+        if (!svc.hasSubscription.value) return const SizedBox.shrink();
+        final status = svc.status.value;
+        if (status == null) return const SizedBox.shrink();
+        if (status.isSuspended) {
+          return Material(
+            color: Colors.red.shade100,
+            child: InkWell(
+              onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
+              child: const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    Icon(Icons.block, color: Colors.red, size: 18),
+                    SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Suscripción suspendida. Toca para ver facturas pendientes.',
+                        style: TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                    Icon(Icons.chevron_right, color: Colors.red, size: 18),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        if (status.isTrial) {
+          final days = status.trialDaysRemaining ?? 0;
+          return Material(
+            color: Colors.orange.shade50,
+            child: InkWell(
+              onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.timer, color: Colors.orange, size: 18),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        'Te quedan $days días de prueba. Toca para ver detalles.',
+                        style: const TextStyle(color: Colors.orange, fontSize: 12),
+                      ),
+                    ),
+                    const Icon(Icons.chevron_right, color: Colors.orange, size: 18),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }
+        return const SizedBox.shrink();
+      });
+    } catch (_) {
+      return const SizedBox.shrink();
+    }
   }
 
   Widget _buildBottomNavBar(int currentIndex) {

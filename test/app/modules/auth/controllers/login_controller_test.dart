@@ -4,12 +4,24 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/modules/auth/controllers/login_controller.dart';
 import 'package:restic_movil/app/data/repositories/auth_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/subscription_service.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 
 import 'package:restic_movil/app/routes/app_routes.dart';
 
 class MockBaseHttpClient extends Fake implements BaseHttpClient {}
+
+class MockSubscriptionService extends Fake implements SubscriptionService {
+  @override
+  Future<void> refreshStatus() async {}
+
+  @override
+  Future<bool> startTrial() async => true;
+
+  @override
+  void clear() {}
+}
 
 class MockAuthRepository extends Fake implements AuthRepository {
   bool failLogin = false;
@@ -52,10 +64,12 @@ void main() {
       
       mockAuthRepository = MockAuthRepository();
       Get.put<StorageService>(MockStorageService());
-      
+      Get.put<SubscriptionService>(MockSubscriptionService());
+
       controller = LoginController(
         authRepository: mockAuthRepository,
         storageService: Get.find<StorageService>(),
+        subscriptionService: Get.find<SubscriptionService>(),
       );
       Get.put(controller);
     });

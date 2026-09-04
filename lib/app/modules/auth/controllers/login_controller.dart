@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/repositories/auth_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/subscription_service.dart';
 import 'package:restic_movil/app/data/models/login_response.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -15,8 +16,13 @@ import 'package:package_info_plus/package_info_plus.dart';
 class LoginController extends GetxController {
   final AuthRepository authRepository;
   final StorageService storageService;
+  final SubscriptionService subscriptionService;
 
-  LoginController({required this.authRepository, required this.storageService});
+  LoginController({
+    required this.authRepository,
+    required this.storageService,
+    required this.subscriptionService,
+  });
 
   final form = FormGroup({
     'username': FormControl<String>(
@@ -100,6 +106,9 @@ class LoginController extends GetxController {
           Get.offAllNamed(Routes.CHANGE_PASSWORD);
           return;
         }
+
+        subscriptionService.setUserModules(response.modules ?? []);
+        await subscriptionService.refreshStatus();
 
         if (response.branches!.length == 1) {
           await storageService.saveBranchId(response.branches!.first.id!);

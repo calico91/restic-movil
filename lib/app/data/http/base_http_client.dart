@@ -10,11 +10,30 @@ import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 
+typedef SubscriptionGuardCallback = void Function(SubscriptionGuardException error);
+
 
 class BaseHttpClient {
   final StorageService _storageService = Get.find<StorageService>();
+  static final List<SubscriptionGuardCallback> _guardCallbacks = [];
 
   BaseHttpClient();
+
+  static void addSubscriptionGuardCallback(SubscriptionGuardCallback cb) {
+    _guardCallbacks.add(cb);
+  }
+
+  static void clearSubscriptionGuardCallbacks() {
+    _guardCallbacks.clear();
+  }
+
+  static void _notifySubscriptionGuard(SubscriptionGuardException error) {
+    for (final cb in List<SubscriptionGuardCallback>.from(_guardCallbacks)) {
+      try {
+        cb(error);
+      } catch (_) {}
+    }
+  }
 
   Future<dynamic> get(String path, {Map<String, String>? parameters}) async {
     return _executeRequest(() async {
@@ -216,6 +235,8 @@ class BaseHttpClient {
         case 401:
         case 403:
           throw UnauthorizedException(errorMessage, url, jsonResponse);
+        case 402:
+          _throwSubscriptionError(jsonResponse, url, errorMessage);
         case 404:
           throw NotFoundException(errorMessage, url, jsonResponse);
         case 500:
@@ -231,5 +252,55 @@ class BaseHttpClient {
     } catch (e) {
       return body;
     }
+  }
+
+  Never _throwSubscriptionError(dynamic jsonResponse, String url, String fallbackMessage) {
+    String? errorCode;
+    String? suspendedReason;
+    String? status;
+    DateTime? trialEndsAt;
+    int? graceDays;
+    DateTime? tenantSince;
+    String message = fallbackMessage;
+
+    if (jsonResponse is Map<String, dynamic>) {
+      errorCode = jsonResponse['error'] as String?;
+      suspendedReason = jsonResponse['suspendedReason'] as String?;
+      status = jsonResponse['status'] as String?;
+      if (jsonResponse['trialEndsAt'] is String) {
+        trialEndsAt = DateTime.tryParse(jsonResponse['trialEndsAt'] as String);
+      }
+      if (jsonResponse['graceDays'] is int) {
+        graceDays = jsonResponse['graceDays'] as int;
+      }
+      if (jsonResponse['tenantSince'] is String) {
+        tenantSince = DateTime.tryParse(jsonResponse['tenantSince'] as String);
+      }
+      if (jsonResponse['message'] is String) {
+        message = jsonResponse['message'] as String;
+      }
+    }
+
+    if (errorCode == 'SUBSCRIPTION_REQUIRED') {
+      final error = SubscriptionRequiredException(
+        message: message,
+        url: url,
+        body: jsonResponse,
+        graceDays: graceDays ?? 0,
+        tenantSince: tenantSince,
+      );
+      _notifySubscriptionGuard(error);
+      throw error;
+    }
+    final suspended = SubscriptionSuspendedException(
+      message: message,
+      url: url,
+      body: jsonResponse,
+      status: status ?? 'SUSPENDED',
+      suspendedReason: suspendedReason,
+      trialEndsAt: trialEndsAt,
+    );
+    _notifySubscriptionGuard(suspended);
+    throw suspended;
   }
 }
