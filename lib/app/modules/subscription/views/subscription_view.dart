@@ -197,24 +197,6 @@ class SubscriptionView extends GetView<SubscriptionController> {
                 style: const TextStyle(color: Colors.black54)),
           ],
         ),
-        trailing: inv.isPending
-            ? Obx(() => controller.canManage
-                ? TextButton(
-                    onPressed: controller.paying.value
-                      ? null
-                      : () async {
-                          final ok = await controller.payInvoice(inv.id!);
-                          if (ok) {
-                            Get.dialog(const ModalInfo(
-                              title: 'Pago registrado',
-                              message: 'Factura marcada como pagada.',
-                            ));
-                          }
-                        },
-                    child: const Text('Marcar pagada'),
-                  )
-                : const SizedBox.shrink())
-            : null,
       ),
     );
   }
@@ -238,7 +220,7 @@ class SubscriptionView extends GetView<SubscriptionController> {
           const SizedBox(height: 12),
           Text(
             reason == 'INVOICE_OVERDUE'
-                ? 'Hay facturas vencidas sin pagar. Marca la factura más reciente como pagada para reactivar el servicio.'
+                ? 'Hay facturas con pago pendiente. Una vez registrado el pago, el servicio se reactiva automáticamente.'
                 : 'Estado: $reason',
             textAlign: TextAlign.center,
             style: const TextStyle(color: Colors.black54),

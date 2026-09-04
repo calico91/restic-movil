@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/subscription_invoice_model.dart';
 import 'package:restic_movil/app/data/services/subscription_service.dart';
 import 'package:restic_movil/app/data/repositories/subscription_repository.dart';
@@ -13,9 +12,8 @@ class SubscriptionController extends GetxController {
 
   final RxList<SubscriptionInvoiceModel> invoices = <SubscriptionInvoiceModel>[].obs;
   final RxBool loadingInvoices = false.obs;
-  final RxBool paying = false.obs;
   final RxBool startingTrial = false.obs;
-  final Rxn<String>errorMessage = Rxn<String>();
+  final Rxn<String> errorMessage = Rxn<String>();
 
   bool get canManage => service.canManage;
 
@@ -73,24 +71,6 @@ class SubscriptionController extends GetxController {
       return false;
     } finally {
       startingTrial.value = false;
-    }
-  }
-
-  Future<bool> payInvoice(String id) async {
-    paying.value = true;
-    errorMessage.value = null;
-    try {
-      await _repository.payInvoice(id);
-      await refreshStatus();
-      return true;
-    } catch (e) {
-      if (e is SubscriptionSuspendedException || e is SubscriptionRequiredException) {
-        await refreshStatus();
-      }
-      errorMessage.value = 'No se pudo marcar como pagada: $e';
-      return false;
-    } finally {
-      paying.value = false;
     }
   }
 }

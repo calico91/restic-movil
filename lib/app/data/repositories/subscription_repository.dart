@@ -48,14 +48,6 @@ class SubscriptionRepository {
     return SubscriptionInvoiceModel.fromJson(response as Map<String, dynamic>);
   }
 
-  Future<SubscriptionInvoiceModel> payInvoice(String id) async {
-    final response = await _client.post(
-      '${UrlPaths.paySubscriptionInvoice}/$id/pay',
-      body: <String, dynamic>{},
-    );
-    return SubscriptionInvoiceModel.fromJson(response as Map<String, dynamic>);
-  }
-
   bool isSubscriptionRequiredError(Object error) =>
       error is SubscriptionRequiredException;
 

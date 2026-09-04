@@ -86,7 +86,6 @@ class UrlPaths {
   static const String startTrial = 'subscriptions';
   static const String getSubscriptionStatus = 'subscriptions/status';
   static const String getSubscriptionInvoices = 'subscriptions/invoices';
-  static const String paySubscriptionInvoice = 'subscriptions/invoices'; // /:id/pay
 
   // Cashier Shifts
   static const String getCashierShift = 'cashier-shifts'; // /{id}
