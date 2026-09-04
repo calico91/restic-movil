@@ -119,6 +119,7 @@ void main() {
         'CONFIGURACION_IMPRESORA',
         'CONFIGURACION_DATOS_FISCALES'
       ]);
+      mockHomeController.userRoles.assignAll(['ADMINISTRADOR']);
 
       await tester.pumpWidget(
         const GetMaterialApp(
@@ -134,13 +135,45 @@ void main() {
       expect(find.text('Menú'), findsOneWidget);
       expect(find.text('Clientes'), findsOneWidget);
       expect(find.text('Opciones de Caja'), findsOneWidget);
-      
+
       // Hacemos scroll hacia abajo en el ListView para asegurarnos de que los últimos elementos se rendericen en las dimensiones de prueba
       await tester.drag(find.byType(ListView).first, const Offset(0, -500));
       await tester.pumpAndSettle();
 
       expect(find.text('Reportes'), findsOneWidget);
       expect(find.text('Configuración'), findsOneWidget);
+
+      // Expandir Configuración para verificar el sub-ítem "Ajustes de Pedidos"
+      await tester.tap(find.text('Configuración'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ajustes de Pedidos'), findsOneWidget);
+    });
+
+    testWidgets('Un usuario sin rol ADMIN/SUPER no debe ver "Ajustes de Pedidos" en Configuración', (tester) async {
+      mockHomeController.modules.assignAll([
+        'CONFIGURACION_IMPRESORA',
+        'CONFIGURACION_DATOS_FISCALES',
+      ]);
+      mockHomeController.userRoles.assignAll(['MESERO']);
+
+      await tester.pumpWidget(
+        const GetMaterialApp(
+          home: Scaffold(
+            body: CustomDrawer(),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.drag(find.byType(ListView).first, const Offset(0, -500));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Configuración'), findsOneWidget);
+      await tester.tap(find.text('Configuración'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Ajustes de Pedidos'), findsNothing);
     });
   });
 }

@@ -33,6 +33,10 @@ import '../modules/reports/bindings/reports_binding.dart';
 import '../modules/reports/views/reports_view.dart';
 import '../modules/splash/bindings/splash_binding.dart';
 import '../modules/splash/views/splash_view.dart';
+import '../modules/subscription/bindings/subscription_binding.dart';
+import '../modules/subscription/views/subscription_view.dart';
+import '../modules/order_settings/bindings/order_settings_binding.dart';
+import '../modules/order_settings/views/order_settings_view.dart';
 import '../modules/profile/bindings/profile_binding.dart';
 import '../modules/profile/views/profile_view.dart';
 import '../modules/payment_methods/bindings/payment_methods_binding.dart';
@@ -151,6 +155,16 @@ class AppPages {
       name: Routes.APP_UPDATE,
       page: () => const AppUpdateView(),
       binding: AppUpdateBinding(),
+    ),
+    GetPage(
+      name: Routes.SUBSCRIPTION,
+      page: () => const SubscriptionView(),
+      binding: SubscriptionBinding(),
+    ),
+    GetPage(
+      name: Routes.ORDER_SETTINGS,
+      page: () => const OrderSettingsView(),
+      binding: OrderSettingsBinding(),
     ),
   ];
 }

@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/subscription_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_register_view.dart';
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -39,6 +40,14 @@ class HomeController extends GetxController {
     super.onInit();
     _loadNavigationItems();
     _loadAppVersion();
+    _refreshSubscriptionStatus();
+  }
+
+  Future<void> _refreshSubscriptionStatus() async {
+    if (!modules.contains('SUSCRIPCION')) return;
+    try {
+      await Get.find<SubscriptionService>().refreshStatus();
+    } catch (_) {}
   }
 
   Future<void> _loadAppVersion() async {
@@ -141,6 +150,9 @@ class HomeController extends GetxController {
     await _storageService.deletePaymentMethods();
     await _storageService.deleteTransactionTypes();
     await _storageService.saveWaiterViewOwnOrdersOnly(false);
+    try {
+      Get.find<SubscriptionService>().clear();
+    } catch (_) {}
     Get.offAllNamed('/login');
   }
 

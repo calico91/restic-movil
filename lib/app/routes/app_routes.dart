@@ -20,4 +20,6 @@ abstract class Routes {
   static const INVENTORY = '/inventory';
   static const CHANGE_PASSWORD = '/change-password';
   static const APP_UPDATE = '/app-update';
+  static const SUBSCRIPTION = '/subscription';
+  static const ORDER_SETTINGS = '/settings/orders';
 }

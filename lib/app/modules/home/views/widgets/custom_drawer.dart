@@ -138,21 +138,14 @@ class CustomDrawer extends GetView<HomeController> {
                           onTap: () => Get.toNamed(Routes.FISCAL_DATA),
                         ),
                       if (isAdminOrSuper)
-                        Obx(
-                          () => SwitchListTile(
-                            contentPadding: const EdgeInsets.only(left: 56.0, right: 16.0),
-                            title: const Text(
-                              'Solo ver mis pedidos (meseros)',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14,
-                              ),
-                            ),
-                            value: controller.waiterViewOwnOrdersOnly.value,
-                            onChanged: (val) =>
-                                controller.setWaiterViewOwnOrdersOnly(val),
-                          ),
+                        _buildDrawerSubItem(
+                          title: 'Ajustes de Pedidos',
+                          onTap: () => Get.toNamed(Routes.ORDER_SETTINGS),
+                        ),
+                      if (isAdminOrSuper && controller.modules.contains('SUSCRIPCION'))
+                        _buildDrawerSubItem(
+                          title: 'Suscripción y Facturación',
+                          onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
                         ),
                     ],
                   );
