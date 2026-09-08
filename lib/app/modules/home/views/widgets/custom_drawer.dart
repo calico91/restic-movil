@@ -188,7 +188,10 @@ class CustomDrawer extends GetView<HomeController> {
           Obx(() {
             if (controller.appVersion.value.isNotEmpty) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 20, top: 10),
+                padding: EdgeInsets.only(
+                  bottom: 20 + MediaQuery.viewPaddingOf(context).bottom,
+                  top: 10,
+                ),
                 child: Text(
                   controller.appVersion.value,
                   style: const TextStyle(

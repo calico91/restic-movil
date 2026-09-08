@@ -64,7 +64,11 @@ class HomeView extends GetView<HomeController> {
           ],
         ),
         bottomNavigationBar: Padding(
-          padding: const EdgeInsets.only(left: 20, right: 20, bottom: 30),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            bottom: 30 + MediaQuery.viewPaddingOf(context).bottom,
+          ),
           child: _buildBottomNavBar(currentIndex),
         ),
       );

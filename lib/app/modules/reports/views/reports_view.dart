@@ -108,7 +108,10 @@ class ReportsView extends GetView<ReportsController> {
           backgroundColor: Color(0xFF0D47A1),
           foregroundColor: Colors.white,
         ),
-        dialogTheme: const DialogThemeData(backgroundColor: Colors.white),
+        dialogTheme: const DialogThemeData(
+          backgroundColor: Colors.white,
+          surfaceTintColor: Colors.transparent,
+        ),
       ),
       child: child!,
     );
