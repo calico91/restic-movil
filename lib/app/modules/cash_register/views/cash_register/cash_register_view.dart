@@ -12,6 +12,7 @@ class CashRegisterView extends GetView<CashRegisterController> {
 
   @override
   Widget build(BuildContext context) {
+    final listBottomPadding = MediaQuery.of(context).padding.bottom + 10;
     return Column(
       children: [
         DateNavigator(
@@ -61,11 +62,11 @@ class CashRegisterView extends GetView<CashRegisterController> {
                       ],
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.only(
+                      padding: EdgeInsets.only(
                         left: 16,
                         right: 16,
                         top: 16,
-                        bottom: 100,
+                        bottom: listBottomPadding,
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: orders.length,

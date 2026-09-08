@@ -32,7 +32,7 @@ class OrdersView extends GetView<OrdersController> {
               : const SizedBox.shrink(),
         ),
         const SizedBox(height: 20),
-        _buildOrdersList(),
+        _buildOrdersList(context),
       ],
     );
   }
@@ -142,7 +142,7 @@ class OrdersView extends GetView<OrdersController> {
   );
 
   /*build lista de pedidos*/
-  Widget _buildOrdersList() => Expanded(
+  Widget _buildOrdersList(BuildContext context) => Expanded(
     child: Obx(() {
       final ordersList = controller.currentTab.value == 0
           ? controller.orders
@@ -154,11 +154,11 @@ class OrdersView extends GetView<OrdersController> {
             : await controller.loadFinalizedOrders(withOverlay: false),
         child: ListView.builder(
           physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.only(
+          padding: EdgeInsets.only(
             left: 16,
             right: 16,
             top: 16,
-            bottom: 100, // Espacio extra para la barra de navegación
+            bottom: MediaQuery.of(context).padding.bottom + 10,
           ),
           itemCount: ordersList.length,
           itemBuilder: (context, index) {
