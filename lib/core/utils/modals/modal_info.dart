@@ -8,6 +8,7 @@ class ModalInfo extends StatelessWidget {
   final String buttonText;
   final VoidCallback? onSecondaryAction;
   final String? secondaryButtonText;
+  final IconData secondaryButtonIcon;
   final IconData icon;
   final Color iconColor;
 
@@ -19,6 +20,7 @@ class ModalInfo extends StatelessWidget {
     this.buttonText = 'Cerrar',
     this.onSecondaryAction,
     this.secondaryButtonText,
+    this.secondaryButtonIcon = Icons.print,
     this.icon = Icons.check_circle_outline,
     this.iconColor = Colors.green,
   });
@@ -57,7 +59,7 @@ class ModalInfo extends StatelessWidget {
                     borderRadius: BorderRadius.circular(10),
                   ),
                 ),
-                icon: const Icon(Icons.print, color: Colors.white, size: 20),
+                icon: Icon(secondaryButtonIcon, color: Colors.white, size: 20),
                 label: Text(
                   secondaryButtonText!,
                   style: const TextStyle(color: Colors.white),

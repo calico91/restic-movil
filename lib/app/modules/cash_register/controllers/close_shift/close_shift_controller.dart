@@ -25,6 +25,14 @@ class CloseShiftController extends GetxController {
     return double.tryParse(cleanValue) ?? 0.0;
   }
 
+  /*Parsea el efectivo declarado desde el formulario. Util para mostrarlo en
+  modales de confirmacion sin re-implementar la logica de limpieza. Devuelve 0.0
+  si el control esta vacio o nulo.*/
+  double parseDeclaredAmount() {
+    final declaredCashStr = form.control('declaredCashAmount').value as String?;
+    return _parseAmount(declaredCashStr ?? '');
+  }
+
   /*metodo para enviar la solicitud de cierre de caja y retornar la respuesta para que la vista la procese*/
   Future<Map<String, dynamic>?> submitCloseShift() async {
     final loginResponse = await _storageService.getUser();
@@ -35,10 +43,9 @@ class CloseShiftController extends GetxController {
       return null;
     }
 
-    final declaredCashStr = form.control('declaredCashAmount').value as String?;
     final remarks = form.control('remarks').value as String?;
 
-    final declaredCash = _parseAmount(declaredCashStr ?? '');
+    final declaredCash = parseDeclaredAmount();
 
     if (declaredCash <= 0) {
       ErrorHandler.showErrorDialog('El efectivo declarado debe ser mayor a 0.');

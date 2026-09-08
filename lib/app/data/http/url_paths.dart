@@ -82,6 +82,11 @@ class UrlPaths {
   static const String openCashierShift = 'cashier-shifts/open';
   static const String closeCashierShift = 'cashier-shifts/close/cashier';
 
+  // Subscriptions
+  static const String startTrial = 'subscriptions';
+  static const String getSubscriptionStatus = 'subscriptions/status';
+  static const String getSubscriptionInvoices = 'subscriptions/invoices';
+
   // Cashier Shifts
   static const String getCashierShift = 'cashier-shifts'; // /{id}
   static const String getAllCashierShifts = 'cashier-shifts/all';
@@ -113,6 +118,8 @@ class UrlPaths {
   static const String getSalesReport = 'reports/sales';
   static const String getSalesReportByDateTime = 'reports/sales/datetime';
   static const String getSalesReportByShift = 'reports/sales/shift';
+  static const String getProductSalesReport = 'reports/sales/products';
+  static const String getTopProductsReport = 'reports/sales/top-products';
 
   // Branches
   static const String updateBranch = 'branches'; // put /{id}

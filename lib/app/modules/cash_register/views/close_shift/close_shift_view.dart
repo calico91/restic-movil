@@ -97,15 +97,53 @@ class CloseShiftView extends GetView<CloseShiftController> {
         return CustomSubmitButton(
           text: 'Cerrar Caja',
           onPressed: form.valid
-              ? () async {
-                  final result = await controller.submitCloseShift();
-                  if (result != null) {
-                    _showSuccessModal(result);
-                  }
-                }
+              ? () => _confirmAndSubmit()
               : null,
         );
       },
+    );
+  }
+
+  /*Muestra el modal de confirmacion con el monto declarado y, solo si el
+  usuario confirma, consume el servicio de cierre de caja.*/
+  Future<void> _confirmAndSubmit() async {
+    final declaredAmount = controller.parseDeclaredAmount();
+
+    if (declaredAmount <= 0) {
+      await controller.submitCloseShift();
+      return;
+    }
+
+    final currencyFormat = NumberFormat.currency(
+      locale: 'es_CO',
+      symbol: '\$',
+      decimalDigits: 0,
+    );
+
+    final formattedAmount = currencyFormat.format(declaredAmount);
+    final message =
+        'Efectivo declarado: $formattedAmount\n'
+        '¿Confirmas el cierre del turno? Esta accion finaliza el turno de caja.';
+
+    Get.dialog(
+      ModalInfo(
+        title: 'Confirmar Cierre de Caja',
+        message: message,
+        buttonText: 'Cancelar',
+        secondaryButtonText: 'Si, Cerrar Caja',
+        secondaryButtonIcon: Icons.point_of_sale,
+        icon: Icons.help_outline,
+        iconColor: const Color(0xFF0D47A1),
+        onClose: () => Get.back(),
+        onSecondaryAction: () async {
+          Get.back();
+          final result = await controller.submitCloseShift();
+          if (result != null) {
+            _showSuccessModal(result);
+          }
+        },
+      ),
+      barrierDismissible: false,
     );
   }
 

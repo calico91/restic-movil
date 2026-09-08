@@ -62,13 +62,6 @@ class PrinterSettingsController extends GetxController {
     _loadUserRoles();
   }
 
-  @override
-  void onClose() {
-    ipController.dispose();
-    portController.dispose();
-    super.onClose();
-  }
-
   Future<void> _loadPrinterSize() async {
     selectedPrinterSize.value = printerService.printerSize.value;
   }

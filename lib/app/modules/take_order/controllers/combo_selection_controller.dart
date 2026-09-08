@@ -268,7 +268,6 @@ class ComboSelectionController extends GetxController {
   @override
   void onClose() {
     _activeTags.remove('combo_${product.id}');
-    commentController.dispose();
     super.onClose();
   }
 }

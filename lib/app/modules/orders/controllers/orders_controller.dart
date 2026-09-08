@@ -147,8 +147,6 @@ class OrdersController extends GetxController {
     _openOrdersSub?.cancel();
     _ordersSub?.cancel();
     _orderStatusSub?.cancel();
-    searchController.dispose();
-    additionalObservationsController.dispose();
     super.onClose();
   }
 

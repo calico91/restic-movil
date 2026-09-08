@@ -105,3 +105,27 @@ asyncFunction: () async {
 - Genera un breve comentario en español al inicio de cada metodo en los controllers, describiendo su función de manera clara y concisa.
 - Para funciones complejas que esten en los controller y en las views, generar un comentario muy corto y especifico.
 
+# Regla: Manual de Usuario
+
+El manual de usuario final se mantiene en un **repositorio separado** en `D:\documentacion-usuario-restic`
+(MkDocs Material). Documenta lo que los usuarios pueden hacer desde esta app.
+
+Cada vez que un cambio agregue o modifique una **pantalla, flujo o comportamiento visible
+para el usuario** (nueva pantalla, UX modificada, nueva acción, cambios de roles/permisos,
+nuevo tipo de ticket, etc.), actualiza también el manual. La tarea no se considera completa
+hasta que el manual refleje el cambio.
+
+1. Busca la sección afectada en `D:\documentacion-usuario-restic\docs\` (el `nav:` de `mkdocs.yml`
+   lista todas las secciones).
+2. Edita el `.md` correspondiente in situ, siguiendo las convenciones del `CONTRIBUTING.md`
+   de ese repo (objetivo → rol → paso a paso → resultado → notas; admonitions
+   `!!! tip`/`!!! warning`; marcadores de imagen `![título](img/archivo.png)`).
+3. Si la funcionalidad es nueva, crea `docs/<feature>.md` y agrega una línea bajo `nav:`
+   en `mkdocs.yml`.
+4. Haz commit del cambio del manual en el repo `documentacion-usuario-restic` (se versiona aparte
+   de este repo).
+
+Mantén también `.opencode/planes/control-implementacion-funcionalidades.md` actualizado según
+sus "Notas operativas". Los refactors puros, de performance o solo de tests NO requieren
+actualizar el manual.
+

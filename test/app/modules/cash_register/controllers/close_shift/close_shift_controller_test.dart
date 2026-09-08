@@ -263,6 +263,38 @@ void main() {
       expect(res!['status'], 'OK');
       expect(mockRepository.isShiftClosed, true);
     });
+
+    group('parseDeclaredAmount', () {
+      testWidgets('parsea string formateado con separadores a double', (tester) async {
+        await tester.pumpWidget(const GetMaterialApp(home: Scaffold(body: SizedBox())));
+        controller = Get.put(CloseShiftController(cashierRepository: mockRepository));
+
+        controller.form.control('declaredCashAmount').value = '150.000';
+        await tester.pumpAndSettle();
+        expect(controller.parseDeclaredAmount(), 150000.0);
+
+        controller.form.control('declaredCashAmount').value = '75.500';
+        await tester.pumpAndSettle();
+        expect(controller.parseDeclaredAmount(), 75500.0);
+
+        controller.form.control('declaredCashAmount').value = '3000';
+        await tester.pumpAndSettle();
+        expect(controller.parseDeclaredAmount(), 3000.0);
+      });
+
+      testWidgets('devuelve 0.0 si el control esta vacio o nulo', (tester) async {
+        await tester.pumpWidget(const GetMaterialApp(home: Scaffold(body: SizedBox())));
+        controller = Get.put(CloseShiftController(cashierRepository: mockRepository));
+
+        controller.form.control('declaredCashAmount').value = '';
+        await tester.pumpAndSettle();
+        expect(controller.parseDeclaredAmount(), 0.0);
+
+        controller.form.control('declaredCashAmount').value = null;
+        await tester.pumpAndSettle();
+        expect(controller.parseDeclaredAmount(), 0.0);
+      });
+    });
   });
 }
 

@@ -78,11 +78,21 @@ class CustomDrawer extends GetView<HomeController> {
                       ),
                       _buildDrawerSubItem(
                         title: 'Cierres Pendientes',
-                        onTap: () => Get.toNamed(Routes.PENDING_CLOSES),
+                        onTap: () => Get.toNamed(
+                          Routes.PENDING_CLOSES,
+                        ),
+                        visible: controller.modules.contains(
+                          'CIERRES_PENDIENTES',
+                        ),
                       ),
                       _buildDrawerSubItem(
                         title: 'Historial de Egresos',
-                        onTap: () => Get.toNamed(Routes.WITHDRAWALS_HISTORY),
+                        onTap: () => Get.toNamed(
+                          Routes.WITHDRAWALS_HISTORY,
+                        ),
+                        visible: controller.modules.contains(
+                          'HISTORIAL_EGRESOS',
+                        ),
                       ),
                     ],
                   );
@@ -128,21 +138,14 @@ class CustomDrawer extends GetView<HomeController> {
                           onTap: () => Get.toNamed(Routes.FISCAL_DATA),
                         ),
                       if (isAdminOrSuper)
-                        Obx(
-                          () => SwitchListTile(
-                            contentPadding: const EdgeInsets.only(left: 56.0, right: 16.0),
-                            title: const Text(
-                              'Solo ver mis pedidos (meseros)',
-                              style: TextStyle(
-                                color: Colors.black87,
-                                fontWeight: FontWeight.w400,
-                                fontSize: 14,
-                              ),
-                            ),
-                            value: controller.waiterViewOwnOrdersOnly.value,
-                            onChanged: (val) =>
-                                controller.setWaiterViewOwnOrdersOnly(val),
-                          ),
+                        _buildDrawerSubItem(
+                          title: 'Ajustes de Pedidos',
+                          onTap: () => Get.toNamed(Routes.ORDER_SETTINGS),
+                        ),
+                      if (isAdminOrSuper && controller.modules.contains('SUSCRIPCION'))
+                        _buildDrawerSubItem(
+                          title: 'Suscripción y Facturación',
+                          onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
                         ),
                     ],
                   );
@@ -185,7 +188,10 @@ class CustomDrawer extends GetView<HomeController> {
           Obx(() {
             if (controller.appVersion.value.isNotEmpty) {
               return Padding(
-                padding: const EdgeInsets.only(bottom: 20, top: 10),
+                padding: EdgeInsets.only(
+                  bottom: 20 + MediaQuery.viewPaddingOf(context).bottom,
+                  top: 10,
+                ),
                 child: Text(
                   controller.appVersion.value,
                   style: const TextStyle(
@@ -298,7 +304,11 @@ class CustomDrawer extends GetView<HomeController> {
   Widget _buildDrawerSubItem({
     required String title,
     required VoidCallback onTap,
+    bool visible = true,
   }) {
+    if (!visible) {
+      return const SizedBox.shrink();
+    }
     return ListTile(
       contentPadding: const EdgeInsets.only(left: 72.0),
       title: Text(

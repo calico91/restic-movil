@@ -178,12 +178,6 @@ class TakeOrderController extends GetxController {
     _loadInitialData();
   }
 
-  @override
-  void onClose() {
-    searchTextController.dispose();
-    super.onClose();
-  }
-
   /*cargar clientes de la api*/
   Future<void> _fetchCustomers() async {
     if (customers.isNotEmpty) return;

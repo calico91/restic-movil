@@ -12,6 +12,7 @@ class CommandsView extends GetView<CommandsController> {
 
   @override
   Widget build(BuildContext context) {
+    final listBottomPadding = MediaQuery.of(context).padding.bottom + 10;
     return Column(
       children: [
         DateNavigator(
@@ -50,12 +51,11 @@ class CommandsView extends GetView<CommandsController> {
                       ],
                     )
                   : ListView.builder(
-                      padding: const EdgeInsets.only(
+                      padding: EdgeInsets.only(
                         left: 16,
                         right: 16,
                         top: 16,
-                        bottom:
-                            100, // Espacio extra para la barra de navegaciÃ³n
+                        bottom: listBottomPadding,
                       ),
                       physics: const AlwaysScrollableScrollPhysics(),
                       itemCount: ordersList.length,
