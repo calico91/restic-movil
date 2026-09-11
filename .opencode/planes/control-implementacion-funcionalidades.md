@@ -27,8 +27,8 @@
 | 3 | Tomar Pedido | `[x]` | — |
 | 4 | Pedidos (lista/gestión) | `[x]` | — |
 | 5 | Comandas (cocina) | `[x]` | — |
-| 6 | Pagos / Caja (registrar pago) | `[~]` | Reembolso/anulación transacción, cambio método post-factura, precuenta, propina guardable |
-| 7 | Opciones de Caja (apertura/cierre/egresos) | `[x]` | Cierres pendientes: sin acción de aprobar |
+| 6 | Pagos / Caja (registrar pago) | `[x]` | — |
+| 7 | Opciones de Caja (apertura/cierre/egresos) | `[x]` | — |
 | 8 | Clientes (CRUD) | `[x]` | — |
 | 9 | Mesas (CRUD) | `[x]` | — |
 | 10 | Menú (categorías + productos + recetas) | `[ ]` | Stub vacío |
@@ -399,13 +399,21 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar todos los clientes | `[ ]` | Stub — `customers.component.ts` solo importa `CommonModule` |
-| Crear cliente | `[ ]` | |
-| Editar cliente | `[ ]` | |
-| Eliminar cliente | `[ ]` | |
-| Buscar cliente por nombre/apellido/teléfono | `[ ]` | |
-| Marcar cliente como predeterminado para pedidos | `[ ]` | |
-| Ver historial de pedidos por cliente (opcional) | `[ ]` | |
+| Listar todos los clientes | `[x]` | Lista de cards con avatar y datos de contacto |
+| Crear cliente | `[x]` | `CustomerFormDialogComponent` (template-driven, validación imperativa `canSave()`) |
+| Editar cliente | `[x]` | Mismo diálogo hidratado con datos existentes |
+| Eliminar cliente | `[x]` | Confirmación `ModalInfoComponent` ("¿Está seguro de eliminar a ...?") |
+| Buscar cliente por nombre/apellido/teléfono | `[x]` | `searchQuery` signal + `displayedCustomers` computed (case-insensitive contains; busca también en `document`); search-box arriba de la lista |
+| Marcar cliente como predeterminado para pedidos | `[x]` | Estrella en cada card; `CustomersService.setDefault()` / `clearDefault()` persiste en `localStorage` (`APP_STORAGE_KEYS.DEFAULT_CUSTOMER`) y se aplica en TAKE_AWAY/DELIVERY desde `TakeOrderService` |
+| Ver historial de pedidos por cliente (opcional) | `[ ]` | No implementado en web ni en móvil |
+
+**Archivos clave (web):**
+- `src/app/features/customers/customers.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/customers/customer-form-dialog.component.ts`
+- `src/app/core/services/customers.service.ts` (incluye default-customer en localStorage)
+- `src/app/core/config/app.constants.ts` (`APP_STORAGE_KEYS.DEFAULT_CUSTOMER`)
+- `src/app/data/repositories/customer.repository.ts`
+- `src/app/data/models/customer.model.ts`
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/customers/controllers/customers_controller.dart`
@@ -414,17 +422,11 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `lib/app/data/repositories/customer_repository.dart`
 - `lib/app/data/models/customer_model.dart`
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET customers/all`
 - `POST customers/create`
 - `PUT customers/update/{id}`
 - `DELETE customers/delete/{id}`
-
-**Por hacer en web:**
-1. Implementar `customers.component.ts` con tabla + filtros + paginación
-2. Form reactivo para crear/editar (campos: name, lastName, document, phone, email, address, notes)
-3. Toggle "cliente predeterminado" (POST/PATCH backend si lo soporta, o persistir en localStorage)
-4. Repositorio y modelo **ya existen** en `customer.repository.ts` y `customer.model.ts`
 
 ---
 
@@ -434,13 +436,20 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar mesas con filtro por estado/ubicación | `[ ]` | Stub |
-| Crear mesa | `[ ]` | |
-| Editar mesa | `[ ]` | |
-| Eliminar mesa | `[ ]` | |
-| Reservar mesas (`reserveTables`) | `[ ]` | |
-| Liberar mesas (`releaseTables`) | `[ ]` | |
-| Visualización de estados (AVAILABLE/OCCUPIED/RESERVED) | `[ ]` | |
+| Listar mesas con filtro por estado/ubicación | `[x]` | Grid de cards + chips de estado (Todas/Disponibles/Ocupadas/Reservadas) + `mat-select` de ubicación + búsqueda libre por nombre/ubicación; signals `statusFilter`/`locationFilter`/`searchQuery` + `displayedTables` computed |
+| Crear mesa | `[x]` | `TableFormDialogComponent` (form reactivo/select de estado) |
+| Editar mesa | `[x]` | Mismo diálogo hidratado |
+| Eliminar mesa | `[x]` | Confirmación `ModalInfoComponent`; modal secundario si la mesa tiene pedidos asociados |
+| Reservar mesas (`reserveTables`) | `[x]` | Selección múltiple (tap) con FAB contextual; `PUT tables/reserve` con `tableIds[]` |
+| Liberar mesas (`releaseTables`) | `[x]` | FAB contextual cuando todas las seleccionadas están OCCUPIED/RESERVED; `PUT tables/release` con `tableIds[]` |
+| Visualización de estados (AVAILABLE/OCCUPIED/RESERVED) | `[x]` | Badge coloreado (verde/naranja/azul) + borde cuando seleccionada |
+
+**Archivos clave (web):**
+- `src/app/features/tables/tables.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/tables/table-form-dialog.component.ts`
+- `src/app/core/services/tables.service.ts` (incluye `applyBranchFilter` por `X-Branch-Id`)
+- `src/app/data/repositories/tables.repository.ts` (con `ReserveTablesRequest` / `ReleaseTablesRequest`)
+- `src/app/data/models/table.model.ts`
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/tables/controllers/tables_controller.dart`
@@ -448,58 +457,86 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `lib/app/data/repositories/tables_repository.dart`
 - `lib/app/data/models/table_model.dart` + `table_status_model.dart`
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET tables/all`, `GET tables/by-status/AVAILABLE`
 - `POST tables/create`, `PUT tables/update/{id}`, `DELETE tables/delete/{id}`
-- `POST tables/reserve`, `POST tables/release`
+- `PUT tables/reserve`, `PUT tables/release` (body `{ tableIds: string[] }`)
 - `GET tables/statuses`
-
-**Por hacer en web:**
-1. Implementar `tables.component.ts` con grid visual de mesas por ubicación
-2. Colorear según estado (verde/naranja/azul)
-3. Acciones contextuales (reservar/liberar/editar)
 
 ---
 
 ## 10. Menú (Categorías, Subcategorías, Productos, Recetas)
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar categorías (con subcategorías y productos anidados) | `[ ]` | |
-| Crear/editar/eliminar categoría | `[ ]` | |
-| Crear/editar/eliminar subcategoría | `[ ]` | |
-| Crear/editar/eliminar producto | `[ ]` | |
-| Productos con múltiples precios (VARIABLE + `sizeLabel`) | `[ ]` | |
-| Productos tipo COMBO con grupos y opciones | `[ ]` | |
-| Productos tipo COMBINADO (2x1) | `[ ]` | |
-| Recetas de producto (asociación con insumos) | `[ ]` | `product-recipe` |
-| Guardar receta completa por variante de precio | `[ ]` | |
+| Listar categorías (con subcategorías y productos anidados) | `[x]` | Tabs `MatTabsModule` por categoría + `MatExpansionPanel` por subcategoría (expandidas) + lista de productos |
+| Crear/editar categoría | `[x]` | `CategoryFormDialogComponent` (name + description, ambos requeridos por el backend) |
+| Crear/editar subcategoría | `[x]` | `SubcategoryFormDialogComponent` (name requerido, description opcional, inyecta `categoryId` automáticamente) |
+| Crear/editar producto | `[x]` | `ProductFormDialogComponent` (tipo, precios, requires_recipe, option_only); payload sigue reglas del móvil (POST en array, PUT objeto) |
+| Productos con múltiples precios (VARIABLE + `sizeLabel`) | `[x]` | Filas dinámicas Tamaño + Precio; `size_label` solo se envía si VARIABLE y no vacío; separador de miles (`parseThousands`/`formatThousands`) |
+| Productos tipo COMBO con grupos y opciones | `[x]` | `ComboEditorDialogComponent` con `mat-select` filtrable de productos SIMPLE no usados; remove (con confirmación) / restore; `refreshCombo` recarga el árbol tras cada acción |
+| Productos tipo COMBINADO (2x1) | `[x]` | El producto se crea con `productType: 'COMBINADO'`; venta ya gestionada por `TakeOrderService` |
+| Recetas de producto (asociación con insumos) | `[x]` | `RecipeFormDialogComponent` — base o por variante; `MenuService.saveRecipe` / `deleteRecipe` / `saveAllRecipes` (bulk) |
+| Guardar receta completa por variante de precio | `[x]` | Botón "Guardar todas" en VARIABLE → `POST inventory/recipes/{id}/bulk` |
 | Asignar impresora/zona a categoría | `~~Descartado~~` | No aplica en web |
+| Eliminar categoría / subcategoría / producto | `~~Descartado~~` | El backend lo expone pero el móvil no tiene UI; web sigue la paridad (no hay botones de eliminar) |
+| Activar/desactivar producto (`active`) | `~~Descartado~~` | El backend lo expone pero el móvil no tiene UI; paridad |
+
+**Reglas de negocio replicadas (idénticas al móvil):**
+- `start_date` siempre = hoy a medianoche (`yyyy-MM-dd'T'HH:mm:ss`).
+- `option_only === true` ⇒ oculta sección de precios y fuerza `[{ amount: 0, start_date: hoy, end_date: null }]`.
+- Cambiar tipo a ≠ VARIABLE colapsa el array de precios a 1.
+- Combo editor: solo productos `SIMPLE` con id que **no estén ya como opción** en ningún grupo; confirmación para desactivar ("Ya no aparecerá en nuevos pedidos") y reactivar.
+- Recetas: ≥1 ingrediente con `quantity > 0` por variante; eliminar receta con confirmación `ModalInfoComponent`.
+- Recarga completa de `categories/all` tras cada mutación (no optimistic updates), igual que el móvil.
+- Sin WebSocket en este módulo (paridad con móvil).
+- Éxitos vía `MatSnackBar` (patrón web); textos iguales a los mensajes del móvil.
+
+**Archivos clave (web):**
+- `src/app/core/services/menu.service.ts` (CRUD categorías/subcategorías/productos, recetas, opciones de combo, `getAllSimpleProducts`, `findComboById`)
+- `src/app/features/menu/menu.component.ts` (+ `.html`, `.scss`) — tabs + sub-accordion + product list con menú contextual
+- `src/app/features/menu/dialogs/category-form-dialog.component.ts`
+- `src/app/features/menu/dialogs/subcategory-form-dialog.component.ts`
+- `src/app/features/menu/dialogs/product-form-dialog.component.ts`
+- `src/app/features/menu/dialogs/recipe-form-dialog.component.ts` **(nuevo)**
+- `src/app/features/menu/dialogs/combo-editor-dialog.component.ts` **(nuevo)**
+- `src/app/core/services/menu.service.spec.ts` + `src/app/features/menu/menu.component.spec.ts` **(nuevos, Vitest)**
+- `src/app/data/repositories/categories.repository.ts` (extendido con `createSubcategory` / `updateSubcategory`)
+- `src/app/data/repositories/products.repository.ts`
+- `src/app/data/repositories/combos.repository.ts` (corregido: `toggleOption` ahora usa `PATCH combos/options/{id}/toggle`)
+- `src/app/data/repositories/inventory.repository.ts` (extendido con `getItems` tipado, `getRecipesForProduct`, `saveRecipe`, `saveAllRecipes`, `deleteRecipe(?priceVariantId=)`)
+- `src/app/data/models/category.model.ts` (+ `description?` en Category/Subcategory)
+- `src/app/data/models/product.model.ts` (`PriceModel.productId` → `product_id?`, + `end_date?`)
+- `src/app/data/models/inventory.model.ts` (`ProductRecipeModel` + `priceVariantId`/`priceVariantLabel`; `InventoryItemModel` + `minStock?`/`stockStatus?`)
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/menu/controllers/menu_controller.dart`
 - `lib/app/modules/menu/views/menu_view.dart`
+- `lib/app/modules/menu/views/widgets/menu_forms.dart` (`CategoryFormDialog`, `SubcategoryFormDialog`, `ProductFormDialog`)
 - `lib/app/modules/menu/views/widgets/combo_editor_dialog.dart`
-- `lib/app/modules/menu/views/widgets/recipe_form_dialog.dart`
+- `lib/app/core/utils/modals/recipe_form_dialog.dart`
 - `lib/app/data/repositories/categories_repository.dart`
 - `lib/app/data/repositories/combos_repository.dart`
+- `lib/app/data/repositories/inventory_repository.dart` (recetas)
 - `lib/app/data/models/category_model.dart` (re-exporta subcategory, product, combo)
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET categories/all`
-- `POST categories/create`, `PUT categories/update/{id}`, `DELETE categories/delete/{id}`
-- `POST subcategories/create`, `PUT subcategories/update/{id}`
-- `POST products/create`, `PUT products/update/{id}`
-- `GET combos/by-product/{id}/options`, etc.
-- `POST products/{id}/recipe`, `DELETE products/{id}/recipe/{priceVariantId}`
-
-**Por hacer en web:**
-1. Vista en árbol: Categoría → Subcategoría → Productos
-2. CRUD completo con formularios reactivos
-3. Editor visual de combos (grupos + opciones)
-4. Editor de recetas (selector de insumos + cantidades)
+- `POST categories/create` (array), `PUT categories/update/{id}` (objeto)
+- `PATCH categories/{id}/printer` *(existe, no usado en web)*
+- `POST subcategories/create` (array), `PUT subcategories/update/{id}`
+- `POST products/create` (array), `PUT products/update/{id}`
+- `GET products/types` *(existe, no usado en web — los tipos vienen hardcoded del enum)*
+- `POST combos/groups/{groupId}/options` (body `{productId}`)
+- `DELETE combos/options/{optionId}`
+- `PATCH combos/options/{optionId}/toggle`
+- `GET inventory/items` (picker de insumos para recetas)
+- `GET inventory/recipes/{productId}`
+- `POST inventory/recipes/{productId}` (single)
+- `POST inventory/recipes/{productId}/bulk` (todas las variantes)
+- `DELETE inventory/recipes/{productId}?priceVariantId=...`
 
 ---
 
@@ -509,13 +546,20 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar usuarios | `[ ]` | |
-| Crear usuario (asignar roles + sucursales) | `[ ]` | |
-| Editar usuario | `[ ]` | |
-| Eliminar usuario | `[ ]` | |
-| Resetear contraseña (genera temporal) | `[ ]` | |
-| Activar/desactivar usuario (`toggle-status`) | `[ ]` | |
-| Asignar módulos al usuario | `[ ]` | |
+| Listar usuarios | `[x]` | Lista de cards con datos (username, nombre, email, roles) |
+| Crear usuario (asignar roles + sucursales) | `[x]` | `UserFormDialogComponent` con checkboxes múltiples de roles (carga `roles/all`); envío `isActive` |
+| Editar usuario | `[x]` | Mismo diálogo hidratado (roles preseleccionados, isActive editable) |
+| Eliminar usuario | `[x]` | Confirmación `ModalInfoComponent` |
+| Resetear contraseña (genera temporal) | `[x]` | `PATCH users/{id}/reset-password`; muestra la contraseña temporal generada en snackbar |
+| Activar/desactivar usuario (`toggle-status`) | `[x]` | Switch en cada card; `PATCH users/{id}/toggle-status` |
+| Asignar módulos al usuario | `[~]` | El backend lo gestiona vía login (`LoginResponse.modules`); la UI web no edita módulos del usuario (igual que el móvil: los módulos vienen del rol y se gestionan en otro flujo) |
+
+**Archivos clave (web):**
+- `src/app/features/users/users.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/users/user-form-dialog.component.ts`
+- `src/app/core/services/users.service.ts`
+- `src/app/data/repositories/users.repository.ts` (incluye `resetPassword` y `toggleStatus` con `PATCH .../{id}/...`)
+- `src/app/data/models/user.model.ts`
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/users/controllers/users_controller.dart`
@@ -523,16 +567,12 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `lib/app/data/repositories/users_repository.dart`
 - `lib/app/data/models/user_model.dart` + `user_role.dart`
 
-**Endpoints backend disponibles:**
-- `GET users/all`, `GET users/{id}`
+**Endpoints clave:**
+- `GET users/all`, `GET users/{id}`, `GET roles/all`
 - `POST users/create`, `PUT users/update/{id}`, `DELETE users/delete/{id}`
 - `PATCH users/{id}/reset-password`
 - `PATCH users/{id}/toggle-status`
-
-**Por hacer en web:**
-1. Tabla de usuarios con paginación y búsqueda
-2. Form de creación/edición con selectores múltiples (roles, sucursales, módulos)
-3. Acciones: editar, reset pass, toggle estado
+- `PATCH users/me/change-password` *(usado por Perfil, no por este módulo)*
 
 ---
 
@@ -542,26 +582,28 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar métodos de pago (activos e inactivos) | `[ ]` | |
-| Editar método (displayName, active, displayOrder) | `[ ]` | |
-| Activar/desactivar método | `[ ]` | |
+| Listar métodos de pago (activos e inactivos) | `[x]` | Lista de cards ordenada por `displayOrder` (PaymentMethodsService) |
+| Editar método (displayName, active, displayOrder) | `[x]` | `PaymentMethodFormDialogComponent` (update-only): displayName, active, displayOrder; `PUT payment-methods/config/{method}` |
+| Activar/desactivar método | `[x]` | Switch dentro del diálogo de edición; persiste en el mismo `PUT` |
+
+**Archivos clave (web):**
+- `src/app/features/payment-methods/payment-methods.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/payment-methods/payment-method-form-dialog.component.ts`
+- `src/app/core/services/payment-methods.service.ts`
+- `src/app/data/repositories/payment-methods.repository.ts`
+- `src/app/data/models/payment-method.model.ts`
 
 **Archivos clave (móvil — referencia):**
-- `lib/app/modules/payment_methods/controllers/payment_methods_controller.dart` (120 líneas)
+- `lib/app/modules/payment_methods/controllers/payment_methods_controller.dart`
 - `lib/app/modules/payment_methods/views/payment_methods_view.dart`
 - `lib/app/modules/payment_methods/views/widgets/payment_method_form_modal.dart`
 - `lib/app/data/repositories/payment_methods_repository.dart`
 - `lib/app/data/models/payment_method_model.dart`
 
-**Endpoints backend disponibles:**
-- `GET payment-methods/config` (todos)
-- `GET payment-methods/config/active` (solo activos)
+**Endpoints clave:**
+- `GET payment-methods/config/active` (consumido por `TransactionModalComponent` en Pagos)
+- `GET payment-methods/config` (lista completa en este módulo)
 - `PUT payment-methods/config/{method}`
-
-**Por hacer en web:**
-1. Lista de métodos con switch on/off
-2. Modal de edición (displayName, displayOrder)
-3. Repositorio y modelo ya existen
 
 ---
 
@@ -805,7 +847,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | 2026-09-01 | Reportes — **removido el detalle individual de eventos** del reporte "Ventas por Producto" (pantalla sobrecargada con info poco relevante). Móvil: eliminado el bloque "Detalle de ventas (con hora)" en `ProductSalesResultsView` (cards de hora/pedido/subtotal) y la clase `ProductSaleEvent` del modelo, junto con assertions en tests del controller/modelo. Backend: eliminado `ProductSaleEventDTO` y el campo `events` de `ProductSalesSummaryDTO`; `ProductSalesReportServiceImpl` simplificado (ya no construye eventos ni ordena `Set<UUID> orderIds` en lugar de `Map<UUID, LocalDateTime> orderIdToSoldAt`; `ProductAccumulator` sin lista de eventos); javadoc del endpoint `/sales/products` actualizado. Tests backend reescritos sin assertions de eventos (8/8 pasan). `TECHNICAL_DOCUMENTATION.md` y manual `reportes.md` actualizados (sin bullets de detalle con hora, sin tip de "si solo te interesa la frecuencia"). | opencode |
 | 2026-09-01 | Cierre de caja — **modal de confirmación con el monto declarado** antes de consumir el servicio (evita cierres con el monto en blanco o erróneo). Móvil: en `CloseShiftView`, antes de invocar `submitCloseShift()` se muestra `ModalInfo` (`barrierDismissible: false`) con título "Confirmar Cierre de Caja", el monto declarado formateado `es_CO`, y los botones "Sí, Cerrar Caja" / "Cancelar". Solo en "Sí" se llama al servicio (y luego al modal de éxito existente). Si el monto es ≤ 0, se omite el modal y se delega al diálogo de error ya existente. Para soportar el icono no-impresora del botón secundario se añadió el parámetro opcional `secondaryButtonIcon` a `ModalInfo` (default `Icons.print`, compatible con los 5 usos existentes). Controller: expuesto `parseDeclaredAmount()` (la parseo antes vivía en privado en `_parseAmount` y ahora se reutiliza). Tests: 2 casos nuevos de `parseDeclaredAmount` (4/4 pasan). Manual `cierre-caja.md`: nuevo paso 8 con confirmación y screenshot marker `close-shift-confirm.png`. | opencode |
 | 2026-09-03 | Reubicación del toggle "Solo ver mis pedidos (meseros)" del `CustomDrawer` a una pantalla dedicada **"Ajustes de Pedidos"** (`/settings/orders`). Nuevo módulo `order_settings` con `OrderSettingsBinding`/`OrderSettingsController`/`OrderSettingsView` (CustomScaffold + ExpandableSection). El `SwitchListTile` que estaba inline en el ExpansionTile "Configuración" del drawer (desajuste: control embebido entre ítems de navegación) se movió a esta pantalla; el drawer ahora solo tiene el sub-ítem "Ajustes de Pedidos" (visible para ADMIN/SUPER). El controller delega en `HomeController` (PATCH `branches/{branchId}/waiter-filter` + notificación a `OrdersController` se mantienen intactos). Tests: actualizado `custom_drawer_test.dart` (caso ADMIN ve "Ajustes de Pedidos", caso MESERO no lo ve) + nuevo `order_settings_view_test.dart` (render, toggle llama al setter, switch deshabilitado para no-admin con aviso). `dart analyze` limpio, `flutter test` (módulos afectados) 7/7 pasan. Manual `gestionar-pedidos.md` (§"Filtro Solo ver mis pedidos") y `roles-permisos.md` actualizados con la nueva ruta de navegación. | opencode |
-| _Pendiente_ | _Actualizar al implementar cada funcionalidad_ | _—_ |
+| 2026-09-08 | **Módulo Menú completo** (sección 10 `[ ]` → `[x]`) + correcciones de paridad + pequeñas mejoras en CRUDs. Cambios web: (a) **Correcciones de infraestructura**: `combos.repository.toggleOption` corregido de `PUT combos/options/toggle/{id}` a `PATCH combos/options/{id}/toggle` (era la única ruta que el backend expone y la única que el móvil usa); `category.model` + `description?` en Category/Subcategory; `product.model.PriceModel.productId` → `product_id?` + `end_date?`; `inventory.model.ProductRecipeModel` + `priceVariantId?`/`priceVariantLabel?` + `InventoryItemModel` + `minStock?`/`stockStatus?`; `inventory.repository` extendido con `getItems` tipado + `getRecipesForProduct` + `saveRecipe` + `saveAllRecipes` + `deleteRecipe(?priceVariantId=)`; `categories.repository` extendido con `createSubcategory`/`updateSubcategory`. (b) **Clientes**: búsqueda por nombre/apellido/teléfono/documento (`searchQuery` signal + `displayedCustomers` computed). (c) **Mesas**: chips de filtro por estado (Todas/Disponibles/Ocupadas/Reservadas) + `mat-select` por ubicación + búsqueda libre; `displayedTables` computed. (d) **`MenuService`**: CRUD de categorías/subcategorías/productos (POST array, PUT objeto), recetas (base/variante/bulk/delete), opciones de combo (add/remove/toggle + `refreshCombo`); recarga completa de `categories/all` tras cada mutación (fiel al móvil). (e) **Componente menú**: tabs por categoría, sub-accordion por subcategoría, lista de productos con menú contextual (Editar / Configurar receta si `requiresRecipe` / Administrar combo si COMBO), badges de tipo, FAB "Nueva Categoría", variantes VARIABLE con filas `size_label — precio`, badge "Opción" si `option_only`. (f) **Diálogos**: `category-form-dialog`, `subcategory-form-dialog`, `product-form-dialog` (reglas idénticas al móvil: `option_only` oculta precios y fuerza `{amount:0, start_date: hoy}`, tipo ≠ VARIABLE colapsa a 1 precio, `size_label` solo si VARIABLE no vacío), `recipe-form-dialog` (selector de variante + filas por variante + bulk), `combo-editor-dialog` (mat-select con búsqueda de productos SIMPLE no usados; remove/restore con confirmación; refresh tras cada acción). (g) **Specs Vitest básicos**: `menu.service.spec.ts` (7 casos: loadAll, payloads array/objeto, PATCH toggle, getAllSimpleProducts, findComboById) y `menu.component.spec.ts` (2 casos: empty-state + render con fixture); `vitest.setup.ts` extendido con `initTestEnvironment` + `zone.js`. (h) **Paridad**: sin botones de delete (móvil no los tiene), sin WebSocket en menú (móvil no lo usa), zonas de impresión descartadas, errores vía `ErrorService`. Tabla resumen actualizada (fila 6 `[~]` → `[x]`; fila 7 pendiente "—"). Secciones 8/9/11/12 actualizadas a `[x]` con notas reales y archivos clave. Build OK (`npm run build`), lint OK (`npm run lint`), tests 9/9 OK (`npm test`). | opencode |
 
 ---
 
