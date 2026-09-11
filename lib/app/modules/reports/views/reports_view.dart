@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/sales_report_response.dart';
 import 'package:restic_movil/app/data/models/shift_sales_report_response.dart';
 import 'package:restic_movil/app/modules/reports/controllers/reports_controller.dart';
+import 'package:restic_movil/app/modules/reports/views/widgets/annulled_orders_results_view.dart';
 import 'package:restic_movil/app/modules/reports/views/widgets/product_sales_results_view.dart';
 import 'package:restic_movil/app/modules/reports/views/widgets/product_selection_section.dart';
 import 'package:restic_movil/app/modules/reports/views/widgets/top_products_results_view.dart';
@@ -120,7 +121,7 @@ class ReportsView extends GetView<ReportsController> {
   @override
   Widget build(BuildContext context) {
     return CustomScaffold(
-      title: 'Reporte de Ventas',
+      title: 'Reportes',
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -164,6 +165,12 @@ class ReportsView extends GetView<ReportsController> {
                   return const Center(child: Text('Cargando reporte o sin datos...'));
                 }
                 return TopProductsResultsView(data: data);
+              } else if (type == ReportType.annulledOrders) {
+                final data = controller.annulledOrdersData.value;
+                if (data == null) {
+                  return const Center(child: Text('Cargando reporte o sin datos...'));
+                }
+                return AnnulledOrdersResultsView(data: data);
               } else {
                 final sData = controller.shiftReportData.value;
                 if (sData == null) {
@@ -208,6 +215,7 @@ class ReportsView extends GetView<ReportsController> {
             DropdownMenuItem(value: ReportType.shiftByDate, child: Text('Fecha de Apertura de Turno')),
             DropdownMenuItem(value: ReportType.productSales, child: Text('Ventas por Producto (selección)')),
             DropdownMenuItem(value: ReportType.topProducts, child: Text('Top de Productos Vendidos')),
+            DropdownMenuItem(value: ReportType.annulledOrders, child: Text('Órdenes Anuladas')),
           ],
         )),
       ),
@@ -233,6 +241,8 @@ class ReportsView extends GetView<ReportsController> {
           ],
         );
       case ReportType.topProducts:
+        return _buildExactDateTimeSelector(context);
+      case ReportType.annulledOrders:
         return _buildExactDateTimeSelector(context);
     }
   }

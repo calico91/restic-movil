@@ -11,6 +11,7 @@ class UrlPaths {
   static const String getOrderDetailStatuses = 'order-details/statuses';
   static const String updateOrderDetailStatus = 'order-details/update-status';
   static const String updateOrderStatus = 'orders/update-status';
+  static const String cancelOrder = 'orders'; // put /:id/cancel
   static const String updateOrder = 'orders/update';
   static const String addProductsToOrder = 'orders'; // /:id/add-products
   static const String getOrdersByStatuses = 'orders/by-statuses';
@@ -25,6 +26,7 @@ class UrlPaths {
   static const String createTransaction = 'transactions/create';
   static const String getTransactionInvoice = 'transactions'; // /:id/invoice
   static const String changeTransactionPayment = 'transactions'; // /:id/payment-details
+  static const String cancelTransaction = 'transactions'; // put /:id/cancel
 
   // Tables
   static const String getAvailableTables = 'tables/by-status/AVAILABLE';
@@ -120,6 +122,7 @@ class UrlPaths {
   static const String getSalesReportByShift = 'reports/sales/shift';
   static const String getProductSalesReport = 'reports/sales/products';
   static const String getTopProductsReport = 'reports/sales/top-products';
+  static const String getAnnulledOrdersReport = 'reports/orders/annulled';
 
   // Branches
   static const String updateBranch = 'branches'; // put /{id}
