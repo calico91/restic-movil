@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
+import 'package:restic_movil/app/data/models/annulled_orders_report_response.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/product_sales_report_response.dart';
 import 'package:restic_movil/app/data/models/sales_report_response.dart';
@@ -17,6 +18,7 @@ enum ReportType {
   shiftByDate,
   productSales,
   topProducts,
+  annulledOrders,
 }
 
 class ReportsController extends GetxController {
@@ -40,6 +42,7 @@ class ReportsController extends GetxController {
   final Rx<SalesReportResponse?> reportData = Rx<SalesReportResponse?>(null);
   final Rx<ShiftSalesReportResponse?> shiftReportData = Rx<ShiftSalesReportResponse?>(null);
   final Rx<ProductSalesReportResponse?> productReportData = Rx<ProductSalesReportResponse?>(null);
+  final Rx<AnnulledOrdersReportResponse?> annulledOrdersData = Rx<AnnulledOrdersReportResponse?>(null);
 
   // Estado para el reporte "Ventas por Producto" (seleccion).
   final RxList<String> selectedProductIds = <String>[].obs;
@@ -57,6 +60,7 @@ class ReportsController extends GetxController {
     reportData.value = null;
     shiftReportData.value = null;
     productReportData.value = null;
+    annulledOrdersData.value = null;
     if (type == ReportType.productSales) {
       loadCategoriesForSelection();
     }
@@ -84,6 +88,7 @@ class ReportsController extends GetxController {
     reportData.value = null;
     shiftReportData.value = null;
     productReportData.value = null;
+    annulledOrdersData.value = null;
 
     await Get.showOverlay(
       loadingWidget: const LoadingCharging(),
@@ -117,6 +122,9 @@ class ReportsController extends GetxController {
               break;
             case ReportType.topProducts:
               await fetchTopProductsReport();
+              break;
+            case ReportType.annulledOrders:
+              await fetchAnnulledOrdersReport();
               break;
           }
         } catch (e) {
@@ -211,6 +219,24 @@ class ReportsController extends GetxController {
         DateFormat("yyyy-MM-dd'T'HH:mm:00").format(endDateTime.value);
     final data = await _repository.getTopProductsReport(startStr, endStr);
     productReportData.value = data;
+  }
+
+  /* Consulta el reporte de ordenes anuladas en el rango fecha-hora */
+  Future<void> fetchAnnulledOrdersReport() async {
+    if (startDateTime.value.isAfter(endDateTime.value)) {
+      ErrorHandler.showErrorDialog(
+        Exception('La hora de inicio debe ser anterior a la hora de fin'),
+      );
+      return;
+    }
+    annulledOrdersData.value = null;
+    final startStr =
+        DateFormat("yyyy-MM-dd'T'HH:mm:00").format(startDateTime.value);
+    final endStr =
+        DateFormat("yyyy-MM-dd'T'HH:mm:00").format(endDateTime.value);
+    final data =
+        await _repository.getAnnulledOrdersReport(startStr, endStr);
+    annulledOrdersData.value = data;
   }
 
   /* Helpers para el producto seleccionado dentro del widget */

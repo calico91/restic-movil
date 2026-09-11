@@ -5,7 +5,7 @@
 > - **Web**: `D:\Angular\restic-web` (Angular 20 + Signals + Angular Material 20)
 > - **Backend**: `D:\Spring\restic-back` (Spring Boot, base única para ambos)
 >
-> **Fecha del último análisis:** 2026-08-19
+> **Fecha del último análisis:** 2026-09-10
 
 ---
 
@@ -36,7 +36,7 @@
 | 12 | Métodos de Pago (configuración) | `[x]` | — |
 | 13 | Inventario | `[ ]` | Stub vacío |
 | 14 | Datos Fiscales | `[x]` | — |
-| 15 | Reportes | `[ ]` | Stub vacío |
+| 15 | Reportes | `[~]` | Falta web; móvil tiene 7 tipos (Rango de Fechas, Rango Fecha-Hora, Turno ID, Fecha Apertura, Ventas por Producto, Top Productos, Órdenes Anuladas). El reporte de Órdenes Anuladas es nuevo en móvil+backend (2026-09-11). |
 | 16 | Perfil (cambio contraseña + config) | `[ ]` | Stub vacío |
 | 17 | WebSocket tiempo real | `[x]` | — |
 | 18 | Multi-sucursal | `[x]` | — |
@@ -203,7 +203,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Card de pedido (`GlobalOrderCard`-equivalente en línea) | `[x]` | ListView en `orders.component.html` |
 | Detalle de pedido (modal) | `[x]` | `OrderDetailDialogComponent` (inline en `orders.component.ts`) |
 | Actualización de estado de detalle (SERVED / CANCELED) | `[x]` | Checkbox multi-selección en diálogo |
-| Anular pedido (`PUT orders/update-status/{id}?status=CANCELED`) | `[x]` | Confirmación inline |
+| Anular pedido pre-pago (`PUT orders/{id}/cancel` con `cancellationReason`) | `[x]` | Dialog (`CancelOrderDialog`, `CustomFormDialog` con `autoClose: false`) con motivo obligatorio y advertencia. Backend nuevo en V26_0 (2026-09-11) que registra `cancelledBy`/`cancelledAt`/`cancellationReason` en `orders`. |
 | **Agregar productos a pedido existente** | `[x]` | `AddProductsDialogComponent` con catálogo, carrito temporal y `PUT orders/{orderId}/add-products` |
 | **Filtro mesero "solo mis pedidos"** | `[x]` | `StorageService.getWaiterViewOwnOrdersOnly`/`saveWaiterViewOwnOrdersOnly`; toggle en drawer del home (visible solo si rol MESERO); filtrado cliente por `createdBy.id === user.id` en `OrdersService` y `CashRegisterService` |
 | **Móvil: reubicación del toggle en pantalla "Ajustes de Pedidos"** | `[x]` | Nuevo módulo `order_settings` (`/settings/orders`) con `OrderSettingsView` (CustomScaffold + ExpandableSection "Pedidos"). El `SwitchListTile` que estaba inline en `CustomDrawer` (mezclaba navegación con controles) se movió a esta pantalla; el drawer ahora solo contiene un sub-ítem de navegación "Ajustes de Pedidos" bajo `Configuración` (solo ADMIN/SUPER). El controller delega en `HomeController` (única fuente de verdad del PATCH `branches/{branchId}/waiter-filter` + notificación a `OrdersController`). |
@@ -285,7 +285,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | `POST transactions/create` | `[x]` | `transactions.repository.ts` create |
 | Feedback de éxito con monto de cambio | `[x]` | |
 | Re-ver factura (`InvoiceDetailsDialogComponent`) | `[x]` | `GET transactions/{id}/invoice` |
-| Anular pedido desde caja (cancelar antes de pagar) | `[x]` | `PUT orders/update-status CANCELED` |
+| Anular pedido desde caja (cancelar antes de pagar) | `[x]` | `PUT orders/{id}/cancel` body `{cancellationReason}` (obligatorio) |
 | WebSocket en tiempo real (refresh al recibir evento) | `[x]` | |
 | Cargar métodos de pago activos | `[x]` | `payment-methods.repository.ts` getActive |
 | **Reembolso de transacción (REFUND)** | `[x]` | En `TransactionModalComponent`: selector de tipo alimentado por `service.transactionTypes`; si `REFUND` muestra campo `originalTransactionId`; submit envía `transactionType` + `originalTransactionId` a `POST transactions/create` (sin motivo, sin rol — igual al móvil) |
@@ -293,7 +293,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | **Precuenta** (visualizador modal con total estimado + prop. opcional) | `[x]` | `PrecountDialogComponent`: items agrupados por nombre+precio (omite CANCELED), cargos, propina sugerida (del % predeterminado), TOTAL A PAGAR; botón "Ir a cobrar" abre `TransactionModalComponent` pre-llenado con esa propina. Reemplazo web del ticket impreso (descartado) |
 | **Propina predeterminada guardable** (default % persistente) | `[x]` | `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()`; carga al abrir el modal; botón guardar (`save`) en la fila de propina que persiste el % actual |
 | Selección de terminal en transacciones | `~~Descartado~~` | El móvil no asigna `terminalId` a la transacción; el terminal se asocia al abrir turno y el backend resuelve el shift por `cashierId` (ya enviado). Paridad con móvil |
-| Anulación de transacción (CANCEL) | `~~Descartado~~` | El móvil no la usa; anula la **orden** antes de pagar (la web ya lo tiene con `PUT orders/update-status/{id}?status=CANCELED`). Paridad con móvil |
+| **Anulación de venta pagada (CANCEL desde historial)** | `[ ]` (móvil `[x]`) | Botón "Anular" en `GlobalOrderCard` del tab Historial (solo PAID con `transactionId`); motivo obligatorio; `PUT transactions/{id}/cancel` reverte orden `PAID → CANCELED`, restaura inventario vía `StockRestoreService`, registra `cancelledBy`/`cancelledAt`/`cancellationReason`, dispara WebSocket. Solo SUPER/ADMIN y solo turno OPEN. Implementado en móvil (2026-09-10); pendiente en web. |
 | Verificar que solo SUPER/ADMIN pueden cambiar método post-factura | `[x]` | Gate por rol en el botón "Cambiar pago" vía `isAdminOrSuper()` (`storage.roles()` incluye `SUPER` o `ADMINISTRADOR`). Único gate de rol en este módulo, igual al móvil |
 
 **Archivos clave (web):**
@@ -331,16 +331,34 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `GET transactions/{id}`
 - `PUT transactions/{id}/payment-details` (cambio de método post-factura)
 - `POST transactions/refund` — **no se usa en web** (REFUND se hace vía `POST transactions/create` con `transactionType:"REFUND"`, igual que el móvil)
-- `POST transactions/cancel` — **no se usa en web** (la anulación es de orden, no de transacción; igual que el móvil)
+- `PUT transactions/{id}/cancel` — **implementado en móvil** (2026-09-10, revertir orden PAID, restaurar inventario, registrar `cancelledBy`). **Pendiente en web**. El endpoint existía pero era solo contable; ahora hace orquestación completa.
 
 **Detalle de implementación realizada (Pagos — 2026-08-26):**
 1. **Reembolso (REFUND)** — selector de tipo (SALE/REFUND) en `TransactionModalComponent` + campo `originalTransactionId` cuando REFUND; submit envía `transactionType` + `originalTransactionId` (sin motivo, sin rol — igual al móvil).
-2. **Anulación de transacción (CANCEL)** — **no implementada**; el móvil anula la orden (la web ya lo hace). Marcado `~~Descartado~~` por paridad.
+2. **Anulación de transacción (CANCEL)** — **implementada en móvil (2026-09-10, ver bloque siguiente).** El ítem se movió a la tabla principal de funcionalidades; ya no es `~~Descartado~~`.
 3. **Cambio de método de pago post-factura** — `ChangePaymentMethodDialogComponent` con total bloqueado, FormArray de pagos (campos tarjeta condicionales) y motivo opcional; endpoint `PUT transactions/{id}/payment-details`; botón "Cambiar pago" en tarjeta de historial PAID con `transactionId`, gate por rol SUPER/ADMIN.
 4. **Precuenta** — `PrecountDialogComponent`: replica el contenido del ticket móvil (items agrupados por nombre+precio, omitiendo CANCELED, cargos, propina sugerida del % predeterminado, TOTAL A PAGAR); botón "Ir a cobrar" → abre `TransactionModalComponent` pre-llenado con esa propina.
 5. **Propina predeterminada guardable** — `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()`; carga al abrir el modal; botón `save` en la fila de propina para persistir el % actual.
 6. **Selección de terminal** — **no implementada**; el móvil no asigna `terminalId` a la transacción. Marcado `~~Descartado~~` por paridad. El backend resuelve el shift vía `cashierId` (ya enviado por la web).
 7. **Sync bidireccional de propina** — implementados inputs de %, monto y total a pagar con recálculo cruzado bidireccional y guarda anti-bucle; si hay 1 pago, su `amount` se sincroniza al total a pagar.
+
+**Detalle de implementación realizada (Pagos — 2026-09-10) — Anulación de venta pagada:**
+- **Backend (`restic-back`)**:
+  - Nueva migración `V25_0__add_transaction_cancelled_by.sql`: `transactions.cancelled_by_id` (FK a `users`) + reemplazo del CHECK `ck_stock_movements_type` para incluir el nuevo tipo `SALE_REVERSAL`. Registrada en `db.changelog-master.yaml`.
+  - `Transaction.java` + relación `@ManyToOne User cancelledBy` (LAZY). `StockMovementType.java` + `SALE_REVERSAL("Anulacion de venta")` sumado a `increasesStock()`.
+  - `InventoryItemRepository` + `restoreStock` (UPDATE atómico `current_stock + :qty, version + 1`). `StockMovementRepository` + `findByReferenceOrderIdAndType`.
+  - Nuevo `StockRestoreService` (interfaz + Impl) con `restoreForOrder(order, reason)`: busca los `StockMovement` `SALE` de la orden, devuelve stock atómicamente y crea movimientos `SALE_REVERSAL` con `referenceOrder`, `createdBy = UserContextResolver.getCurrentUser()`, notes con el motivo.
+  - `TransactionServiceImpl.cancelTransaction` extendido: para `SALE` con `orderId` valida **turno OPEN** + **orden PAID** (lock pesimista `findByIdAndBranchIdForUpdate`), revierte la orden a `CANCELED` (sin tocar `closingDate`), llama `stockRestoreService.restoreForOrder`, setea `cancelledBy`/`cancelledAt`/`cancellationReason`, dispara WebSocket (`notifyOrderStatusChanged`) y log WARN. Para transacciones sin orden mantiene el comportamiento previo + `cancelledBy`.
+  - `TransactionResponseDTO` + `cancelledById`/`cancelledByName`. `TransactionMapper` actualizado.
+  - Tests: cubrir happy path (orden revertida, stock restaurado, `cancelledBy` seteado), turno cerrado rechazado, doble anulación rechazada, no-COMPLETED.
+  - `TECHNICAL_DOCUMENTATION.md` actualizado: §7.14, §9, §7.19, §10, ciclo de vida de orden.
+- **Móvil (`restic-movil`)**:
+  - `UrlPaths.cancelTransaction` (`transactions/{id}/cancel`).
+  - `TransactionsRepository.cancelTransaction(id, {required reason})` → `PUT transactions/{id}/cancel` body `{'cancellationReason': reason}`.
+  - `CashRegisterController`: flag `canAnnulTransactions` (SUPER/ADMIN, espejo de `canEditPaymentMethod`); `confirmAnnulTransaction(order)` con guards + `submitAnnulTransaction` (overlay → repo → `ModalInfo` → `loadHistoryOrders`).
+  - Nuevo `AnnulTransactionDialog` (`CustomFormDialog` con `autoClose: false`, mismo estándar que `CustomerFormDialog`/`UserFormDialog`) con motivo **obligatorio**, advertencia del #orden/monto y consecuencias (revierte inventario, saca de caja; el efectivo se devuelve vía egreso "Devolución al cliente").
+  - `cash_register_view.dart` (tab Historial) + `GlobalOrderCard` + botón "Anular" rojo en la fila inferior junto a "Cambiar pago", gate por `isHistoryPaid && canAnnulTransactions`. Tras anular la card queda "Anulada" y el botón desaparece.
+- **Pendiente web** (este sprint): replicar el flujo de anulación en el tab Historial de Pagos con los mismos componentes (`CancelTransactionDialogComponent` + botón Anular + rol + recarga del historial). Mantener la fila inferior con el mismo orden que el móvil.
 
 ---
 
@@ -685,7 +703,9 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 15. Reportes
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[~]` Parcial
+
+Implementado en móvil + backend (7 tipos de reporte); pendiente de portar a web.
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -695,6 +715,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Reporte por fecha de apertura de turno | `[ ]` | |
 | Reporte de ventas por productos seleccionados (fecha-hora + checklist) | `[ ]` | Implementado en móvil (ReportsController + ProductSelectionSection + ProductSalesResultsView) y backend (`GET /reports/sales/products`). Web debe portarlo. |
 | Reporte "Top de Productos Vendidos" (rango fecha-hora) | `[ ]` | Implementado en móvil (TopProductsResultsView) y backend (`GET /reports/sales/top-products`). Web debe portarlo. |
+| **Reporte de Órdenes Anuladas** (rango fecha-hora) | `[ ]` | Implementado en móvil+backend (2026-09-11). Cubre ventas pagadas anuladas (`PAID_SALE`) y cancelaciones pre-pago (`PRE_PAID`) con motivo, usuario que anuló, mesero, turno/cajero y desglose de pagos. Web debe portarlo. |
 | Exportación a PDF/Excel (alternativa web) | `[ ]` | |
 
 **Archivos clave (móvil — referencia):**
@@ -819,7 +840,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## Foco 2 — Pagos
 1. **Reembolso de transacción (REFUND)**
-2. **Anulación de transacción (CANCEL)**
+2. **Anulación de venta pagada (CANCEL desde historial)** — móvil `[x]`, web `[ ]` (paridad pendiente)
 3. **Cambio de método de pago post-factura** (admin/super)
 4. **Precuenta** como modal visual
 5. **Propina predeterminada guardable** (storage + UI en Perfil)
@@ -848,6 +869,9 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | 2026-09-01 | Cierre de caja — **modal de confirmación con el monto declarado** antes de consumir el servicio (evita cierres con el monto en blanco o erróneo). Móvil: en `CloseShiftView`, antes de invocar `submitCloseShift()` se muestra `ModalInfo` (`barrierDismissible: false`) con título "Confirmar Cierre de Caja", el monto declarado formateado `es_CO`, y los botones "Sí, Cerrar Caja" / "Cancelar". Solo en "Sí" se llama al servicio (y luego al modal de éxito existente). Si el monto es ≤ 0, se omite el modal y se delega al diálogo de error ya existente. Para soportar el icono no-impresora del botón secundario se añadió el parámetro opcional `secondaryButtonIcon` a `ModalInfo` (default `Icons.print`, compatible con los 5 usos existentes). Controller: expuesto `parseDeclaredAmount()` (la parseo antes vivía en privado en `_parseAmount` y ahora se reutiliza). Tests: 2 casos nuevos de `parseDeclaredAmount` (4/4 pasan). Manual `cierre-caja.md`: nuevo paso 8 con confirmación y screenshot marker `close-shift-confirm.png`. | opencode |
 | 2026-09-03 | Reubicación del toggle "Solo ver mis pedidos (meseros)" del `CustomDrawer` a una pantalla dedicada **"Ajustes de Pedidos"** (`/settings/orders`). Nuevo módulo `order_settings` con `OrderSettingsBinding`/`OrderSettingsController`/`OrderSettingsView` (CustomScaffold + ExpandableSection). El `SwitchListTile` que estaba inline en el ExpansionTile "Configuración" del drawer (desajuste: control embebido entre ítems de navegación) se movió a esta pantalla; el drawer ahora solo tiene el sub-ítem "Ajustes de Pedidos" (visible para ADMIN/SUPER). El controller delega en `HomeController` (PATCH `branches/{branchId}/waiter-filter` + notificación a `OrdersController` se mantienen intactos). Tests: actualizado `custom_drawer_test.dart` (caso ADMIN ve "Ajustes de Pedidos", caso MESERO no lo ve) + nuevo `order_settings_view_test.dart` (render, toggle llama al setter, switch deshabilitado para no-admin con aviso). `dart analyze` limpio, `flutter test` (módulos afectados) 7/7 pasan. Manual `gestionar-pedidos.md` (§"Filtro Solo ver mis pedidos") y `roles-permisos.md` actualizados con la nueva ruta de navegación. | opencode |
 | 2026-09-08 | **Módulo Menú completo** (sección 10 `[ ]` → `[x]`) + correcciones de paridad + pequeñas mejoras en CRUDs. Cambios web: (a) **Correcciones de infraestructura**: `combos.repository.toggleOption` corregido de `PUT combos/options/toggle/{id}` a `PATCH combos/options/{id}/toggle` (era la única ruta que el backend expone y la única que el móvil usa); `category.model` + `description?` en Category/Subcategory; `product.model.PriceModel.productId` → `product_id?` + `end_date?`; `inventory.model.ProductRecipeModel` + `priceVariantId?`/`priceVariantLabel?` + `InventoryItemModel` + `minStock?`/`stockStatus?`; `inventory.repository` extendido con `getItems` tipado + `getRecipesForProduct` + `saveRecipe` + `saveAllRecipes` + `deleteRecipe(?priceVariantId=)`; `categories.repository` extendido con `createSubcategory`/`updateSubcategory`. (b) **Clientes**: búsqueda por nombre/apellido/teléfono/documento (`searchQuery` signal + `displayedCustomers` computed). (c) **Mesas**: chips de filtro por estado (Todas/Disponibles/Ocupadas/Reservadas) + `mat-select` por ubicación + búsqueda libre; `displayedTables` computed. (d) **`MenuService`**: CRUD de categorías/subcategorías/productos (POST array, PUT objeto), recetas (base/variante/bulk/delete), opciones de combo (add/remove/toggle + `refreshCombo`); recarga completa de `categories/all` tras cada mutación (fiel al móvil). (e) **Componente menú**: tabs por categoría, sub-accordion por subcategoría, lista de productos con menú contextual (Editar / Configurar receta si `requiresRecipe` / Administrar combo si COMBO), badges de tipo, FAB "Nueva Categoría", variantes VARIABLE con filas `size_label — precio`, badge "Opción" si `option_only`. (f) **Diálogos**: `category-form-dialog`, `subcategory-form-dialog`, `product-form-dialog` (reglas idénticas al móvil: `option_only` oculta precios y fuerza `{amount:0, start_date: hoy}`, tipo ≠ VARIABLE colapsa a 1 precio, `size_label` solo si VARIABLE no vacío), `recipe-form-dialog` (selector de variante + filas por variante + bulk), `combo-editor-dialog` (mat-select con búsqueda de productos SIMPLE no usados; remove/restore con confirmación; refresh tras cada acción). (g) **Specs Vitest básicos**: `menu.service.spec.ts` (7 casos: loadAll, payloads array/objeto, PATCH toggle, getAllSimpleProducts, findComboById) y `menu.component.spec.ts` (2 casos: empty-state + render con fixture); `vitest.setup.ts` extendido con `initTestEnvironment` + `zone.js`. (h) **Paridad**: sin botones de delete (móvil no los tiene), sin WebSocket en menú (móvil no lo usa), zonas de impresión descartadas, errores vía `ErrorService`. Tabla resumen actualizada (fila 6 `[~]` → `[x]`; fila 7 pendiente "—"). Secciones 8/9/11/12 actualizadas a `[x]` con notas reales y archivos clave. Build OK (`npm run build`), lint OK (`npm run lint`), tests 9/9 OK (`npm test`). | opencode |
+| 2026-09-10 | **Anulación de venta pagada (CANCEL desde historial)** — móvil `[x]`, web `[ ]` (paridad pendiente). (a) **Backend (`restic-back`)**: nueva migración `V25_0__add_transaction_cancelled_by.sql` (columna `cancelled_by_id` en `transactions` + reemplazo del CHECK `ck_stock_movements_type` para incluir `SALE_REVERSAL`); entidad `Transaction` + relación `cancelledBy` (LAZY); enum `StockMovementType` + `SALE_REVERSAL`; `InventoryItemRepository.restoreStock` (UPDATE atómico) y `StockMovementRepository.findByReferenceOrderIdAndType`; nuevo `StockRestoreService` (interfaz + Impl) que revierte los `StockMovement` `SALE` de la orden y crea los `SALE_REVERSAL`; `TransactionServiceImpl.cancelTransaction` extendido con orquestación completa (turno OPEN, lock pesimista, orden `PAID→CANCELED`, restauración de inventario, `cancelledBy`, log WARN, WebSocket); `TransactionResponseDTO` + `cancelledById`/`cancelledByName`; `TransactionMapper` actualizado; tests cubriendo happy path + rechazos. (b) **Móvil (`restic-movil`)**: `UrlPaths.cancelTransaction`; `TransactionsRepository.cancelTransaction` (PUT body con `cancellationReason`); `CashRegisterController` + flag `canAnnulTransactions` (SUPER/ADMIN) + `confirmAnnulTransaction`/`submitAnnulTransaction`; nuevo `AnnulTransactionDialog` (`CustomFormDialog` con `autoClose: false`, motivo obligatorio, advertencia del #orden/monto y consecuencias); botón "Anular" en `GlobalOrderCard` (tab Historial) gateado por `isHistoryPaid && canAnnulTransactions`. (c) **Pendiente web**: replicar el flujo en el tab Historial de Pagos con el mismo orden de botones (mantener paridad con móvil). | opencode |
+| 2026-09-10 | **Anular venta** — refactor de `AnnulTransactionModal` (bottom sheet) a `AnnulTransactionDialog` basado en `CustomFormDialog`, para alinearse con el estándar de diálogos de la app (`CustomerFormDialog`, `UserFormDialog`, `MenuFormDialog`). El widget anterior (`annul_transaction_modal.dart`) se eliminó por quedar como código muerto; el fix de overflow del bottom sheet (Flexible+SingleChildScrollView) queda obsoleto porque `CustomFormDialog` ya envuelve el `child` en `SingleChildScrollView`. `CashRegisterController.confirmAnnulTransaction` ahora usa `Get.dialog(AnnulTransactionDialog(...), barrierDismissible: false)`; `submitAnnulTransaction` cierra el diálogo (`Get.back()`) antes de invocar la API para que un motivo inválido mantenga el formulario abierto (mismo patrón que `UserFormDialog` con `autoClose: false`). | opencode |
+| 2026-09-11 | **Reporte de Órdenes Anuladas + auditoría en cancelaciones pre-pago** — móvil+backend `[x]`, web `[ ]`. (a) **Backend (`restic-back`)**: nueva migración `V26_0__add_order_cancellation_audit.sql` (columnas `cancelled_by_id`, `cancelled_at`, `cancellation_reason` en `orders`); entidad `Order` + 3 campos nuevos; nuevo DTO `CancelOrderDTO` (motivo `@NotBlank` + `@Size(min=5, max=500)`); nuevo endpoint `PUT /api/orders/{id}/cancel` (roles SUPER/ADMIN/MESERO/COCINERO, body con `cancellationReason`); `OrderService.cancelOrder` con orquestación completa (status CANCELED, libera mesas, registra `cancelledBy`/`cancelledAt`/`cancellationReason`, log WARN, WebSocket); hardening de `updateStatus` (al transicionar a CANCELED estampa `cancelledBy`/`cancelledAt`, motivo null); Tests `OrderServiceImplTest` +3 casos. Nuevo módulo de reporte: 3 DTOs (`CancelledOrdersReportResponseDTO`, `CancelledOrderItemDTO`, `PaymentMethodInfoDTO`); 3 queries nuevas en repos (`TransactionRepository.findCancelledSalesWithOrderByBranchIdAndDateRange`, `OrderRepository.findCancelledByBranchIdAndDateRange`, `PaymentDetailRepository.findByTransactionIdIn`); `CancelledOrdersReportService` + Impl que une ambos datasets (PAID_SALE + PRE_PAID), agrupando pagos por transacción; nuevo endpoint `GET /api/reports/orders/annulled` (`@AdminAccess`, datetime range); `CancelledOrdersReportServiceImplTest` 8/8 OK; `TECHNICAL_DOCUMENTATION.md` actualizado (§7.12 + §7.18.7). (b) **Móvil (`restic-movil`)**: `UrlPaths.cancelOrder` + `getAnnulledOrdersReport`; `OrdersRepository.cancelOrder(orderId, {required reason})`; nuevo widget `CancelOrderDialog` (`CustomFormDialog` con `autoClose: false`, advertencia específica "no afecta caja ni inventario" + motivo obligatorio); `cash_register_controller.confirmCancelOrder`/`_cancelOrder` reemplazan el `ModalWarning` sí/no por el dialog con motivo, cierra con `Get.back()` antes del overlay; modelo `AnnulledOrdersReportResponse` + `AnnulledOrderSummary` + `PaymentMethodInfo`; `ReportsRepository.getAnnulledOrdersReport`; enum `ReportType.annulledOrders` + state `annulledOrdersData` + `fetchAnnulledOrdersReport`; `reports_view.dart` title `Reporte de Ventas`→`Reportes` + dropdown item + exact datetime selector; nuevo widget `AnnulledOrdersResultsView` (summary card + empty state + cards con tipo de cancelación, motivo, anulado por, fecha, mesero, cliente, factura, turno, cajero, propinas, chips de métodos de pago). `flutter analyze` 0 issues, tests reports+cash_register+model nuevo 4/4 OK. (c) **Manual usuario**: `docs/reportes.md` título → "Reportes" + nueva sección "Órdenes Anuladas" con admonitions; `mkdocs.yml` nav actualizado; `cobrar-pedido.md` y `gestionar-pedidos.md` actualizados (paso del motivo obligatorio + warning sobre anulación pre-pago). | opencode |
 
 ---
 
