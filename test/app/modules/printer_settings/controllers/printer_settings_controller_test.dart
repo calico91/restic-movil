@@ -72,6 +72,10 @@ class MockPrinterZoneRepository implements PrinterZoneRepository {
 
 class MockPrinterService extends GetxService implements PrinterService {
   @override
+  void handleStatusBarTap() {}
+
+
+  @override
   RxBool isConnected = false.obs;
 
   @override

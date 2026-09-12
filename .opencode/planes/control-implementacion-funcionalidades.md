@@ -5,7 +5,7 @@
 > - **Web**: `D:\Angular\restic-web` (Angular 20 + Signals + Angular Material 20)
 > - **Backend**: `D:\Spring\restic-back` (Spring Boot, base única para ambos)
 >
-> **Fecha del último análisis:** 2026-08-19
+> **Fecha del último análisis:** 2026-09-10
 
 ---
 
@@ -27,8 +27,8 @@
 | 3 | Tomar Pedido | `[x]` | — |
 | 4 | Pedidos (lista/gestión) | `[x]` | — |
 | 5 | Comandas (cocina) | `[x]` | — |
-| 6 | Pagos / Caja (registrar pago) | `[~]` | Reembolso/anulación transacción, cambio método post-factura, precuenta, propina guardable |
-| 7 | Opciones de Caja (apertura/cierre/egresos) | `[x]` | Cierres pendientes: sin acción de aprobar |
+| 6 | Pagos / Caja (registrar pago) | `[x]` | — |
+| 7 | Opciones de Caja (apertura/cierre/egresos) | `[x]` | — |
 | 8 | Clientes (CRUD) | `[x]` | — |
 | 9 | Mesas (CRUD) | `[x]` | — |
 | 10 | Menú (categorías + productos + recetas) | `[ ]` | Stub vacío |
@@ -36,7 +36,7 @@
 | 12 | Métodos de Pago (configuración) | `[x]` | — |
 | 13 | Inventario | `[ ]` | Stub vacío |
 | 14 | Datos Fiscales | `[x]` | — |
-| 15 | Reportes | `[ ]` | Stub vacío |
+| 15 | Reportes | `[~]` | Falta web; móvil tiene 7 tipos (Rango de Fechas, Rango Fecha-Hora, Turno ID, Fecha Apertura, Ventas por Producto, Top Productos, Órdenes Anuladas). El reporte de Órdenes Anuladas es nuevo en móvil+backend (2026-09-11). |
 | 16 | Perfil (cambio contraseña + config) | `[ ]` | Stub vacío |
 | 17 | WebSocket tiempo real | `[x]` | — |
 | 18 | Multi-sucursal | `[x]` | — |
@@ -203,7 +203,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Card de pedido (`GlobalOrderCard`-equivalente en línea) | `[x]` | ListView en `orders.component.html` |
 | Detalle de pedido (modal) | `[x]` | `OrderDetailDialogComponent` (inline en `orders.component.ts`) |
 | Actualización de estado de detalle (SERVED / CANCELED) | `[x]` | Checkbox multi-selección en diálogo |
-| Anular pedido (`PUT orders/update-status/{id}?status=CANCELED`) | `[x]` | Confirmación inline |
+| Anular pedido pre-pago (`PUT orders/{id}/cancel` con `cancellationReason`) | `[x]` | Dialog (`CancelOrderDialog`, `CustomFormDialog` con `autoClose: false`) con motivo obligatorio y advertencia. Backend nuevo en V26_0 (2026-09-11) que registra `cancelledBy`/`cancelledAt`/`cancellationReason` en `orders`. |
 | **Agregar productos a pedido existente** | `[x]` | `AddProductsDialogComponent` con catálogo, carrito temporal y `PUT orders/{orderId}/add-products` |
 | **Filtro mesero "solo mis pedidos"** | `[x]` | `StorageService.getWaiterViewOwnOrdersOnly`/`saveWaiterViewOwnOrdersOnly`; toggle en drawer del home (visible solo si rol MESERO); filtrado cliente por `createdBy.id === user.id` en `OrdersService` y `CashRegisterService` |
 | **Móvil: reubicación del toggle en pantalla "Ajustes de Pedidos"** | `[x]` | Nuevo módulo `order_settings` (`/settings/orders`) con `OrderSettingsView` (CustomScaffold + ExpandableSection "Pedidos"). El `SwitchListTile` que estaba inline en `CustomDrawer` (mezclaba navegación con controles) se movió a esta pantalla; el drawer ahora solo contiene un sub-ítem de navegación "Ajustes de Pedidos" bajo `Configuración` (solo ADMIN/SUPER). El controller delega en `HomeController` (única fuente de verdad del PATCH `branches/{branchId}/waiter-filter` + notificación a `OrdersController`). |
@@ -285,7 +285,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | `POST transactions/create` | `[x]` | `transactions.repository.ts` create |
 | Feedback de éxito con monto de cambio | `[x]` | |
 | Re-ver factura (`InvoiceDetailsDialogComponent`) | `[x]` | `GET transactions/{id}/invoice` |
-| Anular pedido desde caja (cancelar antes de pagar) | `[x]` | `PUT orders/update-status CANCELED` |
+| Anular pedido desde caja (cancelar antes de pagar) | `[x]` | `PUT orders/{id}/cancel` body `{cancellationReason}` (obligatorio) |
 | WebSocket en tiempo real (refresh al recibir evento) | `[x]` | |
 | Cargar métodos de pago activos | `[x]` | `payment-methods.repository.ts` getActive |
 | **Reembolso de transacción (REFUND)** | `[x]` | En `TransactionModalComponent`: selector de tipo alimentado por `service.transactionTypes`; si `REFUND` muestra campo `originalTransactionId`; submit envía `transactionType` + `originalTransactionId` a `POST transactions/create` (sin motivo, sin rol — igual al móvil) |
@@ -293,7 +293,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | **Precuenta** (visualizador modal con total estimado + prop. opcional) | `[x]` | `PrecountDialogComponent`: items agrupados por nombre+precio (omite CANCELED), cargos, propina sugerida (del % predeterminado), TOTAL A PAGAR; botón "Ir a cobrar" abre `TransactionModalComponent` pre-llenado con esa propina. Reemplazo web del ticket impreso (descartado) |
 | **Propina predeterminada guardable** (default % persistente) | `[x]` | `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()`; carga al abrir el modal; botón guardar (`save`) en la fila de propina que persiste el % actual |
 | Selección de terminal en transacciones | `~~Descartado~~` | El móvil no asigna `terminalId` a la transacción; el terminal se asocia al abrir turno y el backend resuelve el shift por `cashierId` (ya enviado). Paridad con móvil |
-| Anulación de transacción (CANCEL) | `~~Descartado~~` | El móvil no la usa; anula la **orden** antes de pagar (la web ya lo tiene con `PUT orders/update-status/{id}?status=CANCELED`). Paridad con móvil |
+| **Anulación de venta pagada (CANCEL desde historial)** | `[ ]` (móvil `[x]`) | Botón "Anular" en `GlobalOrderCard` del tab Historial (solo PAID con `transactionId`); motivo obligatorio; `PUT transactions/{id}/cancel` reverte orden `PAID → CANCELED`, restaura inventario vía `StockRestoreService`, registra `cancelledBy`/`cancelledAt`/`cancellationReason`, dispara WebSocket. Solo SUPER/ADMIN y solo turno OPEN. Implementado en móvil (2026-09-10); pendiente en web. |
 | Verificar que solo SUPER/ADMIN pueden cambiar método post-factura | `[x]` | Gate por rol en el botón "Cambiar pago" vía `isAdminOrSuper()` (`storage.roles()` incluye `SUPER` o `ADMINISTRADOR`). Único gate de rol en este módulo, igual al móvil |
 
 **Archivos clave (web):**
@@ -331,16 +331,34 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `GET transactions/{id}`
 - `PUT transactions/{id}/payment-details` (cambio de método post-factura)
 - `POST transactions/refund` — **no se usa en web** (REFUND se hace vía `POST transactions/create` con `transactionType:"REFUND"`, igual que el móvil)
-- `POST transactions/cancel` — **no se usa en web** (la anulación es de orden, no de transacción; igual que el móvil)
+- `PUT transactions/{id}/cancel` — **implementado en móvil** (2026-09-10, revertir orden PAID, restaurar inventario, registrar `cancelledBy`). **Pendiente en web**. El endpoint existía pero era solo contable; ahora hace orquestación completa.
 
 **Detalle de implementación realizada (Pagos — 2026-08-26):**
 1. **Reembolso (REFUND)** — selector de tipo (SALE/REFUND) en `TransactionModalComponent` + campo `originalTransactionId` cuando REFUND; submit envía `transactionType` + `originalTransactionId` (sin motivo, sin rol — igual al móvil).
-2. **Anulación de transacción (CANCEL)** — **no implementada**; el móvil anula la orden (la web ya lo hace). Marcado `~~Descartado~~` por paridad.
+2. **Anulación de transacción (CANCEL)** — **implementada en móvil (2026-09-10, ver bloque siguiente).** El ítem se movió a la tabla principal de funcionalidades; ya no es `~~Descartado~~`.
 3. **Cambio de método de pago post-factura** — `ChangePaymentMethodDialogComponent` con total bloqueado, FormArray de pagos (campos tarjeta condicionales) y motivo opcional; endpoint `PUT transactions/{id}/payment-details`; botón "Cambiar pago" en tarjeta de historial PAID con `transactionId`, gate por rol SUPER/ADMIN.
 4. **Precuenta** — `PrecountDialogComponent`: replica el contenido del ticket móvil (items agrupados por nombre+precio, omitiendo CANCELED, cargos, propina sugerida del % predeterminado, TOTAL A PAGAR); botón "Ir a cobrar" → abre `TransactionModalComponent` pre-llenado con esa propina.
 5. **Propina predeterminada guardable** — `StorageService.saveDefaultTipPercentage()`/`getDefaultTipPercentage()`; carga al abrir el modal; botón `save` en la fila de propina para persistir el % actual.
 6. **Selección de terminal** — **no implementada**; el móvil no asigna `terminalId` a la transacción. Marcado `~~Descartado~~` por paridad. El backend resuelve el shift vía `cashierId` (ya enviado por la web).
 7. **Sync bidireccional de propina** — implementados inputs de %, monto y total a pagar con recálculo cruzado bidireccional y guarda anti-bucle; si hay 1 pago, su `amount` se sincroniza al total a pagar.
+
+**Detalle de implementación realizada (Pagos — 2026-09-10) — Anulación de venta pagada:**
+- **Backend (`restic-back`)**:
+  - Nueva migración `V25_0__add_transaction_cancelled_by.sql`: `transactions.cancelled_by_id` (FK a `users`) + reemplazo del CHECK `ck_stock_movements_type` para incluir el nuevo tipo `SALE_REVERSAL`. Registrada en `db.changelog-master.yaml`.
+  - `Transaction.java` + relación `@ManyToOne User cancelledBy` (LAZY). `StockMovementType.java` + `SALE_REVERSAL("Anulacion de venta")` sumado a `increasesStock()`.
+  - `InventoryItemRepository` + `restoreStock` (UPDATE atómico `current_stock + :qty, version + 1`). `StockMovementRepository` + `findByReferenceOrderIdAndType`.
+  - Nuevo `StockRestoreService` (interfaz + Impl) con `restoreForOrder(order, reason)`: busca los `StockMovement` `SALE` de la orden, devuelve stock atómicamente y crea movimientos `SALE_REVERSAL` con `referenceOrder`, `createdBy = UserContextResolver.getCurrentUser()`, notes con el motivo.
+  - `TransactionServiceImpl.cancelTransaction` extendido: para `SALE` con `orderId` valida **turno OPEN** + **orden PAID** (lock pesimista `findByIdAndBranchIdForUpdate`), revierte la orden a `CANCELED` (sin tocar `closingDate`), llama `stockRestoreService.restoreForOrder`, setea `cancelledBy`/`cancelledAt`/`cancellationReason`, dispara WebSocket (`notifyOrderStatusChanged`) y log WARN. Para transacciones sin orden mantiene el comportamiento previo + `cancelledBy`.
+  - `TransactionResponseDTO` + `cancelledById`/`cancelledByName`. `TransactionMapper` actualizado.
+  - Tests: cubrir happy path (orden revertida, stock restaurado, `cancelledBy` seteado), turno cerrado rechazado, doble anulación rechazada, no-COMPLETED.
+  - `TECHNICAL_DOCUMENTATION.md` actualizado: §7.14, §9, §7.19, §10, ciclo de vida de orden.
+- **Móvil (`restic-movil`)**:
+  - `UrlPaths.cancelTransaction` (`transactions/{id}/cancel`).
+  - `TransactionsRepository.cancelTransaction(id, {required reason})` → `PUT transactions/{id}/cancel` body `{'cancellationReason': reason}`.
+  - `CashRegisterController`: flag `canAnnulTransactions` (SUPER/ADMIN, espejo de `canEditPaymentMethod`); `confirmAnnulTransaction(order)` con guards + `submitAnnulTransaction` (overlay → repo → `ModalInfo` → `loadHistoryOrders`).
+  - Nuevo `AnnulTransactionDialog` (`CustomFormDialog` con `autoClose: false`, mismo estándar que `CustomerFormDialog`/`UserFormDialog`) con motivo **obligatorio**, advertencia del #orden/monto y consecuencias (revierte inventario, saca de caja; el efectivo se devuelve vía egreso "Devolución al cliente").
+  - `cash_register_view.dart` (tab Historial) + `GlobalOrderCard` + botón "Anular" rojo en la fila inferior junto a "Cambiar pago", gate por `isHistoryPaid && canAnnulTransactions`. Tras anular la card queda "Anulada" y el botón desaparece.
+- **Pendiente web** (este sprint): replicar el flujo de anulación en el tab Historial de Pagos con los mismos componentes (`CancelTransactionDialogComponent` + botón Anular + rol + recarga del historial). Mantener la fila inferior con el mismo orden que el móvil.
 
 ---
 
@@ -399,13 +417,21 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar todos los clientes | `[ ]` | Stub — `customers.component.ts` solo importa `CommonModule` |
-| Crear cliente | `[ ]` | |
-| Editar cliente | `[ ]` | |
-| Eliminar cliente | `[ ]` | |
-| Buscar cliente por nombre/apellido/teléfono | `[ ]` | |
-| Marcar cliente como predeterminado para pedidos | `[ ]` | |
-| Ver historial de pedidos por cliente (opcional) | `[ ]` | |
+| Listar todos los clientes | `[x]` | Lista de cards con avatar y datos de contacto |
+| Crear cliente | `[x]` | `CustomerFormDialogComponent` (template-driven, validación imperativa `canSave()`) |
+| Editar cliente | `[x]` | Mismo diálogo hidratado con datos existentes |
+| Eliminar cliente | `[x]` | Confirmación `ModalInfoComponent` ("¿Está seguro de eliminar a ...?") |
+| Buscar cliente por nombre/apellido/teléfono | `[x]` | `searchQuery` signal + `displayedCustomers` computed (case-insensitive contains; busca también en `document`); search-box arriba de la lista |
+| Marcar cliente como predeterminado para pedidos | `[x]` | Estrella en cada card; `CustomersService.setDefault()` / `clearDefault()` persiste en `localStorage` (`APP_STORAGE_KEYS.DEFAULT_CUSTOMER`) y se aplica en TAKE_AWAY/DELIVERY desde `TakeOrderService` |
+| Ver historial de pedidos por cliente (opcional) | `[ ]` | No implementado en web ni en móvil |
+
+**Archivos clave (web):**
+- `src/app/features/customers/customers.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/customers/customer-form-dialog.component.ts`
+- `src/app/core/services/customers.service.ts` (incluye default-customer en localStorage)
+- `src/app/core/config/app.constants.ts` (`APP_STORAGE_KEYS.DEFAULT_CUSTOMER`)
+- `src/app/data/repositories/customer.repository.ts`
+- `src/app/data/models/customer.model.ts`
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/customers/controllers/customers_controller.dart`
@@ -414,17 +440,11 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `lib/app/data/repositories/customer_repository.dart`
 - `lib/app/data/models/customer_model.dart`
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET customers/all`
 - `POST customers/create`
 - `PUT customers/update/{id}`
 - `DELETE customers/delete/{id}`
-
-**Por hacer en web:**
-1. Implementar `customers.component.ts` con tabla + filtros + paginación
-2. Form reactivo para crear/editar (campos: name, lastName, document, phone, email, address, notes)
-3. Toggle "cliente predeterminado" (POST/PATCH backend si lo soporta, o persistir en localStorage)
-4. Repositorio y modelo **ya existen** en `customer.repository.ts` y `customer.model.ts`
 
 ---
 
@@ -434,13 +454,20 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar mesas con filtro por estado/ubicación | `[ ]` | Stub |
-| Crear mesa | `[ ]` | |
-| Editar mesa | `[ ]` | |
-| Eliminar mesa | `[ ]` | |
-| Reservar mesas (`reserveTables`) | `[ ]` | |
-| Liberar mesas (`releaseTables`) | `[ ]` | |
-| Visualización de estados (AVAILABLE/OCCUPIED/RESERVED) | `[ ]` | |
+| Listar mesas con filtro por estado/ubicación | `[x]` | Grid de cards + chips de estado (Todas/Disponibles/Ocupadas/Reservadas) + `mat-select` de ubicación + búsqueda libre por nombre/ubicación; signals `statusFilter`/`locationFilter`/`searchQuery` + `displayedTables` computed |
+| Crear mesa | `[x]` | `TableFormDialogComponent` (form reactivo/select de estado) |
+| Editar mesa | `[x]` | Mismo diálogo hidratado |
+| Eliminar mesa | `[x]` | Confirmación `ModalInfoComponent`; modal secundario si la mesa tiene pedidos asociados |
+| Reservar mesas (`reserveTables`) | `[x]` | Selección múltiple (tap) con FAB contextual; `PUT tables/reserve` con `tableIds[]` |
+| Liberar mesas (`releaseTables`) | `[x]` | FAB contextual cuando todas las seleccionadas están OCCUPIED/RESERVED; `PUT tables/release` con `tableIds[]` |
+| Visualización de estados (AVAILABLE/OCCUPIED/RESERVED) | `[x]` | Badge coloreado (verde/naranja/azul) + borde cuando seleccionada |
+
+**Archivos clave (web):**
+- `src/app/features/tables/tables.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/tables/table-form-dialog.component.ts`
+- `src/app/core/services/tables.service.ts` (incluye `applyBranchFilter` por `X-Branch-Id`)
+- `src/app/data/repositories/tables.repository.ts` (con `ReserveTablesRequest` / `ReleaseTablesRequest`)
+- `src/app/data/models/table.model.ts`
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/tables/controllers/tables_controller.dart`
@@ -448,58 +475,86 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `lib/app/data/repositories/tables_repository.dart`
 - `lib/app/data/models/table_model.dart` + `table_status_model.dart`
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET tables/all`, `GET tables/by-status/AVAILABLE`
 - `POST tables/create`, `PUT tables/update/{id}`, `DELETE tables/delete/{id}`
-- `POST tables/reserve`, `POST tables/release`
+- `PUT tables/reserve`, `PUT tables/release` (body `{ tableIds: string[] }`)
 - `GET tables/statuses`
-
-**Por hacer en web:**
-1. Implementar `tables.component.ts` con grid visual de mesas por ubicación
-2. Colorear según estado (verde/naranja/azul)
-3. Acciones contextuales (reservar/liberar/editar)
 
 ---
 
 ## 10. Menú (Categorías, Subcategorías, Productos, Recetas)
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar categorías (con subcategorías y productos anidados) | `[ ]` | |
-| Crear/editar/eliminar categoría | `[ ]` | |
-| Crear/editar/eliminar subcategoría | `[ ]` | |
-| Crear/editar/eliminar producto | `[ ]` | |
-| Productos con múltiples precios (VARIABLE + `sizeLabel`) | `[ ]` | |
-| Productos tipo COMBO con grupos y opciones | `[ ]` | |
-| Productos tipo COMBINADO (2x1) | `[ ]` | |
-| Recetas de producto (asociación con insumos) | `[ ]` | `product-recipe` |
-| Guardar receta completa por variante de precio | `[ ]` | |
+| Listar categorías (con subcategorías y productos anidados) | `[x]` | Tabs `MatTabsModule` por categoría + `MatExpansionPanel` por subcategoría (expandidas) + lista de productos |
+| Crear/editar categoría | `[x]` | `CategoryFormDialogComponent` (name + description, ambos requeridos por el backend) |
+| Crear/editar subcategoría | `[x]` | `SubcategoryFormDialogComponent` (name requerido, description opcional, inyecta `categoryId` automáticamente) |
+| Crear/editar producto | `[x]` | `ProductFormDialogComponent` (tipo, precios, requires_recipe, option_only); payload sigue reglas del móvil (POST en array, PUT objeto) |
+| Productos con múltiples precios (VARIABLE + `sizeLabel`) | `[x]` | Filas dinámicas Tamaño + Precio; `size_label` solo se envía si VARIABLE y no vacío; separador de miles (`parseThousands`/`formatThousands`) |
+| Productos tipo COMBO con grupos y opciones | `[x]` | `ComboEditorDialogComponent` con `mat-select` filtrable de productos SIMPLE no usados; remove (con confirmación) / restore; `refreshCombo` recarga el árbol tras cada acción |
+| Productos tipo COMBINADO (2x1) | `[x]` | El producto se crea con `productType: 'COMBINADO'`; venta ya gestionada por `TakeOrderService` |
+| Recetas de producto (asociación con insumos) | `[x]` | `RecipeFormDialogComponent` — base o por variante; `MenuService.saveRecipe` / `deleteRecipe` / `saveAllRecipes` (bulk) |
+| Guardar receta completa por variante de precio | `[x]` | Botón "Guardar todas" en VARIABLE → `POST inventory/recipes/{id}/bulk` |
 | Asignar impresora/zona a categoría | `~~Descartado~~` | No aplica en web |
+| Eliminar categoría / subcategoría / producto | `~~Descartado~~` | El backend lo expone pero el móvil no tiene UI; web sigue la paridad (no hay botones de eliminar) |
+| Activar/desactivar producto (`active`) | `~~Descartado~~` | El backend lo expone pero el móvil no tiene UI; paridad |
+
+**Reglas de negocio replicadas (idénticas al móvil):**
+- `start_date` siempre = hoy a medianoche (`yyyy-MM-dd'T'HH:mm:ss`).
+- `option_only === true` ⇒ oculta sección de precios y fuerza `[{ amount: 0, start_date: hoy, end_date: null }]`.
+- Cambiar tipo a ≠ VARIABLE colapsa el array de precios a 1.
+- Combo editor: solo productos `SIMPLE` con id que **no estén ya como opción** en ningún grupo; confirmación para desactivar ("Ya no aparecerá en nuevos pedidos") y reactivar.
+- Recetas: ≥1 ingrediente con `quantity > 0` por variante; eliminar receta con confirmación `ModalInfoComponent`.
+- Recarga completa de `categories/all` tras cada mutación (no optimistic updates), igual que el móvil.
+- Sin WebSocket en este módulo (paridad con móvil).
+- Éxitos vía `MatSnackBar` (patrón web); textos iguales a los mensajes del móvil.
+
+**Archivos clave (web):**
+- `src/app/core/services/menu.service.ts` (CRUD categorías/subcategorías/productos, recetas, opciones de combo, `getAllSimpleProducts`, `findComboById`)
+- `src/app/features/menu/menu.component.ts` (+ `.html`, `.scss`) — tabs + sub-accordion + product list con menú contextual
+- `src/app/features/menu/dialogs/category-form-dialog.component.ts`
+- `src/app/features/menu/dialogs/subcategory-form-dialog.component.ts`
+- `src/app/features/menu/dialogs/product-form-dialog.component.ts`
+- `src/app/features/menu/dialogs/recipe-form-dialog.component.ts` **(nuevo)**
+- `src/app/features/menu/dialogs/combo-editor-dialog.component.ts` **(nuevo)**
+- `src/app/core/services/menu.service.spec.ts` + `src/app/features/menu/menu.component.spec.ts` **(nuevos, Vitest)**
+- `src/app/data/repositories/categories.repository.ts` (extendido con `createSubcategory` / `updateSubcategory`)
+- `src/app/data/repositories/products.repository.ts`
+- `src/app/data/repositories/combos.repository.ts` (corregido: `toggleOption` ahora usa `PATCH combos/options/{id}/toggle`)
+- `src/app/data/repositories/inventory.repository.ts` (extendido con `getItems` tipado, `getRecipesForProduct`, `saveRecipe`, `saveAllRecipes`, `deleteRecipe(?priceVariantId=)`)
+- `src/app/data/models/category.model.ts` (+ `description?` en Category/Subcategory)
+- `src/app/data/models/product.model.ts` (`PriceModel.productId` → `product_id?`, + `end_date?`)
+- `src/app/data/models/inventory.model.ts` (`ProductRecipeModel` + `priceVariantId`/`priceVariantLabel`; `InventoryItemModel` + `minStock?`/`stockStatus?`)
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/menu/controllers/menu_controller.dart`
 - `lib/app/modules/menu/views/menu_view.dart`
+- `lib/app/modules/menu/views/widgets/menu_forms.dart` (`CategoryFormDialog`, `SubcategoryFormDialog`, `ProductFormDialog`)
 - `lib/app/modules/menu/views/widgets/combo_editor_dialog.dart`
-- `lib/app/modules/menu/views/widgets/recipe_form_dialog.dart`
+- `lib/app/core/utils/modals/recipe_form_dialog.dart`
 - `lib/app/data/repositories/categories_repository.dart`
 - `lib/app/data/repositories/combos_repository.dart`
+- `lib/app/data/repositories/inventory_repository.dart` (recetas)
 - `lib/app/data/models/category_model.dart` (re-exporta subcategory, product, combo)
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET categories/all`
-- `POST categories/create`, `PUT categories/update/{id}`, `DELETE categories/delete/{id}`
-- `POST subcategories/create`, `PUT subcategories/update/{id}`
-- `POST products/create`, `PUT products/update/{id}`
-- `GET combos/by-product/{id}/options`, etc.
-- `POST products/{id}/recipe`, `DELETE products/{id}/recipe/{priceVariantId}`
-
-**Por hacer en web:**
-1. Vista en árbol: Categoría → Subcategoría → Productos
-2. CRUD completo con formularios reactivos
-3. Editor visual de combos (grupos + opciones)
-4. Editor de recetas (selector de insumos + cantidades)
+- `POST categories/create` (array), `PUT categories/update/{id}` (objeto)
+- `PATCH categories/{id}/printer` *(existe, no usado en web)*
+- `POST subcategories/create` (array), `PUT subcategories/update/{id}`
+- `POST products/create` (array), `PUT products/update/{id}`
+- `GET products/types` *(existe, no usado en web — los tipos vienen hardcoded del enum)*
+- `POST combos/groups/{groupId}/options` (body `{productId}`)
+- `DELETE combos/options/{optionId}`
+- `PATCH combos/options/{optionId}/toggle`
+- `GET inventory/items` (picker de insumos para recetas)
+- `GET inventory/recipes/{productId}`
+- `POST inventory/recipes/{productId}` (single)
+- `POST inventory/recipes/{productId}/bulk` (todas las variantes)
+- `DELETE inventory/recipes/{productId}?priceVariantId=...`
 
 ---
 
@@ -509,13 +564,20 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar usuarios | `[ ]` | |
-| Crear usuario (asignar roles + sucursales) | `[ ]` | |
-| Editar usuario | `[ ]` | |
-| Eliminar usuario | `[ ]` | |
-| Resetear contraseña (genera temporal) | `[ ]` | |
-| Activar/desactivar usuario (`toggle-status`) | `[ ]` | |
-| Asignar módulos al usuario | `[ ]` | |
+| Listar usuarios | `[x]` | Lista de cards con datos (username, nombre, email, roles) |
+| Crear usuario (asignar roles + sucursales) | `[x]` | `UserFormDialogComponent` con checkboxes múltiples de roles (carga `roles/all`); envío `isActive` |
+| Editar usuario | `[x]` | Mismo diálogo hidratado (roles preseleccionados, isActive editable) |
+| Eliminar usuario | `[x]` | Confirmación `ModalInfoComponent` |
+| Resetear contraseña (genera temporal) | `[x]` | `PATCH users/{id}/reset-password`; muestra la contraseña temporal generada en snackbar |
+| Activar/desactivar usuario (`toggle-status`) | `[x]` | Switch en cada card; `PATCH users/{id}/toggle-status` |
+| Asignar módulos al usuario | `[~]` | El backend lo gestiona vía login (`LoginResponse.modules`); la UI web no edita módulos del usuario (igual que el móvil: los módulos vienen del rol y se gestionan en otro flujo) |
+
+**Archivos clave (web):**
+- `src/app/features/users/users.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/users/user-form-dialog.component.ts`
+- `src/app/core/services/users.service.ts`
+- `src/app/data/repositories/users.repository.ts` (incluye `resetPassword` y `toggleStatus` con `PATCH .../{id}/...`)
+- `src/app/data/models/user.model.ts`
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/users/controllers/users_controller.dart`
@@ -523,16 +585,12 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - `lib/app/data/repositories/users_repository.dart`
 - `lib/app/data/models/user_model.dart` + `user_role.dart`
 
-**Endpoints backend disponibles:**
-- `GET users/all`, `GET users/{id}`
+**Endpoints clave:**
+- `GET users/all`, `GET users/{id}`, `GET roles/all`
 - `POST users/create`, `PUT users/update/{id}`, `DELETE users/delete/{id}`
 - `PATCH users/{id}/reset-password`
 - `PATCH users/{id}/toggle-status`
-
-**Por hacer en web:**
-1. Tabla de usuarios con paginación y búsqueda
-2. Form de creación/edición con selectores múltiples (roles, sucursales, módulos)
-3. Acciones: editar, reset pass, toggle estado
+- `PATCH users/me/change-password` *(usado por Perfil, no por este módulo)*
 
 ---
 
@@ -542,26 +600,28 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar métodos de pago (activos e inactivos) | `[ ]` | |
-| Editar método (displayName, active, displayOrder) | `[ ]` | |
-| Activar/desactivar método | `[ ]` | |
+| Listar métodos de pago (activos e inactivos) | `[x]` | Lista de cards ordenada por `displayOrder` (PaymentMethodsService) |
+| Editar método (displayName, active, displayOrder) | `[x]` | `PaymentMethodFormDialogComponent` (update-only): displayName, active, displayOrder; `PUT payment-methods/config/{method}` |
+| Activar/desactivar método | `[x]` | Switch dentro del diálogo de edición; persiste en el mismo `PUT` |
+
+**Archivos clave (web):**
+- `src/app/features/payment-methods/payment-methods.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/payment-methods/payment-method-form-dialog.component.ts`
+- `src/app/core/services/payment-methods.service.ts`
+- `src/app/data/repositories/payment-methods.repository.ts`
+- `src/app/data/models/payment-method.model.ts`
 
 **Archivos clave (móvil — referencia):**
-- `lib/app/modules/payment_methods/controllers/payment_methods_controller.dart` (120 líneas)
+- `lib/app/modules/payment_methods/controllers/payment_methods_controller.dart`
 - `lib/app/modules/payment_methods/views/payment_methods_view.dart`
 - `lib/app/modules/payment_methods/views/widgets/payment_method_form_modal.dart`
 - `lib/app/data/repositories/payment_methods_repository.dart`
 - `lib/app/data/models/payment_method_model.dart`
 
-**Endpoints backend disponibles:**
-- `GET payment-methods/config` (todos)
-- `GET payment-methods/config/active` (solo activos)
+**Endpoints clave:**
+- `GET payment-methods/config/active` (consumido por `TransactionModalComponent` en Pagos)
+- `GET payment-methods/config` (lista completa en este módulo)
 - `PUT payment-methods/config/{method}`
-
-**Por hacer en web:**
-1. Lista de métodos con switch on/off
-2. Modal de edición (displayName, displayOrder)
-3. Repositorio y modelo ya existen
 
 ---
 
@@ -643,7 +703,9 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 15. Reportes
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[~]` Parcial
+
+Implementado en móvil + backend (7 tipos de reporte); pendiente de portar a web.
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
@@ -653,6 +715,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | Reporte por fecha de apertura de turno | `[ ]` | |
 | Reporte de ventas por productos seleccionados (fecha-hora + checklist) | `[ ]` | Implementado en móvil (ReportsController + ProductSelectionSection + ProductSalesResultsView) y backend (`GET /reports/sales/products`). Web debe portarlo. |
 | Reporte "Top de Productos Vendidos" (rango fecha-hora) | `[ ]` | Implementado en móvil (TopProductsResultsView) y backend (`GET /reports/sales/top-products`). Web debe portarlo. |
+| **Reporte de Órdenes Anuladas** (rango fecha-hora) | `[ ]` | Implementado en móvil+backend (2026-09-11). Cubre ventas pagadas anuladas (`PAID_SALE`) y cancelaciones pre-pago (`PRE_PAID`) con motivo, usuario que anuló, mesero, turno/cajero y desglose de pagos. Web debe portarlo. |
 | Exportación a PDF/Excel (alternativa web) | `[ ]` | |
 
 **Archivos clave (móvil — referencia):**
@@ -777,7 +840,7 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## Foco 2 — Pagos
 1. **Reembolso de transacción (REFUND)**
-2. **Anulación de transacción (CANCEL)**
+2. **Anulación de venta pagada (CANCEL desde historial)** — móvil `[x]`, web `[ ]` (paridad pendiente)
 3. **Cambio de método de pago post-factura** (admin/super)
 4. **Precuenta** como modal visual
 5. **Propina predeterminada guardable** (storage + UI en Perfil)
@@ -805,7 +868,10 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 | 2026-09-01 | Reportes — **removido el detalle individual de eventos** del reporte "Ventas por Producto" (pantalla sobrecargada con info poco relevante). Móvil: eliminado el bloque "Detalle de ventas (con hora)" en `ProductSalesResultsView` (cards de hora/pedido/subtotal) y la clase `ProductSaleEvent` del modelo, junto con assertions en tests del controller/modelo. Backend: eliminado `ProductSaleEventDTO` y el campo `events` de `ProductSalesSummaryDTO`; `ProductSalesReportServiceImpl` simplificado (ya no construye eventos ni ordena `Set<UUID> orderIds` en lugar de `Map<UUID, LocalDateTime> orderIdToSoldAt`; `ProductAccumulator` sin lista de eventos); javadoc del endpoint `/sales/products` actualizado. Tests backend reescritos sin assertions de eventos (8/8 pasan). `TECHNICAL_DOCUMENTATION.md` y manual `reportes.md` actualizados (sin bullets de detalle con hora, sin tip de "si solo te interesa la frecuencia"). | opencode |
 | 2026-09-01 | Cierre de caja — **modal de confirmación con el monto declarado** antes de consumir el servicio (evita cierres con el monto en blanco o erróneo). Móvil: en `CloseShiftView`, antes de invocar `submitCloseShift()` se muestra `ModalInfo` (`barrierDismissible: false`) con título "Confirmar Cierre de Caja", el monto declarado formateado `es_CO`, y los botones "Sí, Cerrar Caja" / "Cancelar". Solo en "Sí" se llama al servicio (y luego al modal de éxito existente). Si el monto es ≤ 0, se omite el modal y se delega al diálogo de error ya existente. Para soportar el icono no-impresora del botón secundario se añadió el parámetro opcional `secondaryButtonIcon` a `ModalInfo` (default `Icons.print`, compatible con los 5 usos existentes). Controller: expuesto `parseDeclaredAmount()` (la parseo antes vivía en privado en `_parseAmount` y ahora se reutiliza). Tests: 2 casos nuevos de `parseDeclaredAmount` (4/4 pasan). Manual `cierre-caja.md`: nuevo paso 8 con confirmación y screenshot marker `close-shift-confirm.png`. | opencode |
 | 2026-09-03 | Reubicación del toggle "Solo ver mis pedidos (meseros)" del `CustomDrawer` a una pantalla dedicada **"Ajustes de Pedidos"** (`/settings/orders`). Nuevo módulo `order_settings` con `OrderSettingsBinding`/`OrderSettingsController`/`OrderSettingsView` (CustomScaffold + ExpandableSection). El `SwitchListTile` que estaba inline en el ExpansionTile "Configuración" del drawer (desajuste: control embebido entre ítems de navegación) se movió a esta pantalla; el drawer ahora solo tiene el sub-ítem "Ajustes de Pedidos" (visible para ADMIN/SUPER). El controller delega en `HomeController` (PATCH `branches/{branchId}/waiter-filter` + notificación a `OrdersController` se mantienen intactos). Tests: actualizado `custom_drawer_test.dart` (caso ADMIN ve "Ajustes de Pedidos", caso MESERO no lo ve) + nuevo `order_settings_view_test.dart` (render, toggle llama al setter, switch deshabilitado para no-admin con aviso). `dart analyze` limpio, `flutter test` (módulos afectados) 7/7 pasan. Manual `gestionar-pedidos.md` (§"Filtro Solo ver mis pedidos") y `roles-permisos.md` actualizados con la nueva ruta de navegación. | opencode |
-| _Pendiente_ | _Actualizar al implementar cada funcionalidad_ | _—_ |
+| 2026-09-08 | **Módulo Menú completo** (sección 10 `[ ]` → `[x]`) + correcciones de paridad + pequeñas mejoras en CRUDs. Cambios web: (a) **Correcciones de infraestructura**: `combos.repository.toggleOption` corregido de `PUT combos/options/toggle/{id}` a `PATCH combos/options/{id}/toggle` (era la única ruta que el backend expone y la única que el móvil usa); `category.model` + `description?` en Category/Subcategory; `product.model.PriceModel.productId` → `product_id?` + `end_date?`; `inventory.model.ProductRecipeModel` + `priceVariantId?`/`priceVariantLabel?` + `InventoryItemModel` + `minStock?`/`stockStatus?`; `inventory.repository` extendido con `getItems` tipado + `getRecipesForProduct` + `saveRecipe` + `saveAllRecipes` + `deleteRecipe(?priceVariantId=)`; `categories.repository` extendido con `createSubcategory`/`updateSubcategory`. (b) **Clientes**: búsqueda por nombre/apellido/teléfono/documento (`searchQuery` signal + `displayedCustomers` computed). (c) **Mesas**: chips de filtro por estado (Todas/Disponibles/Ocupadas/Reservadas) + `mat-select` por ubicación + búsqueda libre; `displayedTables` computed. (d) **`MenuService`**: CRUD de categorías/subcategorías/productos (POST array, PUT objeto), recetas (base/variante/bulk/delete), opciones de combo (add/remove/toggle + `refreshCombo`); recarga completa de `categories/all` tras cada mutación (fiel al móvil). (e) **Componente menú**: tabs por categoría, sub-accordion por subcategoría, lista de productos con menú contextual (Editar / Configurar receta si `requiresRecipe` / Administrar combo si COMBO), badges de tipo, FAB "Nueva Categoría", variantes VARIABLE con filas `size_label — precio`, badge "Opción" si `option_only`. (f) **Diálogos**: `category-form-dialog`, `subcategory-form-dialog`, `product-form-dialog` (reglas idénticas al móvil: `option_only` oculta precios y fuerza `{amount:0, start_date: hoy}`, tipo ≠ VARIABLE colapsa a 1 precio, `size_label` solo si VARIABLE no vacío), `recipe-form-dialog` (selector de variante + filas por variante + bulk), `combo-editor-dialog` (mat-select con búsqueda de productos SIMPLE no usados; remove/restore con confirmación; refresh tras cada acción). (g) **Specs Vitest básicos**: `menu.service.spec.ts` (7 casos: loadAll, payloads array/objeto, PATCH toggle, getAllSimpleProducts, findComboById) y `menu.component.spec.ts` (2 casos: empty-state + render con fixture); `vitest.setup.ts` extendido con `initTestEnvironment` + `zone.js`. (h) **Paridad**: sin botones de delete (móvil no los tiene), sin WebSocket en menú (móvil no lo usa), zonas de impresión descartadas, errores vía `ErrorService`. Tabla resumen actualizada (fila 6 `[~]` → `[x]`; fila 7 pendiente "—"). Secciones 8/9/11/12 actualizadas a `[x]` con notas reales y archivos clave. Build OK (`npm run build`), lint OK (`npm run lint`), tests 9/9 OK (`npm test`). | opencode |
+| 2026-09-10 | **Anulación de venta pagada (CANCEL desde historial)** — móvil `[x]`, web `[ ]` (paridad pendiente). (a) **Backend (`restic-back`)**: nueva migración `V25_0__add_transaction_cancelled_by.sql` (columna `cancelled_by_id` en `transactions` + reemplazo del CHECK `ck_stock_movements_type` para incluir `SALE_REVERSAL`); entidad `Transaction` + relación `cancelledBy` (LAZY); enum `StockMovementType` + `SALE_REVERSAL`; `InventoryItemRepository.restoreStock` (UPDATE atómico) y `StockMovementRepository.findByReferenceOrderIdAndType`; nuevo `StockRestoreService` (interfaz + Impl) que revierte los `StockMovement` `SALE` de la orden y crea los `SALE_REVERSAL`; `TransactionServiceImpl.cancelTransaction` extendido con orquestación completa (turno OPEN, lock pesimista, orden `PAID→CANCELED`, restauración de inventario, `cancelledBy`, log WARN, WebSocket); `TransactionResponseDTO` + `cancelledById`/`cancelledByName`; `TransactionMapper` actualizado; tests cubriendo happy path + rechazos. (b) **Móvil (`restic-movil`)**: `UrlPaths.cancelTransaction`; `TransactionsRepository.cancelTransaction` (PUT body con `cancellationReason`); `CashRegisterController` + flag `canAnnulTransactions` (SUPER/ADMIN) + `confirmAnnulTransaction`/`submitAnnulTransaction`; nuevo `AnnulTransactionDialog` (`CustomFormDialog` con `autoClose: false`, motivo obligatorio, advertencia del #orden/monto y consecuencias); botón "Anular" en `GlobalOrderCard` (tab Historial) gateado por `isHistoryPaid && canAnnulTransactions`. (c) **Pendiente web**: replicar el flujo en el tab Historial de Pagos con el mismo orden de botones (mantener paridad con móvil). | opencode |
+| 2026-09-10 | **Anular venta** — refactor de `AnnulTransactionModal` (bottom sheet) a `AnnulTransactionDialog` basado en `CustomFormDialog`, para alinearse con el estándar de diálogos de la app (`CustomerFormDialog`, `UserFormDialog`, `MenuFormDialog`). El widget anterior (`annul_transaction_modal.dart`) se eliminó por quedar como código muerto; el fix de overflow del bottom sheet (Flexible+SingleChildScrollView) queda obsoleto porque `CustomFormDialog` ya envuelve el `child` en `SingleChildScrollView`. `CashRegisterController.confirmAnnulTransaction` ahora usa `Get.dialog(AnnulTransactionDialog(...), barrierDismissible: false)`; `submitAnnulTransaction` cierra el diálogo (`Get.back()`) antes de invocar la API para que un motivo inválido mantenga el formulario abierto (mismo patrón que `UserFormDialog` con `autoClose: false`). | opencode |
+| 2026-09-11 | **Reporte de Órdenes Anuladas + auditoría en cancelaciones pre-pago** — móvil+backend `[x]`, web `[ ]`. (a) **Backend (`restic-back`)**: nueva migración `V26_0__add_order_cancellation_audit.sql` (columnas `cancelled_by_id`, `cancelled_at`, `cancellation_reason` en `orders`); entidad `Order` + 3 campos nuevos; nuevo DTO `CancelOrderDTO` (motivo `@NotBlank` + `@Size(min=5, max=500)`); nuevo endpoint `PUT /api/orders/{id}/cancel` (roles SUPER/ADMIN/MESERO/COCINERO, body con `cancellationReason`); `OrderService.cancelOrder` con orquestación completa (status CANCELED, libera mesas, registra `cancelledBy`/`cancelledAt`/`cancellationReason`, log WARN, WebSocket); hardening de `updateStatus` (al transicionar a CANCELED estampa `cancelledBy`/`cancelledAt`, motivo null); Tests `OrderServiceImplTest` +3 casos. Nuevo módulo de reporte: 3 DTOs (`CancelledOrdersReportResponseDTO`, `CancelledOrderItemDTO`, `PaymentMethodInfoDTO`); 3 queries nuevas en repos (`TransactionRepository.findCancelledSalesWithOrderByBranchIdAndDateRange`, `OrderRepository.findCancelledByBranchIdAndDateRange`, `PaymentDetailRepository.findByTransactionIdIn`); `CancelledOrdersReportService` + Impl que une ambos datasets (PAID_SALE + PRE_PAID), agrupando pagos por transacción; nuevo endpoint `GET /api/reports/orders/annulled` (`@AdminAccess`, datetime range); `CancelledOrdersReportServiceImplTest` 8/8 OK; `TECHNICAL_DOCUMENTATION.md` actualizado (§7.12 + §7.18.7). (b) **Móvil (`restic-movil`)**: `UrlPaths.cancelOrder` + `getAnnulledOrdersReport`; `OrdersRepository.cancelOrder(orderId, {required reason})`; nuevo widget `CancelOrderDialog` (`CustomFormDialog` con `autoClose: false`, advertencia específica "no afecta caja ni inventario" + motivo obligatorio); `cash_register_controller.confirmCancelOrder`/`_cancelOrder` reemplazan el `ModalWarning` sí/no por el dialog con motivo, cierra con `Get.back()` antes del overlay; modelo `AnnulledOrdersReportResponse` + `AnnulledOrderSummary` + `PaymentMethodInfo`; `ReportsRepository.getAnnulledOrdersReport`; enum `ReportType.annulledOrders` + state `annulledOrdersData` + `fetchAnnulledOrdersReport`; `reports_view.dart` title `Reporte de Ventas`→`Reportes` + dropdown item + exact datetime selector; nuevo widget `AnnulledOrdersResultsView` (summary card + empty state + cards con tipo de cancelación, motivo, anulado por, fecha, mesero, cliente, factura, turno, cajero, propinas, chips de métodos de pago). `flutter analyze` 0 issues, tests reports+cash_register+model nuevo 4/4 OK. (c) **Manual usuario**: `docs/reportes.md` título → "Reportes" + nueva sección "Órdenes Anuladas" con admonitions; `mkdocs.yml` nav actualizado; `cobrar-pedido.md` y `gestionar-pedidos.md` actualizados (paso del motivo obligatorio + warning sobre anulación pre-pago). | opencode |
 
 ---
 
