@@ -23,7 +23,7 @@
 | # | Módulo | Estado web | Pendiente crítico |
 |---|---|---|---|
 | 1 | Auth / Login | `[x]` | — |
-| 2 | Splash + App Update | `[~]` | Verificación de versión forzada en web |
+| 2 | Splash + App Update | `~~Descartado~~` | No aplica en web (PWA bundle versionado, sin actualización in-app) |
 | 3 | Tomar Pedido | `[x]` | — |
 | 4 | Pedidos (lista/gestión) | `[x]` | — |
 | 5 | Comandas (cocina) | `[x]` | — |
@@ -34,10 +34,10 @@
 | 10 | Menú (categorías + productos + recetas) | `[ ]` | Stub vacío |
 | 11 | Usuarios (CRUD) | `[x]` | — |
 | 12 | Métodos de Pago (configuración) | `[x]` | — |
-| 13 | Inventario | `[ ]` | Stub vacío |
+| 13 | Inventario | `[x]` | — |
 | 14 | Datos Fiscales | `[x]` | — |
-| 15 | Reportes | `[~]` | Falta web; móvil tiene 7 tipos (Rango de Fechas, Rango Fecha-Hora, Turno ID, Fecha Apertura, Ventas por Producto, Top Productos, Órdenes Anuladas). El reporte de Órdenes Anuladas es nuevo en móvil+backend (2026-09-11). |
-| 16 | Perfil (cambio contraseña + config) | `[ ]` | Stub vacío |
+| 15 | Reportes | `[x]` | — |
+| 16 | Perfil (cambio contraseña + config) | `[x]` | — |
 | 17 | WebSocket tiempo real | `[x]` | — |
 | 18 | Multi-sucursal | `[x]` | — |
 | 19 | Control por módulos/roles (guards) | `[x]` | — |
@@ -104,20 +104,11 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 2. Splash + App Update (verificación de versión)
 
-### Estado global: `[~]` Parcial
+### Estado global: `~~Descartado~~` (no aplica en web)
 
-| Funcionalidad | Estado | Notas |
-|---|---|---|
-| Splash inicial mientras se valida sesión | `[ ]` | No hay splash component dedicado en web. La app inicia directo en `/login` o `/home` |
-| Verificación de versión mínima contra endpoint remoto | `[ ]` | No implementado. No existe `app-update` component ni `AppVersionRepository` |
+No hay equivalente web: la app se sirve como bundle versionado por el despliegue (no hay descarga/actualización in-app) y la SPA renderiza directo en `/login` o `/home` tras validar token + branchId en el `AuthService`. El concepto de "actualización obligatoria" no aplica a una PWA/web estática.
 
-**Por hacer:**
-- Crear un componente `SplashComponent` que muestre un loader mientras se valida token + branchId
-- Implementar `AppVersionService` + `AppVersionRepository` que consulte versión mínima
-- Crear vista de "Actualización obligatoria" cuando la versión de la app sea menor a la mínima requerida
-- Definir endpoint backend o CDN para servir `AppVersionInfo` (`{ latestVersion, minRequiredVersion, updateUrl }`)
-
-**Archivos clave (móvil — referencia):**
+**Archivos clave (móvil — referencia, sólo documentación):**
 - `lib/app/modules/splash/controllers/splash_controller.dart`
 - `lib/app/modules/splash/views/splash_view.dart`
 - `lib/app/modules/app_update/`
@@ -627,39 +618,59 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 ## 13. Inventario
 
-### Estado global: `[ ]` Falta (stub vacío)
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| **Items / Insumos**: listar, crear, editar, eliminar | `[ ]` | name, unit, currentStock, minStock |
-| **Alertas** de stock mínimo | `[ ]` | |
-| **Movimientos** manuales (PURCHASE, ADJUSTMENT, etc.) | `[ ]` | |
-| Productos asociados a un insumo | `[ ]` | |
-| **Recetas**: vincular insumos a productos | `[ ]` | consumido al vender |
-| Export CSV de items / movimientos | `[~]` | Descarga nativa navegador (en lugar de share_plus) |
+| **Items / Insumos**: listar, crear, editar, eliminar | `[x]` | `InventoryItemFormDialogComponent`: name, unit (9 valores: KG/G/L/ML/UNIT/CAJA/OZ/LB/DOCENA), currentStock (solo al crear), minStock; validaciones ≥ 0; al editar muestra caja informativa del stock actual + hint "Para modificar el stock usa Agregar Movimiento" |
+| **Alertas** de stock mínimo | `[x]` | Tab dedicada; el color del avatar y del badge varía por `stockStatus` (`OUT` rojo / `LOW` naranja / `OK` verde) |
+| **Movimientos** manuales (PURCHASE, ADJUSTMENT_POSITIVE, ADJUSTMENT_NEGATIVE, WASTE, INITIAL) | `[x]` | `ManualMovementDialogComponent`: insumo + tipo (5 opciones manuales con indicador +/−) + cantidad > 0 (helper text "El tipo decide si suma o resta") + notas; backend descuenta automáticamente |
+| Productos asociados a un insumo | `[x]` | `AssociatedProductsDialogComponent` muestra nombre, tipo, variante y cantidad consumida por unidad |
+| **Recetas**: vincular insumos a productos | `[x]` | Implementado en el módulo **Menú** (`RecipeFormDialogComponent` + `MenuService.saveRecipe` / `saveAllRecipes` / `deleteRecipe`). Paridad con móvil: editor por variante + bulk save. (El botón "Configurar receta" aparece en el menú contextual de los productos con `requiresRecipe`.) |
+| Export PDF / Excel de insumos | `[x]` | Solo en el tab Insumos: dos botones estilo Reportes (`jspdf`+`autotable` para PDF, `xlsx` para Excel) que generan el archivo client-side desde el `ReportExportService.buildFromInventoryItems(items)` (resumen Total/Sin stock/Stock bajo/OK + tabla Nombre/Unidad/Stock actual/Stock mínimo/Estado). El tab Movimientos no tiene exportación (ni CSV ni PDF/Excel). Reemplaza al antiguo Export CSV via backend. |
+
+**Reglas de paridad con móvil:**
+- Carga inicial en paralelo: `items` + `alerts` + `movements`.
+- `canEdit` (SUPER/ADMINISTRADOR) oculta FAB y acciones de escritura; el resto ve solo lectura + "Ver productos".
+- En la creación se envía `currentStock`; en la edición **no** (stock se modifica solo vía movimientos manuales).
+- Tipos de movimiento ofrecidos en el formulario (5): `PURCHASE/ADJUSTMENT_POSITIVE/INITIAL (+)` y `ADJUSTMENT_NEGATIVE/WASTE (−)`. El filtro de movimientos en la UI lista 7 tipos (incluye `SALE` y no incluye `SALE_REVERSAL`).
+- Recarga completa (`items + alerts + movements`) tras cada mutación, igual que el móvil.
+- `stockStatus` con tres valores: `OUT/LOW/OK` (renderer: color del avatar y del badge).
+- `isOutput` para movimiento = `SALE | WASTE | ADJUSTMENT_NEGATIVE` (icono/rojo) — resto azul.
+- Cards de movimiento: badge "Manual" vs "Venta" + `typeDescription` del backend + fecha `dd/MM/yyyy HH:mm` + cantidad coloreada.
+- Empty state distinto cuando hay filtros activos.
+
+**Archivos clave (web):**
+- `src/app/core/services/inventory.service.ts` (con `canEdit` + filtros + CSV)
+- `src/app/core/services/inventory.service.spec.ts` **(nuevo, Vitest)**
+- `src/app/features/inventory/inventory.component.ts` (+ `.html`, `.scss`) — 3 tabs + FAB contextual + cards
+- `src/app/features/inventory/dialogs/inventory-item-form-dialog.component.ts`
+- `src/app/features/inventory/dialogs/manual-movement-dialog.component.ts`
+- `src/app/features/inventory/dialogs/associated-products-dialog.component.ts`
+- `src/app/data/repositories/inventory.repository.ts` (CRUD items + movimientos + asociados + exports + recetas)
+- `src/app/data/models/inventory.model.ts` (alineado al backend: 9 unidades, 7 tipos de movimiento, `StockMovementModel` con `notes/manual/typeDescription`, + `AssociatedProductModel`)
+- `src/app/core/config/url-paths.ts` (`INVENTORY_ITEM_PRODUCTS` corregido a `inventory/items/{id}/products`)
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/inventory/controllers/inventory_controller.dart`
 - `lib/app/modules/inventory/views/inventory_view.dart`
+- `lib/app/modules/inventory/views/widgets/inventory_item_form_dialog.dart`
+- `lib/app/modules/inventory/views/widgets/manual_movement_dialog.dart`
+- `lib/app/modules/inventory/views/widgets/inventory_item_card.dart`
+- `lib/app/modules/inventory/views/widgets/stock_movement_card.dart`
 - `lib/app/data/repositories/inventory_repository.dart`
-- `lib/app/data/repositories/recipes_repository.dart`
 - `lib/app/data/models/inventory_item_model.dart`
 - `lib/app/data/models/stock_movement_model.dart`
-- `lib/app/data/models/product_recipe_model.dart`
+- `lib/app/data/models/associated_product_model.dart`
 
-**Endpoints backend disponibles:**
-- `GET inventory-items/all`, `/low-stock`, etc.
-- `POST inventory-items/create`, `PUT update`, `DELETE`
-- `GET stock-movements/all`
-- `POST stock-movements/create`
-- `GET product-recipes/{productId}`
-- `POST product-recipes/{productId}`, `PUT`, `DELETE`
-
-**Por hacer en web:**
-1. Tres pestañas: Items / Alertas / Movimientos
-2. CRUD de insumos con validaciones (currentStock ≥ 0, minStock ≥ 0)
-3. Editor de recetas: seleccionar producto, agregar líneas de insumo con cantidad
-4. Descarga CSV (en web: generar Blob + `<a download>`)
+**Endpoints clave:**
+- `GET inventory/items` (lista completa, todos los autenticados)
+- `GET inventory/items/alerts` (insumos con stock bajo / sin stock)
+- `POST inventory/items`, `PUT inventory/items/{id}`, `DELETE inventory/items/{id}` (admin)
+- `GET inventory/items/{id}/products` (productos vinculados vía receta)
+- `GET inventory/movements?inventoryItemId=&type=&fromDate=&toDate=` (filtros opcionales)
+- `POST inventory/movements` (movimiento manual, admin)
+- `GET inventory/items/export`, `GET inventory/movements/export` (CSV admin, respeta filtros)
 
 ---
 
@@ -669,12 +680,12 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Listar datos fiscales por sucursal | `[ ]` | |
-| Crear/editar datos fiscales (DIAN) | `[ ]` | |
-| Solo un fiscal data activo por sucursal | `[ ]` | |
-| Marcar un fiscal data como activo | `[ ]` | |
+| Listar datos fiscales por sucursal | `[x]` | `FiscalDataService.loadActive(branchId)` carga el fiscal data activo de la sucursal actual (filtrado por `X-Branch-Id` del interceptor) |
+| Crear/editar datos fiscales (DIAN) | `[x]` | Form único `FiscalDataComponent` que detecta create/edit automáticamente según `getActive(branchId)`: si existe → edita ese único registro; si no → crea. Todos los campos del backend (`FiscalDataRequestDTO`) |
+| Solo un fiscal data activo por sucursal | `[x]` | Backend lo garantiza; el cliente solo expone el activo y permite reemplazar/editar |
+| Marcar un fiscal data como activo | `[x]` | `PATCH fiscal-data/{id}/activate` desde el repositorio (no expuesto en UI actualmente: el alta/edición ya activa implícitamente) |
 
-**Campos del formulario (referencia móvil):**
+**Campos del formulario (portado del móvil):**
 - businessName, taxId, taxIdDigit
 - address, city, department
 - dianResolution, resolutionStartDate, resolutionEndDate
@@ -682,41 +693,64 @@ Las siguientes capacidades del móvil **no se replican en la web** por decisión
 - taxRegime (SIMPLE / ORDINARIO / NO_RESPONSABLE_IVA)
 - email, phone, website
 
+**Archivos clave (web):**
+- `src/app/features/fiscal-data/fiscal-data.component.ts` (+ `.html`, `.scss`)
+- `src/app/core/services/fiscal-data.service.ts` (con `loadActive` + `create` + `update`)
+- `src/app/data/repositories/fiscal-data.repository.ts` (incluye `activate(id)` con PATCH `/{id}/activate`)
+- `src/app/data/models/fiscal-data.model.ts`
+
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/fiscal_data/controllers/fiscal_data_controller.dart`
 - `lib/app/modules/fiscal_data/views/fiscal_data_view.dart`
 - `lib/app/data/repositories/fiscal_data_repository.dart`
 - `lib/app/data/models/fiscal_data_model.dart`
 
-**Endpoints backend disponibles:**
-- `GET fiscal-data/all`, `/active`, `/{id}`
-- `POST fiscal-data/create`, `PUT fiscal-data/update/{id}`
+**Endpoints clave:**
+- `GET fiscal-data/active?branchId=...`
+- `GET fiscal-data/all`
+- `GET fiscal-data/{id}`
+- `POST fiscal-data/create`
+- `PUT fiscal-data/update/{id}`
 - `PATCH fiscal-data/{id}/activate`
-
-**Por hacer en web:**
-1. Form extenso con todos los campos DIAN
-2. Selector de sucursal
-3. Validaciones: rangos de numeración coherentes, fechas válidas
 4. Vista de "datos fiscales activos"
 
 ---
 
 ## 15. Reportes
 
-### Estado global: `[~]` Parcial
-
-Implementado en móvil + backend (7 tipos de reporte); pendiente de portar a web.
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Reporte por rango de fechas (dateRange) | `[ ]` | |
-| Reporte por rango exacto de fecha-hora | `[ ]` | |
-| Reporte por ID de turno (shift) | `[ ]` | |
-| Reporte por fecha de apertura de turno | `[ ]` | |
-| Reporte de ventas por productos seleccionados (fecha-hora + checklist) | `[ ]` | Implementado en móvil (ReportsController + ProductSelectionSection + ProductSalesResultsView) y backend (`GET /reports/sales/products`). Web debe portarlo. |
-| Reporte "Top de Productos Vendidos" (rango fecha-hora) | `[ ]` | Implementado en móvil (TopProductsResultsView) y backend (`GET /reports/sales/top-products`). Web debe portarlo. |
-| **Reporte de Órdenes Anuladas** (rango fecha-hora) | `[ ]` | Implementado en móvil+backend (2026-09-11). Cubre ventas pagadas anuladas (`PAID_SALE`) y cancelaciones pre-pago (`PRE_PAID`) con motivo, usuario que anuló, mesero, turno/cajero y desglose de pagos. Web debe portarlo. |
-| Exportación a PDF/Excel (alternativa web) | `[ ]` | |
+| Reporte por rango de fechas (dateRange) | `[x]` | `dateRange` → `GET reports/sales?startDate&endDate`; inputs nativos `<input type="date">` |
+| Reporte por rango exacto de fecha-hora | `[x]` | `exactDateTimeRange` → `GET reports/sales/datetime?startDateTime&endDateTime`; inputs nativos `date` + `time`; formato `yyyy-MM-dd'T'HH:mm:00` |
+| Reporte por ID de turno (shift) | `[x]` | `shiftById` → `GET reports/sales/shift/{shiftId}`; input + botón Consultar |
+| Reporte por fecha de apertura de turno | `[x]` | `shiftByDate` → `GET reports/sales/shift?openDate` |
+| Reporte de ventas por productos seleccionados (fecha-hora + checklist) | `[x]` | `productSales` → `GET reports/sales/products?...&productIds=a,b,c`; `ProductSelectionComponent` con checklist árbol (categorías expandibles, subcategoría con tri-state, productos, "Seleccionar todos" / "Limpiar") |
+| Reporte "Top de Productos Vendidos" (rango fecha-hora) | `[x]` | `topProducts` → `GET reports/sales/top-products`; `TopProductsResultsComponent` con ranking y top-3 oro/plata/bronce |
+| **Reporte de Órdenes Anuladas** (rango fecha-hora) | `[x]` | `annulledOrders` → `GET reports/orders/annulled`; `AnnulledOrdersResultsComponent` con badges `Venta pagada`/`Anulada pre-pago`, motivo, anulado por, fecha, mesero, cliente, factura, turno, cajero, propinas y chips de métodos de pago |
+| Exportación a PDF/Excel | `[x]` | `ReportExportService` con builders genéricos por tipo; PDF vía `jspdf` + `jspdf-autotable` (resumen + tablas); Excel vía `xlsx` (hoja de resumen + una hoja por sección); botones "PDF"/"Excel" en la cabecera, deshabilitados sin resultados. **Extra web** — el móvil solo visualiza (no exporta). |
+
+**Reglas de paridad con móvil:**
+- Selector de tipo con las 7 opciones (mismo enum `ReportType`).
+- `dateRange` y `shiftByDate` auto-consultan al cambiar fechas; `shiftById` requiere botón "Consultar"; `exactDateTimeRange`/`productSales`/`topProducts`/`annulledOrders` también requieren botón "Consultar" (se valida `startDateTime <= endDateTime`).
+- `productSales` requiere ≥1 producto seleccionado (mensaje de error si está vacío, igual que el móvil).
+- Auto-fetch de `categories/all` al cambiar a `productSales` (carga única cacheada en el servicio).
+- Summary cards (Transacciones / Ventas / Propinas / Ingreso Bruto) + Desglose por medios de pago + Resumen por cajero, replicando el formato móvil.
+- Resultados de productos: `Veces vendido / Unidades / Ingreso` por producto; ranking top con chips `uds/veces/%`; anuladas con filas de detalle y chips de pagos.
+
+**Archivos clave (web):**
+- `src/app/core/services/reports.service.ts` (con `ReportsService`, enum `ReportType`, `REPORT_TYPE_OPTIONS`, validaciones, helpers de fecha)
+- `src/app/core/services/reports.service.spec.ts` **(nuevo, Vitest)**
+- `src/app/core/services/report-export.service.ts` (PDF + Excel genérico)
+- `src/app/features/reports/reports.component.ts` (+ `.html`, `.scss`)
+- `src/app/features/reports/widgets/product-selection.component.ts`
+- `src/app/features/reports/widgets/product-sales-results.component.ts`
+- `src/app/features/reports/widgets/top-products-results.component.ts`
+- `src/app/features/reports/widgets/annulled-orders-results.component.ts`
+- `src/app/data/repositories/reports.repository.ts` (7 métodos alineados al backend)
+- `src/app/data/models/sales-report.model.ts` (10 interfaces: `SalesReportResponse`, `ShiftSalesReportResponse`, `ProductSalesReportResponse`, `AnnulledOrdersReportResponse`, `ReportPaymentMethodSummary`, `ReportCashierSummary`, `ReportShiftStatus`, `ProductSalesSummary`, `AnnulledOrderSummary`, `PaymentMethodInfo`)
+- `src/app/core/config/url-paths.ts` (+ `PRODUCT_SALES_REPORT`, `TOP_PRODUCTS_REPORT`, `ANNULED_ORDERS_REPORT`)
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/reports/controllers/reports_controller.dart`
@@ -724,54 +758,56 @@ Implementado en móvil + backend (7 tipos de reporte); pendiente de portar a web
 - `lib/app/modules/reports/views/widgets/product_selection_section.dart`
 - `lib/app/modules/reports/views/widgets/product_sales_results_view.dart`
 - `lib/app/modules/reports/views/widgets/top_products_results_view.dart`
+- `lib/app/modules/reports/views/widgets/annulled_orders_results_view.dart`
 - `lib/app/data/repositories/reports_repository.dart`
 - `lib/app/data/repositories/categories_repository.dart` (catálogo cargado para el checklist)
 - `lib/app/data/models/sales_report_response.dart`
 - `lib/app/data/models/shift_sales_report_response.dart`
 - `lib/app/data/models/product_sales_report_response.dart`
+- `lib/app/data/models/annulled_orders_report_response.dart`
 
-**Endpoints backend disponibles:**
+**Endpoints clave:**
 - `GET reports/sales?startDate=...&endDate=...`
 - `GET reports/sales/datetime?startDateTime=...&endDateTime=...`
 - `GET reports/sales/shift/{shiftId}`
 - `GET reports/sales/shift?openDate=...`
-- `GET reports/sales/products?startDateTime=...&endDateTime=...&productIds=...` (nuevo)
-- `GET reports/sales/top-products?startDateTime=...&endDateTime=...` (nuevo)
-
-**Por hacer en web:**
-1. Selector de tipo de reporte + filtros
-2. Tabla con métricas (subtotal, descuentos, propinas, totales)
-3. Gráficos opcionales
-4. Descarga PDF/Excel vía librería cliente (ej. `jspdf`, `xlsx`)
+- `GET reports/sales/products?startDateTime=...&endDateTime=...&productIds=a,b,c`
+- `GET reports/sales/top-products?startDateTime=...&endDateTime=...`
+- `GET reports/orders/annulled?startDateTime=...&endDateTime=...`
 
 ---
 
 ## 16. Perfil
 
-### Estado global: `[ ]` Falta (stub placeholder "en desarrollo")
+### Estado global: `[x]` Completado
 
 | Funcionalidad | Estado | Notas |
 |---|---|---|
-| Cambio de contraseña autenticado (currentPassword + newPassword) | `[ ]` | Endpoint `PATCH users/me/change-password` |
-| Persistir y leer `defaultTipPercentage` | `[ ]` | Storage key ya definida: `restic_default_tip_percentage` |
-| Toggle "Solo ver mis pedidos" (mesero) | `[ ]` | Mover de aquí cuando se implemente en Pedidos |
-| Información del usuario actual | `[ ]` | |
+| Cambio de contraseña autenticado (currentPassword + newPassword + confirmación) | `[x]` | `PATCH users/me/change-password` con `{currentPassword, newPassword}`; validaciones (requerido, sin espacios, min 6, max 100, coincidencia con confirmación); toggles de visibilidad por campo; loading + snackbar "Contraseña cambiada exitosamente" + reset |
+| Persistir y leer `defaultTipPercentage` | `[x]` | Card dedicada: input numérico + botones sugeridos 0/5/10/15 + guardar → `StorageService.saveDefaultTipPercentage`. Persistencia ya existía desde Pagos (sección 6); aquí se añade un editor dedicado |
+| Toggle "Solo ver mis pedidos" (mesero) | `[x]` | Ya implementado en el drawer del Home (sección 4): `mat-slide-toggle` "Solo ver mis pedidos" visible solo para rol MESERO → `PATCH branches/{branchId}/waiter-filter`. No se duplica aquí; el control se gestiona desde el drawer |
+| Información del usuario actual | `[x]` | Card superior: avatar con iniciales, nombre, sucursal activa (resaltada), lista de sucursales disponibles, roles (chips formateados), módulos |
+
+**Acceso a la pantalla**: el header del sidenav (avatar + nombre + sucursal + chevron) es clicable y navega a `/home/profile` con tooltip "Mi Perfil". La ruta existe con título "Mi Perfil" y `moduleAccessGuard` se omite (cualquier usuario autenticado).
+
+**Archivos clave (web):**
+- `src/app/features/profile/profile.component.ts` (+ `.html`, `.scss`) — 3 cards (usuario / contraseña / propina)
+- `src/app/core/services/profile.service.ts` (con `changePassword()` + `isSubmitting`)
+- `src/app/data/repositories/profile.repository.ts` (con `changePassword` PATCH y `updateWaiterFilter` PATCH corregidos)
+- `src/app/features/home/home.component.ts` (+ `.html`, `.scss`) — header del sidenav clicable
 
 **Archivos clave (móvil — referencia):**
 - `lib/app/modules/profile/controllers/profile_controller.dart`
 - `lib/app/modules/profile/views/profile_view.dart`
 - `lib/app/modules/profile/repositories/profile_repository.dart`
 - `lib/app/modules/change_password/controllers/change_password_controller.dart`
+- `lib/app/modules/change_password/views/change_password_view.dart`
 
-**Endpoints backend disponibles:**
-- `PATCH users/me/change-password`
-- `PATCH branches/{branchId}/waiter-filter`
+**Endpoints clave:**
+- `PATCH users/me/change-password` (body: `ChangeMyPasswordRequestDTO { currentPassword, newPassword }`)
+- `PATCH branches/{branchId}/waiter-filter` (body: `BranchWaiterFilterDTO { waiterViewOwnOrdersOnly }`)
 
-**Por hacer en web:**
-1. Form de cambio de contraseña con validaciones (min 6, max 100, confirmación)
-2. Input numérico para `defaultTipPercentage` con botones de sugeridos (0/5/10/15)
-3. Toggle para `waiterViewOwnOrdersOnly` (solo MESERO)
-4. Mostrar datos del usuario (nombre, sucursales, roles, módulos)
+**Specs Vitest**: `profile.repository.spec.ts` (2 casos: PATCH changePassword + PATCH updateWaiterFilter con branchId en path); `profile.component.spec.ts` (9 casos: render 3 cards, usuario + chip activo, roles + módulos, submit deshabilitado vacío / min 6, submit válido llama service + snackbar, sugerencia de propina, guardar inválido no persiste, guardar válido persiste + snackbar).
 
 ---
 
@@ -872,7 +908,10 @@ Implementado en móvil + backend (7 tipos de reporte); pendiente de portar a web
 | 2026-09-10 | **Anulación de venta pagada (CANCEL desde historial)** — móvil `[x]`, web `[ ]` (paridad pendiente). (a) **Backend (`restic-back`)**: nueva migración `V25_0__add_transaction_cancelled_by.sql` (columna `cancelled_by_id` en `transactions` + reemplazo del CHECK `ck_stock_movements_type` para incluir `SALE_REVERSAL`); entidad `Transaction` + relación `cancelledBy` (LAZY); enum `StockMovementType` + `SALE_REVERSAL`; `InventoryItemRepository.restoreStock` (UPDATE atómico) y `StockMovementRepository.findByReferenceOrderIdAndType`; nuevo `StockRestoreService` (interfaz + Impl) que revierte los `StockMovement` `SALE` de la orden y crea los `SALE_REVERSAL`; `TransactionServiceImpl.cancelTransaction` extendido con orquestación completa (turno OPEN, lock pesimista, orden `PAID→CANCELED`, restauración de inventario, `cancelledBy`, log WARN, WebSocket); `TransactionResponseDTO` + `cancelledById`/`cancelledByName`; `TransactionMapper` actualizado; tests cubriendo happy path + rechazos. (b) **Móvil (`restic-movil`)**: `UrlPaths.cancelTransaction`; `TransactionsRepository.cancelTransaction` (PUT body con `cancellationReason`); `CashRegisterController` + flag `canAnnulTransactions` (SUPER/ADMIN) + `confirmAnnulTransaction`/`submitAnnulTransaction`; nuevo `AnnulTransactionDialog` (`CustomFormDialog` con `autoClose: false`, motivo obligatorio, advertencia del #orden/monto y consecuencias); botón "Anular" en `GlobalOrderCard` (tab Historial) gateado por `isHistoryPaid && canAnnulTransactions`. (c) **Pendiente web**: replicar el flujo en el tab Historial de Pagos con el mismo orden de botones (mantener paridad con móvil). | opencode |
 | 2026-09-10 | **Anular venta** — refactor de `AnnulTransactionModal` (bottom sheet) a `AnnulTransactionDialog` basado en `CustomFormDialog`, para alinearse con el estándar de diálogos de la app (`CustomerFormDialog`, `UserFormDialog`, `MenuFormDialog`). El widget anterior (`annul_transaction_modal.dart`) se eliminó por quedar como código muerto; el fix de overflow del bottom sheet (Flexible+SingleChildScrollView) queda obsoleto porque `CustomFormDialog` ya envuelve el `child` en `SingleChildScrollView`. `CashRegisterController.confirmAnnulTransaction` ahora usa `Get.dialog(AnnulTransactionDialog(...), barrierDismissible: false)`; `submitAnnulTransaction` cierra el diálogo (`Get.back()`) antes de invocar la API para que un motivo inválido mantenga el formulario abierto (mismo patrón que `UserFormDialog` con `autoClose: false`). | opencode |
 | 2026-09-11 | **Reporte de Órdenes Anuladas + auditoría en cancelaciones pre-pago** — móvil+backend `[x]`, web `[ ]`. (a) **Backend (`restic-back`)**: nueva migración `V26_0__add_order_cancellation_audit.sql` (columnas `cancelled_by_id`, `cancelled_at`, `cancellation_reason` en `orders`); entidad `Order` + 3 campos nuevos; nuevo DTO `CancelOrderDTO` (motivo `@NotBlank` + `@Size(min=5, max=500)`); nuevo endpoint `PUT /api/orders/{id}/cancel` (roles SUPER/ADMIN/MESERO/COCINERO, body con `cancellationReason`); `OrderService.cancelOrder` con orquestación completa (status CANCELED, libera mesas, registra `cancelledBy`/`cancelledAt`/`cancellationReason`, log WARN, WebSocket); hardening de `updateStatus` (al transicionar a CANCELED estampa `cancelledBy`/`cancelledAt`, motivo null); Tests `OrderServiceImplTest` +3 casos. Nuevo módulo de reporte: 3 DTOs (`CancelledOrdersReportResponseDTO`, `CancelledOrderItemDTO`, `PaymentMethodInfoDTO`); 3 queries nuevas en repos (`TransactionRepository.findCancelledSalesWithOrderByBranchIdAndDateRange`, `OrderRepository.findCancelledByBranchIdAndDateRange`, `PaymentDetailRepository.findByTransactionIdIn`); `CancelledOrdersReportService` + Impl que une ambos datasets (PAID_SALE + PRE_PAID), agrupando pagos por transacción; nuevo endpoint `GET /api/reports/orders/annulled` (`@AdminAccess`, datetime range); `CancelledOrdersReportServiceImplTest` 8/8 OK; `TECHNICAL_DOCUMENTATION.md` actualizado (§7.12 + §7.18.7). (b) **Móvil (`restic-movil`)**: `UrlPaths.cancelOrder` + `getAnnulledOrdersReport`; `OrdersRepository.cancelOrder(orderId, {required reason})`; nuevo widget `CancelOrderDialog` (`CustomFormDialog` con `autoClose: false`, advertencia específica "no afecta caja ni inventario" + motivo obligatorio); `cash_register_controller.confirmCancelOrder`/`_cancelOrder` reemplazan el `ModalWarning` sí/no por el dialog con motivo, cierra con `Get.back()` antes del overlay; modelo `AnnulledOrdersReportResponse` + `AnnulledOrderSummary` + `PaymentMethodInfo`; `ReportsRepository.getAnnulledOrdersReport`; enum `ReportType.annulledOrders` + state `annulledOrdersData` + `fetchAnnulledOrdersReport`; `reports_view.dart` title `Reporte de Ventas`→`Reportes` + dropdown item + exact datetime selector; nuevo widget `AnnulledOrdersResultsView` (summary card + empty state + cards con tipo de cancelación, motivo, anulado por, fecha, mesero, cliente, factura, turno, cajero, propinas, chips de métodos de pago). `flutter analyze` 0 issues, tests reports+cash_register+model nuevo 4/4 OK. (c) **Manual usuario**: `docs/reportes.md` título → "Reportes" + nueva sección "Órdenes Anuladas" con admonitions; `mkdocs.yml` nav actualizado; `cobrar-pedido.md` y `gestionar-pedidos.md` actualizados (paso del motivo obligatorio + warning sobre anulación pre-pago). | opencode |
+| 2026-09-15 | **Módulos Inventario y Reportes completos** (secciones 13 `[ ]` → `[x]`, 15 `[~]` → `[x]`) + corrección documental de la sección 14 Datos Fiscales + extra web de exportación PDF/Excel. Cambios web: (a) **Correcciones de infraestructura**: `sales-report.model.ts` y `reports.repository.ts` reescritos desde cero para alinearse con el backend (antes usaban campos inexistentes: `totalOrders`, `averageTicket`, `salesByCategory`, etc.; el path de turno enviaba `shiftId` como query param en lugar de path); `inventory.model.ts` reescrito (enums `MeasurementUnit` con 9 valores, `StockMovementType` con 7, `StockMovementModel` con `notes/manual/typeDescription/referenceOrder*`, + `AssociatedProductModel`); `inventory.repository.ts` extendido con CRUD items, `createManualMovement`, `getMovements` tipado con filtros, `getAssociatedProducts` con URL corregida (`inventory/items/{id}/products`), `exportMovements` con filtros; `UrlPaths` + `INVENTORY_ITEM_PRODUCTS` (base para path) y + `PRODUCT_SALES_REPORT`/`TOP_PRODUCTS_REPORT`/`ANNULED_ORDERS_REPORT`. (b) **`InventoryService`**: signals (items/alerts/movements/isLoading/isMutating/isExporting*), `canEdit` computed desde roles (SUPER/ADMINISTRADOR), filtros (insumo/tipo/rango fechas nativas), `loadAll()` paralelo + recarga tras cada mutación, export CSV con patrón `Blob` + `<a download>` (reemplazo de `share_plus`). (c) **Componente `inventory.component`**: 3 tabs (Insumos/Movimientos/Alertas); FAB contextual "Agregar" (oculto si `!canEdit`; tab Movimientos → movimiento manual, resto → insumo); cards coloreadas por `stockStatus` (OUT rojo/LOW naranja/OK verde) con acciones Ver Productos/Editar/Eliminar gateadas por `canEdit`; tab Movimientos con filtros (insumo select, tipo select 6+Todos, fechas nativas, limpiar) + Exportar CSV que respeta filtros; cards de movimiento con icono/flecha (rojo si `isOutput`); empty states contextuales (distinto si hay filtros activos). (d) **Diálogos**: `inventory-item-form-dialog` (name, unit 9 opciones, stock inicial solo al crear + caja informativa "Para modificar el stock usa Agregar Movimiento" en edición, minStock); `manual-movement-dialog` (insumo, tipo 5 manuales con +/−, cantidad > 0 con helper "El tipo decide si suma o resta", notas); `associated-products-dialog` (lista de productos vinculados con tipo/variante/cantidad consumida). (e) **`ReportsService`**: enum `ReportType` con 7 tipos + `REPORT_TYPE_OPTIONS`; repository con 7 métodos con params correctos (datetime en lugar de date, shift como path param, `productIds` como lista separada por comas); signals de datos por tipo; validaciones (≥1 producto, inicio ≤ fin, shiftId no vacío); checklist (categorías + toggleProduct/toggleSubcategory/clear/selectAll + contadores); formatos `yyyy-MM-dd` y `yyyy-MM-dd'T'HH:mm:00`. (f) **`ReportExportService`** (extra web, no en móvil): estructura genérica `ExportPayload { title, subtitle, summary[], sections[] }` + builders por tipo; PDF con `jspdf` + `jspdf-autotable` (encabezados azul primario, tema grid/striped); Excel con `xlsx` (`aoa_to_sheet`, `writeFile`, una hoja de resumen + una por sección). (g) **Componente `reports.component`**: selector de tipo (7 opciones con `mat-select`) + parámetros con **inputs nativos date/time**; auto-fetch al cambiar tipo (carga categorías para selección; top-products auto-consulta); resultados sales/shift (4 summary cards con colores por métrica + desglose por medios de pago + resumen por cajero + info turno); widgets `product-selection` (checklist árbol con checkbox tri-state), `product-sales-results`, `top-products-results` (ranking con top-3 oro/plata/bronce), `annulled-orders-results` (badges Venta pagada/Anulada pre-pago, filas de detalle, chips de pagos); botones "PDF"/"Excel" en cabecera deshabilitados sin datos. (h) **Dependencias nuevas**: `jspdf`, `jspdf-autotable`, `xlsx` — agregadas al `package.json` y solo cargadas en el chunk lazy de reportes. (i) **Sección 14 Datos Fiscales**: corrección documental (detalle + archivos web reales + endpoints); la implementación web ya estaba hecha desde 2026-08-28. (j) **Specs Vitest**: `inventory.service.spec.ts` (7 casos: canEdit, loadAll paralelo, POST create con currentStock, PUT update sin currentStock, POST manualMovement, loadMovements con HttpParams, isOutputMovement); `reports.service.spec.ts` (6 casos: params por tipo — dateRange/datetime/shiftById path/productIds joined, toggleProduct, toggleSubcategory). (k) **Verificación**: `npm run lint` limpio, `npm test` 22/22 OK (incluye specs previos de menú), `npm run build` OK. Tabla resumen actualizada (filas 13/14/15 todas `[x]`).
 
+| 2026-09-15 | **Inventario — Export PDF/Excel en lugar de CSV (paridad con Reportes)**. Cambios web: (a) `ReportExportService.buildFromInventoryItems(items)` nuevo: payload con título "Inventario — Insumos", subtítulo `${n} insumos · generado {fecha}`, summary [Total insumos / Sin stock / Stock bajo / Stock OK] y tabla [Nombre, Unidad, Stock actual, Stock mínimo, Estado] con labels OUT→"Sin stock" / LOW→"Stock bajo" / else "OK"; reutiliza `exportPdf`/`exportExcel` del servicio (jspdf/autotable/xlsx ya instalados). (b) `inventory.component.ts`: inyecta `ReportExportService`; nuevos `exportPdf()`/`exportExcel()` (mismo patrón que reports.component: `buildFromInventoryItems(this.items())` + `exportPdf/exportExcel` con filename `insumos-{fecha}` + snackbar "Exportando PDF..."/"Exportando Excel..."); helper privado `exportFilename()`. (c) `inventory.component.html`: tab Insumos reemplaza el botón "Exportar CSV" por `.actions-row.export-buttons` con dos `mat-stroked-button color="primary"` (iconos `picture_as_pdf` PDF y `grid_on` Excel, deshabilitados cuando `items().length === 0`); tab Movimientos pierde el botón de exportación (ni CSV ni PDF/Excel). (d) Limpieza: `InventoryService` elimina `isExportingItems`/`isExportingMovements`, `exportItemsCsv()`/`exportMovementsCsv()` y los helpers privados `downloadBlob()`/`todayStr()`; `inventory.repository.ts` elimina `exportItems()`/`exportMovements()`; `UrlPaths` elimina `EXPORT_INVENTORY_ITEMS`/`EXPORT_INVENTORY_MOVEMENTS`. (e) Estilos: `inventory.component.scss` une `.actions-row` y `.export-buttons` (flex + gap 8px, alineado derecha); quita `.inline-spinner` y `.export-btn` obsoletos. (f) Spec nuevo `report-export.service.spec.ts` (servicio sin DI → instancia directa): 4 casos del builder (resumen correcto, mapeo de filas, labels de estado, lista vacía, campos faltantes). (g) Sin gate por `canEdit` en los botones PDF/Excel (paridad con reports — en la práctica da igual porque INVENTARIO solo lo tienen SUPER/ADMINISTRADOR en `ROLE_MODULES`). (h) **Verificación**: `npm run lint` limpio, `npm test` 32/32 OK, `npm run build` OK. | opencode |
+| 2026-09-15 | **Módulo Perfil completo** (sección 16 `[ ]` → `[x]`) + **sección 2 Splash descartada** + correcciones de paridad detectadas. Cambios web: (a) **Correcciones de infraestructura** en `profile.repository.ts`: `changePassword` corregido de PUT → **PATCH** `users/me/change-password` (body `{currentPassword, newPassword}`); `updateWaiterFilter` corregido de `PUT branches/waiter-filter` (incorrecto, 404 silencioso) → **PATCH** `branches/{id}/waiter-filter` con body `{waiterViewOwnOrdersOnly}`; `updateProfile` (PUT `branches`, código especulativo muerto) eliminado. (b) `home.component.ts`: `toggleWaiterView` pasa ahora `storage.branchId()` al toggle → empieza a persistir de verdad en el backend (antes fallaba silencioso). (c) Nuevo `core/services/profile.service.ts`: `changePassword(current, new)` con `errorService.handleError` + `isSubmitting` signal. (d) Nuevo `features/profile/` (reemplaza stub): 3 cards — **Información del usuario** (avatar con iniciales + nombre + roles formateados como chips + sucursales disponibles con la activa resaltada en verde + módulos), **Cambiar Contraseña** (actual/nueva/confirmación con toggles de visibilidad por campo, validaciones requeridas + min 6 + max 100 + sin espacios + coincidencia, botón "Actualizar Contraseña" con loading → snackbar `Contraseña cambiada exitosamente` + reset del form), **Propina predeterminada** (input numérico + botones sugeridos 0/5/10/15 + guardar → `StorageService.saveDefaultTipPercentage` + snackbar). Template-driven con `ngModel`, signals locales para visibilidad/estado. (e) **Acceso a la pantalla**: header del sidenav (avatar + nombre + sucursal) convertido en enlace `routerLink="profile"` con `matTooltip="Mi Perfil"` + cursor pointer + hover sutil + chevron; ruta `/home/profile` ya existía pero no era accesible (era un hunk muerto). (f) Estilos: `profile.component.scss` con tarjetas, chips, inputs; `home.component.scss` añadido `.sidenav-header` hover/active/`.chevron`. (g) **Specs Vitest**: `profile.repository.spec.ts` (2 casos: PATCH changePassword con body correcto, PATCH updateWaiterFilter con branchId en path); `profile.component.spec.ts` (9 casos: render 3 cards, usuario + chip activo, roles + módulos, submit vacío deshabilitado, min 6 deshabilita, válido llama service + snackbar, sugerencia de propina actualiza modelo, guardar inválido no persiste, guardar válido persiste). (h) **Sección 2 (Splash + App Update)**: estado global `~~Descartado~~` (no aplica en web — bundle versionado por despliegue, SPA renderiza directo en `/login` o `/home`); tabla resumen y nota en la sección actualizadas; pendiente en `Pendiente crítico` de la fila 2 del resumen, limpiado. (i) **Verificación**: `npm run lint` limpio, `npm test` 43/43 OK (32 previos + 9 nuevos + 2 repository), `npm run build` OK. Tabla resumen actualizada (fila 16 `[x]` sin pendiente, fila 2 descartado).
 ---
 
 # Notas operativas
