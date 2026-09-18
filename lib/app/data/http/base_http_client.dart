@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
+import 'dart:math';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
@@ -9,8 +10,8 @@ import 'package:restic_movil/app/data/exceptions/http_exceptions.dart';
 import 'package:restic_movil/app/data/models/api_error.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 
-typedef SubscriptionGuardCallback = void Function(SubscriptionGuardException error);
-
+typedef SubscriptionGuardCallback = void Function(
+    SubscriptionGuardException error);
 
 class BaseHttpClient {
   final StorageService _storageService = Get.find<StorageService>();
@@ -39,7 +40,7 @@ class BaseHttpClient {
       final uri = await _buildUriAsync(path, parameters);
       final headers = await _getHeaders();
       return http.get(uri, headers: headers);
-    });
+    }, allowRetry: true);
   }
 
   Future<dynamic> post(
@@ -161,24 +162,47 @@ class BaseHttpClient {
     return headers;
   }
 
+  /* Reintento unico con jitter para peticiones idempotentes (GET): cubre la
+     ventana de wake-up de la BD serverless en Railway (>30s) sin modificar la
+     semantica de operaciones de escritura. */
   Future<dynamic> _executeRequest(
-    Future<http.Response> Function() requestFn,
-  ) async {
-    try {
-      final response = await requestFn().timeout(const Duration(seconds: 30));
-      return _processResponse(response);
-    } on SocketException {
-      throw FetchDataException('No hay conexión a internet', '');
-    } on TimeoutException {
-      throw ApiNotRespondingException(
-        'El servidor tardó demasiado en responder. ',
-        '',
-      );
-    } catch (e) {
-      if (e is HttpException) rethrow;
-      throw FetchDataException('Error inesperado: $e', '');
+    Future<http.Response> Function() requestFn, {
+    bool allowRetry = false,
+  }) async {
+    int attempt = 0;
+    while (true) {
+      attempt++;
+      try {
+        final response = await requestFn().timeout(const Duration(seconds: 30));
+        return _processResponse(response);
+      } on SocketException {
+        if (allowRetry && attempt < _maxAttempts) {
+          await _waitBeforeRetry();
+          continue;
+        }
+        throw FetchDataException('No hay conexión a internet', '');
+      } on TimeoutException {
+        if (allowRetry && attempt < _maxAttempts) {
+          await _waitBeforeRetry();
+          continue;
+        }
+        throw ApiNotRespondingException(
+          'El servidor tardó demasiado en responder. ',
+          '',
+        );
+      } catch (e) {
+        if (e is HttpException) rethrow;
+        throw FetchDataException('Error inesperado: $e', '');
+      }
     }
     
+  }
+
+  static const int _maxAttempts = 2;
+
+  Future<void> _waitBeforeRetry() {
+    final int jitter = Random().nextInt(3000);
+    return Future.delayed(Duration(milliseconds: 2000 + jitter));
   }
 
   dynamic _processResponse(http.Response response) {
@@ -195,11 +219,10 @@ class BaseHttpClient {
         // Parse custom ApiError
         try {
           final apiError = ApiError.fromJson(jsonResponse);
-          errorMessage =
-              apiError.error ??
+          errorMessage = apiError.error ??
               apiError.recommendation ??
               'Error en la petición';
-              
+
           if (apiError.code == 'E2') {
             _storageService.deleteToken();
             _storageService.deleteUser();
@@ -235,7 +258,8 @@ class BaseHttpClient {
     }
   }
 
-  Never _throwSubscriptionError(dynamic jsonResponse, String url, String fallbackMessage) {
+  Never _throwSubscriptionError(
+      dynamic jsonResponse, String url, String fallbackMessage) {
     String? errorCode;
     String? suspendedReason;
     String? status;

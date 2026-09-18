@@ -32,102 +32,142 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
   int _retryCount = 0;
   bool _inForeground = true;
   bool _connectedOnce = false;
+  bool _connecting = false;
   Timer? _reconnectTimer;
   final Random _random = Random();
   bool _disposed = false;
 
   Future<void> connect() async {
-    if (_client != null) return;
-    if (!_inForeground) return;
+    if (_disposed || !_inForeground) return;
+    if (_client != null || _connecting) return;
+    _connecting = true;
+    try {
+      if (!_connectedOnce) {
+        WidgetsBinding.instance.addObserver(this);
+        _connectedOnce = true;
+      }
 
-    if (!_connectedOnce) {
-      WidgetsBinding.instance.addObserver(this);
-      _connectedOnce = true;
-    }
+      final branchId = await _storageService.getBranchId();
+      if (branchId == null || branchId.isEmpty) {
+        debugPrint('No branch ID found, cannot connect to WebSocket');
+        return;
+      }
+      final serverUrl = await _storageService.getServerUrl();
+      if (serverUrl == null || serverUrl.isEmpty) {
+        debugPrint('No server URL found, cannot connect to WebSocket');
+        return;
+      }
 
-    final branchId = await _storageService.getBranchId();
-    if (branchId == null || branchId.isEmpty) {
-      debugPrint('No branch ID found, cannot connect to WebSocket');
-      return;
-    }
-    final serverUrl = await _storageService.getServerUrl();
-    if (serverUrl == null || serverUrl.isEmpty) {
-      debugPrint('No server URL found, cannot connect to WebSocket');
-      return;
-    }
+      /* Normalizar la URL: misma lógica que base_http_client (https por defecto si no tiene protocolo) */
+      final String rawUrl = serverUrl.endsWith('/')
+          ? serverUrl.substring(0, serverUrl.length - 1)
+          : serverUrl;
+      final String baseUrlStr =
+          rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
 
-    /* Normalizar la URL: misma lógica que base_http_client (https por defecto si no tiene protocolo) */
-    final String rawUrl = serverUrl.endsWith('/')
-        ? serverUrl.substring(0, serverUrl.length - 1)
-        : serverUrl;
-    final String baseUrlStr =
-        rawUrl.startsWith('http') ? rawUrl : 'https://$rawUrl';
-
-    /* Construir URL con esquema WebSocket nativo:
+      /* Construir URL con esquema WebSocket nativo:
        https → wss, http → ws. Railway termina TLS en el edge y reenvía
        el header Upgrade al backend, por lo que wss:// funciona correctamente. */
-    final bool isSecure = baseUrlStr.startsWith('https');
-    final String socketUrl = isSecure
-        ? '${baseUrlStr.replaceFirst('https', 'wss')}/ws'
-        : '${baseUrlStr.replaceFirst('http', 'ws')}/ws';
+      final bool isSecure = baseUrlStr.startsWith('https');
+      final String socketUrl = isSecure
+          ? '${baseUrlStr.replaceFirst('https', 'wss')}/ws'
+          : '${baseUrlStr.replaceFirst('http', 'ws')}/ws';
 
-    final String apiKey = AppConfig.appApiKey;
-    final String? token = await _storageService.getToken();
-    final Map<String, String> authHeaders = {
-      if (apiKey.isNotEmpty) 'X-App-Key': apiKey,
-      if (token != null) 'Authorization': 'Bearer $token',
-      'X-Branch-Id': branchId,
-    };
+      final String apiKey = AppConfig.appApiKey;
+      final String? token = await _storageService.getToken();
+      final Map<String, String> authHeaders = {
+        if (apiKey.isNotEmpty) 'X-App-Key': apiKey,
+        if (token != null) 'Authorization': 'Bearer $token',
+        'X-Branch-Id': branchId,
+      };
 
-    connectionState.value = WsConnectionState.connecting;
+      connectionState.value = WsConnectionState.connecting;
 
-    _client = StompClient(
-      config: StompConfig(
-        url: socketUrl,
-        useSockJS: false,
-        reconnectDelay: Duration.zero,
-        webSocketConnectHeaders: authHeaders,
-        stompConnectHeaders: authHeaders,
-        onConnect: (frame) {
-          connectionState.value = WsConnectionState.connected;
-          _backoffIndex = 0;
-          _retryCount = 0;
-          _onConnect(frame, branchId);
-        },
-        beforeConnect: () async {
-          connectionState.value = WsConnectionState.connecting;
-          debugPrint('Connecting to WebSocket...');
-        },
-        onWebSocketError: (dynamic error) {
-          debugPrint('WebSocket error: $error');
-          _scheduleReconnect();
-        },
-        onStompError: (frame) {
-          debugPrint('Stomp error: ${frame.body}');
-          _scheduleReconnect();
-        },
-        onDisconnect: (frame) {
-          debugPrint('Disconnected from WebSocket');
-          connectionState.value = WsConnectionState.disconnected;
-          _scheduleReconnect();
-        },
-      ),
-    );
+      /* Todos los callbacks capturan la instancia del cliente y la comparan con
+         _client: los eventos de clientes huerfanos/zombies de intentos anteriores
+         no deben cancelar la conexion actual ni programar reconexiones paralelas
+         (evita rafagas de sockets duplicados). */
+      /* onWebSocketDone cubre el cierre limpio del servidor (deploy): sin esto la
+         conexion moria en silencio y la app no reconectaba hasta el siguiente resume. */
+      StompClient? client;
+      client = StompClient(
+        config: StompConfig(
+          url: socketUrl,
+          useSockJS: false,
+          reconnectDelay: Duration.zero,
+          webSocketConnectHeaders: authHeaders,
+          stompConnectHeaders: authHeaders,
+          onConnect: (frame) {
+            final connected = client;
+            if (connected == null || !identical(connected, _client)) return;
+            connectionState.value = WsConnectionState.connected;
+            _backoffIndex = 0;
+            _retryCount = 0;
+            _onConnect(frame, branchId, connected);
+          },
+          beforeConnect: () async {
+            connectionState.value = WsConnectionState.connecting;
+            debugPrint('Connecting to WebSocket...');
+          },
+          onWebSocketError: (dynamic error) {
+            final errored = client;
+            if (errored == null || !identical(errored, _client)) return;
+            debugPrint('WebSocket error: $error');
+            _handleDisconnect(errored);
+          },
+          onStompError: (frame) {
+            final errored = client;
+            if (errored == null || !identical(errored, _client)) return;
+            debugPrint('Stomp error: ${frame.body}');
+            _handleDisconnect(errored);
+          },
+          onDisconnect: (frame) {
+            final disconnected = client;
+            if (disconnected == null || !identical(disconnected, _client)) {
+              return;
+            }
+            debugPrint('Disconnected from WebSocket');
+            _handleDisconnect(disconnected);
+          },
+          onWebSocketDone: () {
+            final done = client;
+            if (done == null || !identical(done, _client)) return;
+            debugPrint('WebSocket connection closed by server');
+            _handleDisconnect(done);
+          },
+        ),
+      );
 
-    _client?.activate();
+      final active = client;
+      _client = active;
+      active.activate();
+    } finally {
+      _connecting = false;
+    }
   }
 
-  void _onConnect(StompFrame frame, String branchId) {
+  void _handleDisconnect(StompClient client) {
+    if (!identical(client, _client)) return;
+    _client = null;
+    client.deactivate();
+    connectionState.value = WsConnectionState.disconnected;
+    _scheduleReconnect();
+  }
+
+  void _onConnect(StompFrame frame, String branchId, StompClient client) {
     debugPrint('Connected to WebSocket');
     Future.microtask(() {
-      _subscribe(branchId);
+      if (!identical(client, _client)) {
+        return;
+      }
+      _subscribe(branchId, client);
     });
   }
 
-  void _subscribe(String branchId) {
+  void _subscribe(String branchId, StompClient client) {
     final createdDestination = '/topic/branch/$branchId/orders/created';
     debugPrint('Subscribing to $createdDestination');
-    _client?.subscribe(
+    client.subscribe(
       destination: createdDestination,
       callback: (frame) {
         if (frame.body != null) {
@@ -144,7 +184,7 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
 
     final openOrdersDestination = '/topic/branch/$branchId/orders/open';
     debugPrint('Subscribing to $openOrdersDestination');
-    _client?.subscribe(
+    client.subscribe(
       destination: openOrdersDestination,
       callback: (frame) {
         if (frame.body != null) {
@@ -161,7 +201,7 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
 
     final statusDestination = '/topic/branch/$branchId/orders/status';
     debugPrint('Subscribing to $statusDestination');
-    _client?.subscribe(
+    client.subscribe(
       destination: statusDestination,
       callback: (frame) {
         if (frame.body != null) {
@@ -180,12 +220,10 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
   void _scheduleReconnect() {
     if (_disposed || !_inForeground) return;
 
-    _client?.deactivate();
-    _client = null;
-
     if (_retryCount >= _maxRetries) {
       connectionState.value = WsConnectionState.disconnected;
-      debugPrint('WebSocket: maxima cantidad de reintentos alcanzada ($_maxRetries)');
+      debugPrint(
+          'WebSocket: maxima cantidad de reintentos alcanzada ($_maxRetries)');
       return;
     }
 
@@ -195,10 +233,8 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
     }
     final int baseSeconds = _backoffSeconds[_backoffIndex];
     final int jitter = _random.nextInt(1000);
-    final Duration delay =
-        Duration(milliseconds: baseSeconds * 1000 + jitter);
-    _backoffIndex =
-        (_backoffIndex + 1).clamp(0, _backoffSeconds.length - 1);
+    final Duration delay = Duration(milliseconds: baseSeconds * 1000 + jitter);
+    _backoffIndex = (_backoffIndex + 1).clamp(0, _backoffSeconds.length - 1);
     _retryCount++;
     debugPrint('Reconnecting WebSocket in ${baseSeconds}s (+jitter) '
         '(intento $_retryCount/$_maxRetries)');
@@ -226,6 +262,7 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
         _reconnectTimer = null;
         _client?.deactivate();
         _client = null;
+        _connecting = false;
         connectionState.value = WsConnectionState.disconnected;
       }
     }
@@ -236,6 +273,7 @@ class WebSocketService extends GetxService with WidgetsBindingObserver {
     _reconnectTimer = null;
     _client?.deactivate();
     _client = null;
+    _connecting = false;
     connectionState.value = WsConnectionState.disconnected;
     if (_connectedOnce) {
       WidgetsBinding.instance.removeObserver(this);
