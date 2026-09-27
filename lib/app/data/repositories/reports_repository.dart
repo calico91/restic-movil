@@ -1,5 +1,6 @@
 import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
+import 'package:restic_movil/app/data/models/annulled_orders_report_response.dart';
 import 'package:restic_movil/app/data/models/product_sales_report_response.dart';
 import 'package:restic_movil/app/data/models/sales_report_response.dart';
 import 'package:restic_movil/app/data/models/shift_sales_report_response.dart';
@@ -114,5 +115,27 @@ class ReportsRepository {
         : response;
 
     return ProductSalesReportResponse.fromJson(data);
+  }
+
+  /// Reporte de ordenes anuladas (ventas pagadas anuladas + canceladas
+  /// antes de pagar) en un rango de fecha-hora.
+  Future<AnnulledOrdersReportResponse> getAnnulledOrdersReport(
+    String startDateTime,
+    String endDateTime,
+  ) async {
+    final response = await _httpClient.get(
+      UrlPaths.getAnnulledOrdersReport,
+      parameters: {
+        'startDateTime': startDateTime,
+        'endDateTime': endDateTime,
+      },
+    );
+
+    final Map<String, dynamic> data =
+        response is Map<String, dynamic> && response.containsKey('data')
+        ? response['data']
+        : response;
+
+    return AnnulledOrdersReportResponse.fromJson(data);
   }
 }

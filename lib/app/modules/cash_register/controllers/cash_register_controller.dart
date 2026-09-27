@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/core/utils/modals/modal_info.dart';
-import 'package:restic_movil/core/utils/modals/modal_warning.dart';
 import 'package:intl/intl.dart';
 import 'package:reactive_forms/reactive_forms.dart';
 import 'package:restic_movil/app/data/models/create_transaction_request.dart';
@@ -17,6 +16,8 @@ import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/transaction_modal.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/change_payment_method_modal.dart';
+import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/annul_transaction_dialog.dart';
+import 'package:restic_movil/app/modules/cash_register/views/cash_register/widgets/cancel_order_dialog.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/exception_handler.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
@@ -61,6 +62,7 @@ class CashRegisterController extends GetxController {
       <TransactionTypeModel>[].obs;
   final RxString defaultTipPercentage = '0'.obs;
   final RxBool canEditPaymentMethod = false.obs;
+  final RxBool canAnnulTransactions = false.obs;
 
   @override
   void onInit() {
@@ -111,8 +113,10 @@ class CashRegisterController extends GetxController {
 
     final user = await _storageService.getUser();
     final roles = user?.roles ?? const <String>[];
-    canEditPaymentMethod.value =
+    final isAdminOrSuper =
         roles.contains('SUPER') || roles.contains('ADMINISTRADOR');
+    canEditPaymentMethod.value = isAdminOrSuper;
+    canAnnulTransactions.value = isAdminOrSuper;
 
     await Future.wait([
       loadPendingOrders(withOverlay: true),
@@ -346,6 +350,69 @@ class CashRegisterController extends GetxController {
     );
   }
 
+  void confirmAnnulTransaction(OrderModel order) {
+    if (!canAnnulTransactions.value) {
+      Get.dialog(const ModalError(
+          message: 'No tiene permisos para anular ventas pagadas.'));
+      return;
+    }
+    if (order.transactionId == null) {
+      Get.dialog(const ModalError(
+          message: 'Esta orden no tiene una factura asociada.'));
+      return;
+    }
+    if (order.status == 'Anulada' || order.status == 'CANCELED') {
+      Get.dialog(const ModalError(
+          message: 'La orden ya se encuentra anulada.'));
+      return;
+    }
+
+    Get.dialog(
+      AnnulTransactionDialog(
+        order: order,
+        onSubmit: (reason) => submitAnnulTransaction(
+          transactionId: order.transactionId!,
+          reason: reason,
+        ),
+      ),
+      barrierDismissible: false,
+    );
+  }
+
+  Future<void> submitAnnulTransaction({
+    required String transactionId,
+    required String reason,
+  }) async {
+    Get.back();
+    Get.showOverlay(
+      loadingWidget: const LoadingCharging(),
+      asyncFunction: () async {
+        try {
+          await transactionsRepository.cancelTransaction(
+            transactionId,
+            cancellationReason: reason,
+          );
+          Get.dialog(
+            ModalInfo(
+              title: 'Venta anulada',
+              message:
+                  'La venta fue anulada correctamente. El inventario fue restaurado y la orden ya no aparece en los ingresos de caja.',
+              buttonText: 'Aceptar',
+              onClose: () async {
+                Get.back();
+                await loadHistoryOrders(withOverlay: false);
+              },
+            ),
+            barrierDismissible: false,
+          );
+        } catch (e) {
+          final String errorMessage = ExceptionHandler.extractMessage(e);
+          Get.dialog(ModalError(message: errorMessage));
+        }
+      },
+    );
+  }
+
   /*crear formulario para crear transacción a partir de un pedido*/
   FormGroup createTransactionForm(OrderModel order) {
     final currencyFormat = NumberFormat.decimalPattern('es_CO');
@@ -519,38 +586,47 @@ class CashRegisterController extends GetxController {
 
   /*anular orden completa*/
   void confirmCancelOrder(OrderModel order) {
+    if (order.id == null) return;
+    if (order.status == 'Anulada' || order.status == 'CANCELED') {
+      Get.dialog(const ModalError(message: 'La orden ya se encuentra anulada.'));
+      return;
+    }
+    if (order.status == 'Pagada' || order.status == 'PAID') {
+      Get.dialog(const ModalError(
+          message:
+              'Para anular una orden pagada, use el boton Anular venta del historial.'));
+      return;
+    }
+
     Get.dialog(
-      ModalWarning(
-        title: 'Anular Orden',
-        message:
-            '¿Está seguro que desea anular la orden #${order.orderNumber}?',
-        buttonText: 'Cancelar',
-        secondaryButtonText: 'Sí, Anular',
-        onSecondaryAction: () {
-          Get.back(); // Cerrar modal
-          _cancelOrder(order);
-        },
+      CancelOrderDialog(
+        order: order,
+        onSubmit: (reason) => _cancelOrder(order, reason),
       ),
+      barrierDismissible: false,
     );
   }
 
-  // Función para cancelar la orden
-  Future<void> _cancelOrder(OrderModel order) async {
+  // Anular una orden antes de pagar (PUT /orders/{id}/cancel con motivo).
+  Future<void> _cancelOrder(OrderModel order, String reason) async {
     if (order.id == null) return;
 
+    Get.back();
     Get.showOverlay(
       loadingWidget: const LoadingCharging(),
       asyncFunction: () async {
         try {
-          await ordersRepository.updateOrderStatus(order.id!, 'CANCELED');
+          await ordersRepository.cancelOrder(order.id!, reason: reason);
 
           Get.dialog(
             ModalInfo(
-              title: '¡Operación Exitosa!',
+              title: 'Orden anulada',
               message:
-                  'La orden #${order.orderNumber} se canceló correctamente.',
+                  'La orden #${order.orderNumber} se anuló correctamente. La cancelación quedó registrada en el reporte de órdenes anuladas.',
+              buttonText: 'Aceptar',
               onClose: () => Get.back(),
             ),
+            barrierDismissible: false,
           );
 
           if (currentTab.value == 0) {

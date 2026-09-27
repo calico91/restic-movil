@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/app/data/models/annulled_orders_report_response.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/product_sales_report_response.dart';
 import 'package:restic_movil/app/data/models/sales_report_response.dart';
@@ -119,6 +120,33 @@ class MockReportsRepository implements ReportsRepository {
           totalQuantity: 3,
           totalRevenue: 36000,
           percentage: 100.0,
+        ),
+      ],
+    );
+  }
+
+  @override
+  Future<AnnulledOrdersReportResponse> getAnnulledOrdersReport(
+    String startDateTime,
+    String endDateTime,
+  ) async {
+    if (throwError) throw Exception('Error del servidor (HTTP 500)');
+    return AnnulledOrdersReportResponse(
+      totalOrders: 1,
+      totalPaidAnnulled: 1,
+      totalPrePaidCancelled: 0,
+      totalValue: 30000,
+      totalTipAmount: 3000,
+      items: [
+        AnnulledOrderSummary(
+          cancellationType: 'PAID_SALE',
+          transactionId: 't1',
+          orderNumber: 101,
+          originType: 'Salón',
+          cancelledByName: 'Admin Root',
+          cancellationReason: 'Cliente cambio de opinion',
+          totalValue: 30000,
+          tipAmount: 3000,
         ),
       ],
     );

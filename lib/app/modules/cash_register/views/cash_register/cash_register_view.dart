@@ -80,6 +80,8 @@ class CashRegisterView extends GetView<CashRegisterController> {
                             order.transactionId != null;
                         final canShowEditPayment = isHistoryPaid &&
                             controller.canEditPaymentMethod.value;
+                        final canShowAnnulTransaction = isHistoryPaid &&
+                            controller.canAnnulTransactions.value;
 
                         return GlobalOrderCard(
                           order: order,
@@ -133,6 +135,12 @@ class CashRegisterView extends GetView<CashRegisterController> {
                               canShowEditPayment ? 'Cambiar pago' : null,
                           onEditPaymentPressed: canShowEditPayment
                               ? () => controller.showChangePaymentMethodModal(order)
+                              : null,
+                          annulTransactionText: canShowAnnulTransaction
+                              ? 'Anular venta'
+                              : null,
+                          onAnnulTransactionPressed: canShowAnnulTransaction
+                              ? () => controller.confirmAnnulTransaction(order)
                               : null,
                         );
                       },

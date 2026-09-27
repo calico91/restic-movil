@@ -31,6 +31,8 @@ class GlobalOrderCard extends StatelessWidget {
   final bool showCommandaButton;
   final VoidCallback? onEditPaymentPressed;
   final String? editPaymentText;
+  final VoidCallback? onAnnulTransactionPressed;
+  final String? annulTransactionText;
   // Categorias con configuracion de impresora para enrutamiento multi-printer
   final List<CategoryModel>? categories;
 
@@ -49,6 +51,8 @@ class GlobalOrderCard extends StatelessWidget {
     this.showCommandaButton = false,
     this.onEditPaymentPressed,
     this.editPaymentText,
+    this.onAnnulTransactionPressed,
+    this.annulTransactionText,
     this.categories,
   });
 
@@ -316,6 +320,25 @@ class GlobalOrderCard extends StatelessWidget {
                 ],
               ],
             ),
+            if (onAnnulTransactionPressed != null) ...[
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: onAnnulTransactionPressed,
+                  icon: const Icon(Icons.block, size: 18),
+                  label: Text(annulTransactionText ?? 'Anular venta'),
+                  style: OutlinedButton.styleFrom(
+                    side: BorderSide(color: Colors.red[700]!),
+                    foregroundColor: Colors.red[700],
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

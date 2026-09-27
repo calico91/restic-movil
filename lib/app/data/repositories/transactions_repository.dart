@@ -50,4 +50,15 @@ class TransactionsRepository {
     );
     return response as Map<String, dynamic>;
   }
+
+  Future<Map<String, dynamic>> cancelTransaction(
+    String transactionId, {
+    required String cancellationReason,
+  }) async {
+    final response = await _client.put(
+      '${UrlPaths.cancelTransaction}/$transactionId/cancel',
+      body: <String, dynamic>{'cancellationReason': cancellationReason},
+    );
+    return response as Map<String, dynamic>;
+  }
 }

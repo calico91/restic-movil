@@ -72,4 +72,11 @@ class OrdersRepository {
       parameters: {'status': status},
     );
   }
+
+  Future<void> cancelOrder(String orderId, {required String reason}) async {
+    await _client.put(
+      '${UrlPaths.cancelOrder}/$orderId/cancel',
+      body: <String, dynamic>{'cancellationReason': reason},
+    );
+  }
 }
