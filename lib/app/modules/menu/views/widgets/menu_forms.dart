@@ -349,6 +349,9 @@ class ProductFormDialog extends StatelessWidget {
                                         Expanded(
                                           flex: 3,
                                           child: ReactiveTextField<String>(
+                                            key: ValueKey(
+                                              'size-${identityHashCode(formArray.controls[i])}',
+                                            ),
                                             formControlName: '$i.size_label',
                                             decoration: const InputDecoration(
                                               labelText: 'Tamaño (ej: 12oz)',
@@ -361,6 +364,9 @@ class ProductFormDialog extends StatelessWidget {
                                       Expanded(
                                         flex: 4,
                                         child: ReactiveTextField<String>(
+                                          key: ValueKey(
+                                            'amount-${identityHashCode(formArray.controls[i])}',
+                                          ),
                                           formControlName: '$i.amount',
                                           validationMessages: {
                                             'required': (error) => 'Requerido',
