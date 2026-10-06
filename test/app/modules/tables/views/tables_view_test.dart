@@ -68,8 +68,16 @@ class MockHomeController extends GetxController implements HomeController {
   final RxBool waiterViewOwnOrdersOnly = false.obs;
 
   @override
+  final RxString orderViewMode = 'list'.obs;
+
+  @override
   Future<void> setWaiterViewOwnOrdersOnly(bool value) async {
     waiterViewOwnOrdersOnly.value = value;
+  }
+
+  @override
+  Future<void> setOrderViewMode(String mode) async {
+    orderViewMode.value = mode;
   }
 
   @override

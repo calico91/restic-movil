@@ -3,7 +3,9 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/models/table_model.dart';
+import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
+import 'package:restic_movil/core/utils/widgets/compact_order_card.dart';
 import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import '../controllers/commands_controller.dart';
 
@@ -27,6 +29,8 @@ class CommandsView extends GetView<CommandsController> {
             final ordersList = controller.currentTab.value == 0
                 ? controller.orders
                 : controller.finalizedOrders;
+            final isGrid =
+                Get.find<HomeController>().orderViewMode.value == 'grid';
 
             return RefreshIndicator(
               onRefresh: () async => controller.currentTab.value == 0
@@ -50,20 +54,36 @@ class CommandsView extends GetView<CommandsController> {
                         ),
                       ],
                     )
-                  : ListView.builder(
-                      padding: EdgeInsets.only(
-                        left: 16,
-                        right: 16,
-                        top: 16,
-                        bottom: listBottomPadding,
-                      ),
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: ordersList.length,
-                      itemBuilder: (context, index) {
-                        final order = ordersList[index];
-                        return _buildOrderCard(context, order);
-                      },
-                    ),
+                  : isGrid
+                      ? GridView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            top: 16,
+                            bottom: listBottomPadding,
+                          ),
+                          gridDelegate: orderGridDelegateFor(
+                            MediaQuery.sizeOf(context).width - 32,
+                          ),
+                          itemCount: ordersList.length,
+                          itemBuilder: (context, index) =>
+                              _buildCompactGridCard(context, ordersList[index]),
+                        )
+                      : ListView.builder(
+                          padding: EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            top: 16,
+                            bottom: listBottomPadding,
+                          ),
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          itemCount: ordersList.length,
+                          itemBuilder: (context, index) {
+                            final order = ordersList[index];
+                            return _buildOrderCard(context, order);
+                          },
+                        ),
             );
           }),
         ),
@@ -133,6 +153,18 @@ class CommandsView extends GetView<CommandsController> {
           ),
         ),
       ),
+    );
+  }
+
+  /*tarjeta compacta en modo grilla: el tap muestra los detalles del pedido*/
+  Widget _buildCompactGridCard(BuildContext context, OrderModel order) {
+    return CompactOrderCard(
+      order: order,
+      statusLabel: order.status == null
+          ? null
+          : controller.getStatusDescription(order.status!),
+      showDate: true,
+      onTap: () => _showOrderDetails(context, order),
     );
   }
 

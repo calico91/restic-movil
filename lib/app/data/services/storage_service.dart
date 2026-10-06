@@ -251,4 +251,17 @@ class StorageService extends GetxService {
     return (await _storage.read(key: 'waiter_view_own_orders_only')) == 'true';
   }
 
+  // --------------- Modo de vista de pedidos (lista/grilla) ---------------
+
+  Future<void> saveOrderViewMode(String mode) async {
+    await _storage.write(key: 'order_view_mode', value: mode);
+  }
+
+  Future<String> getOrderViewMode() async {
+    return await _storage.read(key: 'order_view_mode') ?? 'list';
+  }
+
+  Future<void> deleteOrderViewMode() async {
+    await _storage.delete(key: 'order_view_mode');
+  }
 }

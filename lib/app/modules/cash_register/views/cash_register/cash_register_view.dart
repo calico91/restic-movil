@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/modules/cash_register/controllers/cash_register_controller.dart';
+import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/orders/views/widgets/manage_surcharges_sheet.dart';
 import 'package:restic_movil/core/utils/modals/global_order_details_modal.dart';
+import 'package:restic_movil/core/utils/modals/modal_error.dart';
+import 'package:restic_movil/core/utils/modals/order_actions_sheet.dart';
+import 'package:restic_movil/core/utils/widgets/compact_order_card.dart';
 import 'package:restic_movil/core/utils/widgets/date_navigator.dart';
 import 'package:restic_movil/core/utils/widgets/global_order_card.dart';
-import 'package:restic_movil/core/utils/modals/modal_error.dart';
 
 class CashRegisterView extends GetView<CashRegisterController> {
   const CashRegisterView({super.key});
@@ -27,6 +31,8 @@ class CashRegisterView extends GetView<CashRegisterController> {
             final orders = controller.currentTab.value == 0
                 ? controller.pendingOrders
                 : controller.historyOrders;
+            final isGrid =
+                Get.find<HomeController>().orderViewMode.value == 'grid';
 
             return RefreshIndicator(
               onRefresh: () async => controller.currentTab.value == 0
@@ -61,7 +67,26 @@ class CashRegisterView extends GetView<CashRegisterController> {
                         ),
                       ],
                     )
-                  : ListView.builder(
+                  : isGrid
+                      ? GridView.builder(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          padding: EdgeInsets.only(
+                            left: 16,
+                            right: 16,
+                            top: 16,
+                            bottom: listBottomPadding,
+                          ),
+                          gridDelegate: orderGridDelegateFor(
+                            MediaQuery.sizeOf(context).width - 32,
+                          ),
+                          itemCount: orders.length,
+                          itemBuilder: (context, index) =>
+                              _buildCompactGridCard(
+                                context,
+                                orders[index],
+                              ),
+                        )
+                      : ListView.builder(
                       padding: EdgeInsets.only(
                         left: 16,
                         right: 16,
@@ -149,6 +174,98 @@ class CashRegisterView extends GetView<CashRegisterController> {
           }),
         ),
       ],
+    );
+  }
+
+  /*tarjeta compacta en modo grilla: el tap abre la hoja de acciones
+  con las mismas opciones de la tarjeta en modo lista*/
+  Widget _buildCompactGridCard(BuildContext context, OrderModel order) {
+    final isCanceled = order.status == 'Anulada';
+    final isActive = controller.currentTab.value == 0;
+
+    final isHistoryPaid = !isActive && !isCanceled && order.transactionId != null;
+    final canShowEditPayment = isHistoryPaid && controller.canEditPaymentMethod.value;
+    final canShowAnnulTransaction = isHistoryPaid && controller.canAnnulTransactions.value;
+
+    return CompactOrderCard(
+      order: order,
+      statusLabel: order.status,
+      showTotal: true,
+      onTap: () => OrderActionsSheet.show(
+        order: order,
+        statusLabel: order.status,
+        actions: [
+          OrderAction(
+            icon: Icons.visibility_outlined,
+            label: isActive ? 'Detalle Pedido' : 'Ver detalle',
+            onTap: isActive
+                ? () => GlobalOrderDetailsModal.show(
+                      context: context,
+                      order: order,
+                      isReadOnly: true,
+                    )
+                : () => controller.showInvoiceDetails(order),
+          ),
+          if (isActive)
+            OrderAction(
+              icon: Icons.payment,
+              label: 'Pagar',
+              onTap: () => controller.showTransactionModal(order),
+            ),
+          if (isActive)
+            OrderAction(
+              icon: Icons.edit_note,
+              label: 'Gestionar cargos',
+              onTap: () => Get.bottomSheet(
+                ManageSurchargesSheet(
+                  order: order,
+                  onSave: controller.saveOrderSurcharges,
+                ),
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                enableDrag: true,
+              ),
+            ),
+          if (!isCanceled)
+            OrderAction(
+              icon: Icons.receipt_long_outlined,
+              label: isActive ? 'Imprimir precuenta' : 'Reimprimir factura',
+              onTap: () {
+                if (isActive) {
+                  controller.printPrecount(order);
+                } else if (order.transactionId != null) {
+                  controller.reprintInvoice(order.transactionId!);
+                } else {
+                  Get.dialog(
+                    const ModalError(
+                      message: 'No hay factura asociada a este pedido.',
+                    ),
+                  );
+                }
+              },
+            ),
+          if (isActive)
+            OrderAction(
+              icon: Icons.block,
+              label: 'Anular orden',
+              color: Colors.red[700],
+              onTap: () => controller.confirmCancelOrder(order),
+            ),
+          if (canShowEditPayment)
+            OrderAction(
+              icon: Icons.swap_horiz,
+              label: 'Cambiar pago',
+              onTap: () => controller.showChangePaymentMethodModal(order),
+            ),
+          if (canShowAnnulTransaction)
+            OrderAction(
+              icon: Icons.block,
+              label: 'Anular venta',
+              color: Colors.red[700],
+              onTap: () => controller.confirmAnnulTransaction(order),
+            ),
+        ],
+      ),
     );
   }
 

@@ -18,6 +18,8 @@ class MockHomeController extends GetxController implements HomeController {
   final RxList<String> userRoles = <String>[].obs;
   @override
   final RxBool waiterViewOwnOrdersOnly = false.obs;
+  @override
+  final RxString orderViewMode = 'list'.obs;
 
   @override
   void changePage(int index) => currentIndex.value = index;
@@ -31,6 +33,10 @@ class MockHomeController extends GetxController implements HomeController {
   Future<void> setWaiterViewOwnOrdersOnly(bool value) async {
     waiterViewOwnOrdersOnly.value = value;
   }
+  @override
+  Future<void> setOrderViewMode(String mode) async {
+    orderViewMode.value = mode;
+  }
 }
 
 class MockOrderSettingsController extends OrderSettingsController {
@@ -38,12 +44,19 @@ class MockOrderSettingsController extends OrderSettingsController {
 
   bool toggleCalled = false;
   bool? lastToggleValue;
+  String? lastViewMode;
 
   @override
   Future<void> setWaiterViewOwnOrdersOnly(bool value) async {
     toggleCalled = true;
     lastToggleValue = value;
     await homeController.setWaiterViewOwnOrdersOnly(value);
+  }
+
+  @override
+  Future<void> setOrderViewMode(String mode) async {
+    lastViewMode = mode;
+    await homeController.setOrderViewMode(mode);
   }
 }
 
@@ -71,21 +84,39 @@ void main() {
     Get.reset();
   });
 
-  testWidgets('Debe renderizar el título y el switch de filtro de meseros', (tester) async {
+  testWidgets('Debe renderizar el título, la sección General con el selector de vista', (tester) async {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    expect(find.text('Ajustes de Pedidos'), findsOneWidget);
-    expect(find.text('Solo ver mis pedidos (meseros)'), findsOneWidget);
-    expect(find.byType(SwitchListTile), findsOneWidget);
+    expect(find.text('Ajustes Generales'), findsOneWidget);
+    expect(find.text('General'), findsOneWidget);
+    expect(find.byType(SegmentedButton<String>), findsOneWidget);
+    expect(find.text('Lista'), findsOneWidget);
+    expect(find.text('Grilla'), findsOneWidget);
   });
 
-  testWidgets('Un usuario ADMINISTRADOR debe poder activar el switch', (tester) async {
+  testWidgets('El modo de vista por defecto es lista y cambiar a grilla llama al setter', (tester) async {
+    await tester.pumpWidget(createTestWidget());
+    await tester.pumpAndSettle();
+
+    expect(mockHomeController.orderViewMode.value, 'list');
+
+    await tester.tap(find.text('Grilla'));
+    await tester.pumpAndSettle();
+
+    expect(mockOrderSettingsController.lastViewMode, 'grid');
+    expect(mockHomeController.orderViewMode.value, 'grid');
+  });
+
+  testWidgets('Un usuario ADMIN debe ver la sección Pedidos y activar el switch', (tester) async {
     mockHomeController.userRoles.assignAll(['ADMINISTRADOR']);
     mockHomeController.waiterViewOwnOrdersOnly.value = false;
 
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
+
+    expect(find.text('Pedidos'), findsOneWidget);
+    expect(find.text('Solo ver mis pedidos (meseros)'), findsOneWidget);
 
     await tester.tap(find.byType(SwitchListTile));
     await tester.pumpAndSettle();
@@ -95,19 +126,13 @@ void main() {
     expect(mockHomeController.waiterViewOwnOrdersOnly.value, isTrue);
   });
 
-  testWidgets('Un usuario sin rol ADMIN/SUPER debe ver el switch deshabilitado y el aviso', (tester) async {
+  testWidgets('Un usuario sin rol ADMIN/SUPER no debe ver la sección Pedidos', (tester) async {
     mockHomeController.userRoles.assignAll(['MESERO']);
-    mockHomeController.waiterViewOwnOrdersOnly.value = false;
 
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    expect(
-      find.textContaining('Solo usuarios con rol ADMINISTRADOR'),
-      findsOneWidget,
-    );
-
-    final SwitchListTile switchTile = tester.widget(find.byType(SwitchListTile));
-    expect(switchTile.onChanged, isNull);
+    expect(find.text('Solo ver mis pedidos (meseros)'), findsNothing);
+    expect(find.text('Ajustes Generales'), findsOneWidget);
   });
 }
