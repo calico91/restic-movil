@@ -110,4 +110,36 @@ void main() {
     expect(find.text('Ana'), findsOneWidget);
     expect(find.text('555-1234'), findsOneWidget);
   });
+
+  testWidgets('Domicilio en grilla de celular: sin overflow en la celda', (tester) async {
+    tester.view.physicalSize = const Size(720, 1600);
+    tester.view.devicePixelRatio = 2.0;
+    addTearDown(tester.view.reset);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Scaffold(
+          body: GridView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.only(left: 16, right: 16, top: 16),
+            gridDelegate: orderGridDelegateFor(360 - 32),
+            itemCount: 6,
+            itemBuilder: (context, index) => CompactOrderCard(
+              order: baseOrder(
+                originCode: 'DELIVERY',
+                originDesc: 'Domicilio',
+                customer: CustomerModel(name: 'Ana', address: 'Calle Falsa 123'),
+              ),
+              statusLabel: 'Abierta',
+              showTotal: true,
+            ),
+          ),
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(tester.takeException(), isNull);
+    expect(find.byType(CompactOrderCard), findsNWidgets(6));
+  });
 }

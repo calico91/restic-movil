@@ -258,7 +258,7 @@ class StorageService extends GetxService {
   }
 
   Future<String> getOrderViewMode() async {
-    return await _storage.read(key: 'order_view_mode') ?? 'list';
+    return await _storage.read(key: 'order_view_mode') ?? 'grid';
   }
 
   Future<void> deleteOrderViewMode() async {

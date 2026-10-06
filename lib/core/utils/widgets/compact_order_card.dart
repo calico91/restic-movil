@@ -5,7 +5,9 @@ import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
 
 /*delegado del grid de pedidos: 3 columnas fijas en móviles,
-responsive con más columnas en tablets y pantallas grandes*/
+responsive con más columnas en tablets y pantallas grandes.
+childAspectRatio menos a 1.0 para dar altura extra a las cards de
+Para llevar/Domicilio (muestran fila de subtítulo: hora o dirección)*/
 SliverGridDelegateWithFixedCrossAxisCount orderGridDelegateFor(
   double maxWidth,
 ) => SliverGridDelegateWithFixedCrossAxisCount(
@@ -16,7 +18,7 @@ SliverGridDelegateWithFixedCrossAxisCount orderGridDelegateFor(
       : 6,
   crossAxisSpacing: 12,
   mainAxisSpacing: 12,
-  childAspectRatio: 1.0,
+  childAspectRatio: 0.92,
 );
 
 /*tarjeta compacta de pedido para el modo grilla de pedidos, comandas y caja.
@@ -152,9 +154,11 @@ class CompactOrderCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    OrderStatusChip(
-                      status: order.status,
-                      label: statusLabel ?? order.status,
+                    Flexible(
+                      child: OrderStatusChip(
+                        status: order.status,
+                        label: statusLabel ?? order.status,
+                      ),
                     ),
                   ],
                 ),

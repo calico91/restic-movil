@@ -24,7 +24,7 @@ class MockHomeController extends GetxController implements HomeController {
   final RxBool waiterViewOwnOrdersOnly = false.obs;
 
   @override
-  final RxString orderViewMode = 'list'.obs;
+  final RxString orderViewMode = 'grid'.obs;
 
   @override
   void changePage(int index) {

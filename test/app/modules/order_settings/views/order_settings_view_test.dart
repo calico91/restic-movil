@@ -19,7 +19,7 @@ class MockHomeController extends GetxController implements HomeController {
   @override
   final RxBool waiterViewOwnOrdersOnly = false.obs;
   @override
-  final RxString orderViewMode = 'list'.obs;
+  final RxString orderViewMode = 'grid'.obs;
 
   @override
   void changePage(int index) => currentIndex.value = index;
@@ -95,17 +95,17 @@ void main() {
     expect(find.text('Grilla'), findsOneWidget);
   });
 
-  testWidgets('El modo de vista por defecto es lista y cambiar a grilla llama al setter', (tester) async {
+  testWidgets('El modo de vista por defecto es grilla y cambiar a lista llama al setter', (tester) async {
     await tester.pumpWidget(createTestWidget());
     await tester.pumpAndSettle();
 
-    expect(mockHomeController.orderViewMode.value, 'list');
+    expect(mockHomeController.orderViewMode.value, 'grid');
 
-    await tester.tap(find.text('Grilla'));
+    await tester.tap(find.text('Lista'));
     await tester.pumpAndSettle();
 
-    expect(mockOrderSettingsController.lastViewMode, 'grid');
-    expect(mockHomeController.orderViewMode.value, 'grid');
+    expect(mockOrderSettingsController.lastViewMode, 'list');
+    expect(mockHomeController.orderViewMode.value, 'list');
   });
 
   testWidgets('Un usuario ADMIN debe ver la sección Pedidos y activar el switch', (tester) async {

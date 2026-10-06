@@ -44,14 +44,20 @@ class OrderStatusChip extends StatelessWidget {
       }
     }
 
-    return Chip(
-      label: Text(
+    /*pill compacto en vez de Chip de Material: el Chip usa labelPadding
+    intrínseco y min-height que desbordan en cards angostas del grid*/
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Text(
         label ?? status ?? 'UNKNOWN',
         style: const TextStyle(color: Colors.white, fontSize: 12),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       ),
-      backgroundColor: color,
-      padding: EdgeInsets.zero,
-      visualDensity: VisualDensity.compact,
     );
   }
 }

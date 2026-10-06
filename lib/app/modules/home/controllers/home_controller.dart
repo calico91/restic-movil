@@ -33,7 +33,7 @@ class HomeController extends GetxController {
   final RxList<String> modules = <String>[].obs;
   final RxList<String> userRoles = <String>[].obs;
   final RxBool waiterViewOwnOrdersOnly = false.obs;
-  final RxString orderViewMode = 'list'.obs;
+  final RxString orderViewMode = 'grid'.obs;
   final RxString appVersion = ''.obs;
 
   @override
