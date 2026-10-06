@@ -137,17 +137,28 @@ class CustomDrawer extends GetView<HomeController> {
                           title: 'Datos Fiscales',
                           onTap: () => Get.toNamed(Routes.FISCAL_DATA),
                         ),
-                      if (isAdminOrSuper)
-                        _buildDrawerSubItem(
-                          title: 'Ajustes de Pedidos',
-                          onTap: () => Get.toNamed(Routes.ORDER_SETTINGS),
-                        ),
-                      if (isAdminOrSuper && controller.modules.contains('SUSCRIPCION'))
-                        _buildDrawerSubItem(
-                          title: 'Suscripción y Facturación',
-                          onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
-                        ),
                     ],
+                  );
+                }),
+                /*Ajustes Generales: visible para todos los usuarios*/
+                _buildDrawerItem(
+                  icon: Icons.tune,
+                  title: 'Ajustes Generales',
+                  onTap: () => Get.toNamed(Routes.ORDER_SETTINGS),
+                ),
+                /*Suscripción y Facturación: standalone (ADMIN/SUPER con módulo SUSCRIPCION)*/
+                Obx(() {
+                  final isAdminOrSuper =
+                      controller.userRoles.contains('ADMINISTRADOR') ||
+                      controller.userRoles.contains('SUPER');
+                  if (!isAdminOrSuper ||
+                      !controller.modules.contains('SUSCRIPCION')) {
+                    return const SizedBox.shrink();
+                  }
+                  return _buildDrawerItem(
+                    icon: Icons.rocket_launch,
+                    title: 'Suscripción y Facturación',
+                    onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
                   );
                 }),
                 Obx(() {

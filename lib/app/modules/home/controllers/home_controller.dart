@@ -33,6 +33,7 @@ class HomeController extends GetxController {
   final RxList<String> modules = <String>[].obs;
   final RxList<String> userRoles = <String>[].obs;
   final RxBool waiterViewOwnOrdersOnly = false.obs;
+  final RxString orderViewMode = 'grid'.obs;
   final RxString appVersion = ''.obs;
 
   @override
@@ -40,7 +41,23 @@ class HomeController extends GetxController {
     super.onInit();
     _loadNavigationItems();
     _loadAppVersion();
+    _loadOrderViewMode();
     _refreshSubscriptionStatus();
+  }
+
+  /*cargar el modo de vista (lista/grilla) persisted en el dispositivo*/
+  Future<void> _loadOrderViewMode() async {
+    try {
+      orderViewMode.value = await _storageService.getOrderViewMode();
+    } catch (e) {
+      debugPrint('Error loading order view mode: $e');
+    }
+  }
+
+  /*guardar el modo de vista (lista/grilla) localmente y notificar en caliente*/
+  Future<void> setOrderViewMode(String mode) async {
+    orderViewMode.value = mode;
+    await _storageService.saveOrderViewMode(mode);
   }
 
   Future<void> _refreshSubscriptionStatus() async {

@@ -36,8 +36,16 @@ class MockHomeController extends GetxController implements HomeController {
   final RxBool waiterViewOwnOrdersOnly = false.obs;
 
   @override
+  final RxString orderViewMode = 'grid'.obs;
+
+  @override
   Future<void> setWaiterViewOwnOrdersOnly(bool value) async {
     waiterViewOwnOrdersOnly.value = value;
+  }
+
+  @override
+  Future<void> setOrderViewMode(String mode) async {
+    orderViewMode.value = mode;
   }
 
   @override
@@ -131,6 +139,7 @@ void main() {
 
       await tester.pumpAndSettle();
 
+      // Assert
       expect(find.text('Usuarios'), findsOneWidget);
       expect(find.text('Menú'), findsOneWidget);
       expect(find.text('Clientes'), findsOneWidget);
@@ -142,15 +151,10 @@ void main() {
 
       expect(find.text('Reportes'), findsOneWidget);
       expect(find.text('Configuración'), findsOneWidget);
-
-      // Expandir Configuración para verificar el sub-ítem "Ajustes de Pedidos"
-      await tester.tap(find.text('Configuración'));
-      await tester.pumpAndSettle();
-
-      expect(find.text('Ajustes de Pedidos'), findsOneWidget);
+      expect(find.text('Ajustes Generales'), findsOneWidget);
     });
 
-    testWidgets('Un usuario sin rol ADMIN/SUPER no debe ver "Ajustes de Pedidos" en Configuración', (tester) async {
+    testWidgets('Cualquier usuario (aunque no sea ADMIN/SUPER) debe ver "Ajustes Generales" en el drawer', (tester) async {
       mockHomeController.modules.assignAll([
         'CONFIGURACION_IMPRESORA',
         'CONFIGURACION_DATOS_FISCALES',
@@ -173,7 +177,8 @@ void main() {
       await tester.tap(find.text('Configuración'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Ajustes de Pedidos'), findsNothing);
+      expect(find.text('Ajustes Generales'), findsOneWidget);
+      expect(find.text('Suscripción y Facturación'), findsNothing);
     });
   });
 }

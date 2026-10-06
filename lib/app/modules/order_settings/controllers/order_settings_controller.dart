@@ -15,4 +15,9 @@ class OrderSettingsController extends GetxController {
 
   Future<void> setWaiterViewOwnOrdersOnly(bool value) =>
       homeController.setWaiterViewOwnOrdersOnly(value);
+
+  String get orderViewMode => homeController.orderViewMode.value;
+
+  Future<void> setOrderViewMode(String mode) =>
+      homeController.setOrderViewMode(mode);
 }

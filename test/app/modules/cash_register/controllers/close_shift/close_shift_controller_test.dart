@@ -111,6 +111,15 @@ class MockStorageService extends GetxService implements StorageService {
   @override
   Future<List<String>?> getTransactionTypes() async => [];
 
+  @override
+  Future<String> getOrderViewMode() async => 'grid';
+
+  @override
+  Future<void> saveOrderViewMode(String mode) async {}
+
+  @override
+  Future<void> deleteOrderViewMode() async {}
+
   Future<bool> hasToken() async => true;
 
   Future<bool> hasUser() async => true;
