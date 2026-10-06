@@ -583,6 +583,10 @@ class TakeOrderController extends GetxController {
           "observations": observations,
         };
 
+        if (item.combinedWith != null) {
+          detail["combinedProductId"] = item.combinedWith!.id;
+        }
+
         if (item.comboSelections != null && item.comboSelections!.isNotEmpty) {
           detail["comboSelections"] = item.comboSelections;
         }
