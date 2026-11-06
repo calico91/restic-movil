@@ -54,15 +54,15 @@ class UsersView extends GetView<UsersController> {
                   child: const Icon(Icons.person, color: Colors.white),
                 ),
                 title: Text(
-                  user.fullName.isNotEmpty
-                      ? user.fullName
+                  user.shortName.isNotEmpty
+                      ? user.shortName
                       : (user.username ?? 'Sin nombre'),
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 subtitle: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(user.email ?? 'Sin correo'),
+                    Text(user.username ?? 'Sin usuario'),
                     const SizedBox(height: 4),
                     Wrap(
                       spacing: 4,

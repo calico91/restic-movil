@@ -49,6 +49,12 @@ class OrderTicket80mm implements PrintableTicket {
       if (order.customer?.phone != null && order.customer!.phone!.isNotEmpty) {
         printer.printCustom('Telefono: ${order.customer!.phone}'.withoutDiacritics, 2, 0);
       }
+    } else if (order.originType?.code == 'WEB') {
+      // Pedido carta publica: cliente + telefono para que cocina/caja lo pueda contactar
+      printer.printCustom('Cliente: ${order.customer?.fullName ?? 'N/A'}'.withoutDiacritics, 2, 0);
+      if (order.customer?.phone != null && order.customer!.phone!.isNotEmpty) {
+        printer.printCustom('Telefono: ${order.customer!.phone}'.withoutDiacritics, 2, 0);
+      }
     } else if (order.customer != null) {
       printer.printCustom('Cliente: ${order.customer!.fullName}'.withoutDiacritics, 2, 0);
     }

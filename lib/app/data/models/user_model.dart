@@ -62,6 +62,11 @@ class UserModel {
     ].where((e) => e != null && e.isNotEmpty);
     return parts.join(' ');
   }
+
+  String get shortName {
+    final parts = [name, lastName].where((e) => e != null && e.isNotEmpty);
+    return parts.join(' ');
+  }
 }
 
 class UserRole {

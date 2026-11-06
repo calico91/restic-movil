@@ -279,6 +279,68 @@ class MenuView extends GetView<MenuController> {
                                                               fontSize: 16,
                                                             ),
                                                           ),
+                                                        if (product
+                                                                .availability ==
+                                                            'AGOTADO')
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4,
+                                                            ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: const Color(
+                                                                  0xFFEF6C00),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          4),
+                                                            ),
+                                                            child: const Text(
+                                                              'Agotado',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.white,
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
+                                                        if (product
+                                                                .availability ==
+                                                            'OCULTO')
+                                                          Container(
+                                                            padding:
+                                                                const EdgeInsets
+                                                                    .symmetric(
+                                                              horizontal: 8,
+                                                              vertical: 4,
+                                                            ),
+                                                            decoration:
+                                                                BoxDecoration(
+                                                              color: const Color(
+                                                                  0xFF757575),
+                                                              borderRadius:
+                                                                  BorderRadius
+                                                                      .circular(
+                                                                          4),
+                                                            ),
+                                                            child: const Text(
+                                                              'Oculto',
+                                                              style: TextStyle(
+                                                                color:
+                                                                    Colors.white,
+                                                                fontSize: 12,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .bold,
+                                                              ),
+                                                            ),
+                                                          ),
                                                         const SizedBox(
                                                           width: 8,
                                                         ),
@@ -308,6 +370,12 @@ class MenuView extends GetView<MenuController> {
                                                                 await controller.showRecipeForm(product);
                                                               } else if (value == 'manage_combo') {
                                                                 await controller.showComboEditor(product);
+                                                              } else if (value == 'agotado') {
+                                                                await controller.showAvailabilityChange(product, 'AGOTADO');
+                                                              } else if (value == 'oculto') {
+                                                                await controller.showAvailabilityChange(product, 'OCULTO');
+                                                              } else if (value == 'visible') {
+                                                                await controller.showAvailabilityChange(product, 'VISIBLE');
                                                               }
                                                             });
                                                           },
@@ -343,6 +411,72 @@ class MenuView extends GetView<MenuController> {
                                                                       Icon(Icons.add_circle_outline, size: 18),
                                                                       SizedBox(width: 8),
                                                                       Text('Administrar combo'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            }
+                                                            // Acciones de disponibilidad segun el estado actual
+                                                            final currentAvailability = product.availability ?? 'VISIBLE';
+                                                            if (currentAvailability == 'AGOTADO') {
+                                                              items.add(
+                                                                const PopupMenuItem<String>(
+                                                                  value: 'visible',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.check_circle_outline, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Poner disponible'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                              items.add(
+                                                                const PopupMenuItem<String>(
+                                                                  value: 'oculto',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.visibility_off, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Ocultar producto'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            } else if (currentAvailability == 'OCULTO') {
+                                                              items.add(
+                                                                const PopupMenuItem<String>(
+                                                                  value: 'visible',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.check_circle_outline, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Poner disponible'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                            } else {
+                                                              items.add(
+                                                                const PopupMenuItem<String>(
+                                                                  value: 'agotado',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.block, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Marcar agotado'),
+                                                                    ],
+                                                                  ),
+                                                                ),
+                                                              );
+                                                              items.add(
+                                                                const PopupMenuItem<String>(
+                                                                  value: 'oculto',
+                                                                  child: Row(
+                                                                    children: [
+                                                                      Icon(Icons.visibility_off, size: 18),
+                                                                      SizedBox(width: 8),
+                                                                      Text('Ocultar producto'),
                                                                     ],
                                                                   ),
                                                                 ),

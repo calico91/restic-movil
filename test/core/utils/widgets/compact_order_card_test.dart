@@ -111,6 +111,38 @@ void main() {
     expect(find.text('555-1234'), findsOneWidget);
   });
 
+  testWidgets('Web: icono de internet, cliente y teléfono', (tester) async {
+    await pumpCard(
+      tester,
+      baseOrder(
+        originCode: 'WEB',
+        originDesc: 'Web',
+        customer: CustomerModel(name: 'Cristian', lastName: 'Blandon', phone: '3104657100'),
+        openingDate: '2026-11-05T09:10:00',
+      ),
+      showTotal: true,
+    );
+
+    expect(find.text('#42'), findsOneWidget);
+    expect(find.text('Cristian Blandon'), findsOneWidget);
+    expect(find.text('3104657100'), findsOneWidget);
+    expect(find.byIcon(Icons.language), findsOneWidget);
+    expect(find.byIcon(Icons.phone_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.table_restaurant_outlined), findsNothing);
+    expect(find.text('Total'), findsOneWidget);
+  });
+
+  testWidgets('Web sin cliente: cae al origen y sin teléfono', (tester) async {
+    await pumpCard(
+      tester,
+      baseOrder(originCode: 'WEB', originDesc: 'Web'),
+    );
+
+    expect(find.text('Web'), findsOneWidget);
+    expect(find.byIcon(Icons.language), findsOneWidget);
+    expect(find.byIcon(Icons.phone_outlined), findsNothing);
+  });
+
   testWidgets('Domicilio en grilla de celular: sin overflow en la celda', (tester) async {
     tester.view.physicalSize = const Size(720, 1600);
     tester.view.devicePixelRatio = 2.0;

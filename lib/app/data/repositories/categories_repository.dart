@@ -64,6 +64,15 @@ class CategoriesRepository {
     }
   }
 
+  /* Accion rapida: cambia la disponibilidad (VISIBLE/OCULTO/AGOTADO) sin enviar el producto completo */
+  Future<void> updateProductAvailability(String id, String availability) async {
+    try {
+      await _client.patch('${UrlPaths.updateProductAvailability}/$id/availability', body: {'availability': availability});
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /* Actualizar la zona de impresion asignada a una categoria; enviar printerZoneId=null para desasociar */
   Future<CategoryModel> updateCategoryPrinter(
     String id, {
