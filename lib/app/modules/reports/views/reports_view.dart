@@ -209,9 +209,9 @@ class ReportsView extends GetView<ReportsController> {
             if (val != null) controller.onChangeReportType(val);
           },
           items: const [
-            DropdownMenuItem(value: ReportType.dateRange, child: Text('Rango de Fechas')),
-            DropdownMenuItem(value: ReportType.exactDateTimeRange, child: Text('Rango de Fecha-Hora Exacto')),
-            DropdownMenuItem(value: ReportType.shiftById, child: Text('Turno Específico (ID)')),
+            DropdownMenuItem(value: ReportType.dateRange, child: Text('Ventas por Fecha')),
+            DropdownMenuItem(value: ReportType.exactDateTimeRange, child: Text('Ventas por Fecha y Hora')),
+            DropdownMenuItem(value: ReportType.shiftById, child: Text('Ventas por Turno Específico (ID)')),
             DropdownMenuItem(value: ReportType.shiftByDate, child: Text('Fecha de Apertura de Turno')),
             DropdownMenuItem(value: ReportType.productSales, child: Text('Ventas por Producto (selección)')),
             DropdownMenuItem(value: ReportType.topProducts, child: Text('Top de Productos Vendidos')),
@@ -257,7 +257,7 @@ class ReportsView extends GetView<ReportsController> {
           final startStr = DateFormat('dd/MM/yyyy').format(controller.startDate.value);
           final endStr = DateFormat('dd/MM/yyyy').format(controller.endDate.value);
           return Text(
-            'Rango de Fechas: $startStr - $endStr',
+            'Ventas por Fecha: $startStr - $endStr',
             style: const TextStyle(fontWeight: FontWeight.bold),
           );
         }),

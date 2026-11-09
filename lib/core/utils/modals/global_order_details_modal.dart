@@ -77,6 +77,29 @@ class GlobalOrderDetailsModal extends StatelessWidget {
               ],
             ),
             const Divider(),
+            // Info de la orden: mesa, cliente, mozo y observaciones (paridad con la web)
+            _buildOrderInfoRow(
+              Icons.table_restaurant_outlined,
+              'Mesa',
+              order.tables?.map((t) => t.name ?? '').where((n) => n.isNotEmpty).join(', ') ?? '',
+            ),
+            _buildOrderInfoRow(
+              Icons.person_outline,
+              'Cliente',
+              order.customer?.fullName ?? '',
+            ),
+            _buildOrderInfoRow(
+              Icons.badge_outlined,
+              'Mozo',
+              order.createdBy?.fullName ?? '',
+            ),
+            if (order.observations != null && order.observations!.isNotEmpty)
+              _buildOrderInfoRow(
+                Icons.notes,
+                'Obs',
+                order.observations!,
+                italic: true,
+              ),
             if (!isReadOnly)
               Row(
                 children: [
@@ -195,6 +218,28 @@ class GlobalOrderDetailsModal extends StatelessWidget {
                   )),
               const Divider(),
             ],
+
+            // Total en modo edicion (paridad con el detalle web)
+            if (!isReadOnly) ...[
+              const Divider(),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total:',
+                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  ),
+                  Text(
+                    CurrencyFormatter.toCurrency(order.total ?? 0),
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.green[700],
+                    ),
+                  ),
+                ],
+              ),
+            ],
             if (isReadOnly)
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -264,6 +309,41 @@ class GlobalOrderDetailsModal extends StatelessWidget {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  /*fila de informacion de la orden; se oculta cuando el valor esta vacio*/
+  Widget _buildOrderInfoRow(
+    IconData icon,
+    String label,
+    String value, {
+    bool italic = false,
+  }) {
+    if (value.trim().isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 14, color: Colors.blue[900]),
+          const SizedBox(width: 6),
+          Text(
+            '$label:',
+            style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(width: 4),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.black87,
+                fontStyle: italic ? FontStyle.italic : FontStyle.normal,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

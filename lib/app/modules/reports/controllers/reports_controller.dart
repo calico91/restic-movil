@@ -8,6 +8,8 @@ import 'package:restic_movil/app/data/models/sales_report_response.dart';
 import 'package:restic_movil/app/data/models/shift_sales_report_response.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/reports_repository.dart';
+import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/routes/app_routes.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
 import 'package:restic_movil/core/utils/helpers/error_handler.dart';
 
@@ -24,6 +26,7 @@ enum ReportType {
 class ReportsController extends GetxController {
   final ReportsRepository _repository;
   final CategoriesRepository _categoriesRepository;
+  final StorageService _storageService = Get.find<StorageService>();
 
   ReportsController(this._repository, this._categoriesRepository);
 
@@ -52,6 +55,23 @@ class ReportsController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+    _guardAccessAndFetch();
+  }
+
+  /* Compuerta de seguridad: los reportes son exclusivos del rol SUPER.
+     Sin el rol (o sin sesion legible) se devuelve al HOME sin consultar nada. */
+  Future<void> _guardAccessAndFetch() async {
+    try {
+      final user = await _storageService.getUser();
+      final roles = user?.roles ?? const <String>[];
+      if (!roles.contains('SUPER')) {
+        Get.offNamed(Routes.HOME);
+        return;
+      }
+    } catch (_) {
+      Get.offNamed(Routes.HOME);
+      return;
+    }
     fetchReport();
   }
 

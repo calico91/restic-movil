@@ -76,7 +76,12 @@ class TakeOrderController extends GetxController {
       final List<SubcategoryModel> filteredSubs = [];
       for (final sub in cat.subcategories ?? []) {
         final List<ProductModel> filteredProducts = (sub.products ?? [])
-            .where((p) => p.id == null || !comboOptionIds.contains(p.id))
+            .where(
+              (p) =>
+                  (p.id == null || !comboOptionIds.contains(p.id)) &&
+                  // OCULTO queda fuera de la toma de pedidos (AGOTADO se muestra inhabilitado)
+                  !p.isHidden,
+            )
             .toList();
         if (filteredProducts.isNotEmpty) {
           filteredSubs.add(SubcategoryModel(
@@ -299,6 +304,12 @@ class TakeOrderController extends GetxController {
     double additionalPrice = 0,
     OrderItemModel? replaceItem,
   }) {
+    // Guard defensivo: agotados u ocultos no se pueden agregar
+    if ((product.isSoldOut || product.isHidden) && replaceItem == null) {
+      Get.snackbar('No disponible', 'El producto "${product.name}" no está disponible');
+      throw ArgumentError('Producto no disponible: ${product.name}');
+    }
+
     // Normalizar comentario: tratar vacíos o solo espacios como null
     final String? normalizedComment = (comment == null || comment.trim().isEmpty)
         ? null

@@ -6,6 +6,7 @@ class ProductModel {
   final String? name;
   final String? description;
   final bool? active;
+  final String? availability; // VISIBLE | OCULTO | AGOTADO
   final String? subcategoryId;
   final List<PriceModel>? prices;
   final String? productType;
@@ -18,6 +19,7 @@ class ProductModel {
     this.name,
     this.description,
     this.active,
+    this.availability,
     this.subcategoryId,
     this.prices,
     this.productType,
@@ -26,12 +28,17 @@ class ProductModel {
     this.optionOnly,
   });
 
+  bool get isHidden => availability == 'OCULTO';
+
+  bool get isSoldOut => availability == 'AGOTADO';
+
   factory ProductModel.fromJson(Map<String, dynamic> json) {
     return ProductModel(
       id: json['id'] ?? json['_id'],
       name: json['name'],
       description: json['description'],
       active: json['active'],
+      availability: json['availability'],
       subcategoryId: json['subcategory_id'],
       prices: json['prices'] != null
           ? (json['prices'] as List).map((e) => PriceModel.fromJson(e)).toList()
@@ -53,6 +60,7 @@ class ProductModel {
       'name': name,
       'description': description,
       'active': active,
+      'availability': availability,
       'subcategory_id': subcategoryId,
       'prices': prices?.map((e) => e.toJson()).toList(),
       'productType': productType,

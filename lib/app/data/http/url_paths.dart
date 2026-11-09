@@ -67,6 +67,7 @@ class UrlPaths {
   // Products
   static const String createProducts = 'products/create';
   static const String updateProduct = 'products/update'; // /:id
+  static const String updateProductAvailability = 'products'; // PATCH /:id/availability
 
   // Cashier
   static const String getAdminAndCashierUsers = 'users/admin-and-cashier';

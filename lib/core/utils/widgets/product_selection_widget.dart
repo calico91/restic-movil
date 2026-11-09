@@ -58,14 +58,15 @@ class ProductSelectionWidget extends StatelessWidget {
     if (subcategories.length == 1) {
       // Si solo hay una subcategoría, mostrar los productos directamente
       final singleSub = subcategories.first;
-      final products = singleSub.products ?? [];
+      // Productos vendibles: OCULTO queda fuera (AGOTADO se muestra inhabilitado)
+      final products = (singleSub.products ?? []).where((p) => !p.isHidden).toList();
       childrenWidgets = products.map((product) {
         return _buildProductRow(product, products);
       }).toList();
     } else if (subcategories.length > 1) {
       // Si hay múltiples subcategorías, mantener los ExpansionTile
       childrenWidgets = subcategories.map((subcategory) {
-        final subProducts = subcategory.products ?? [];
+        final subProducts = (subcategory.products ?? []).where((p) => !p.isHidden).toList();
         return ExpansionTile(
           title: Text(
             subcategory.name ?? '',
@@ -93,20 +94,43 @@ class ProductSelectionWidget extends StatelessWidget {
 
   // Construye la fila para un producto según su tipo; recibe los productos del mismo subcategory
   Widget _buildProductRow(ProductModel product, List<ProductModel> subcategoryProducts) {
+    final Widget row;
     if (product.productType == 'COMBINADO') {
-      // Hermanos = todos los COMBINADO de cualquier categoría/subcategoría excepto el actual
+      // Hermanos = todos los COMBINADO de cualquier categoría/subcategoría excepto el actual y ocultos
       final List<ProductModel> siblings = categories
           .expand((cat) => cat.subcategories ?? <SubcategoryModel>[])
           .expand((sub) => sub.products ?? <ProductModel>[])
-          .where((p) => p.productType == 'COMBINADO' && p.id != product.id)
+          .where((p) =>
+              p.productType == 'COMBINADO' && p.id != product.id && !p.isHidden)
           .toList();
-      return _buildCombinadoProductRow(product, siblings);
+      row = _buildCombinadoProductRow(product, siblings);
     } else if (product.productType == 'VARIABLE' && (product.prices?.isNotEmpty ?? false)) {
-      return _buildVariableProductRow(product);
+      row = _buildVariableProductRow(product);
     } else {
       final price = (product.prices?.isNotEmpty ?? false) ? product.prices!.first : null;
-      return _buildSingleProductRow(product, price);
+      row = _buildSingleProductRow(product, price);
     }
+    // Atenuar productos agotados: visibles pero no agregables
+    return product.isSoldOut ? Opacity(opacity: 0.6, child: row) : row;
+  }
+
+  // Badge 'Agotado' para productos con disponibilidad AGOTADO
+  Widget _buildSoldOutBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF6C00),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Text(
+        'Agotado',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   Widget _buildVariableProductRow(ProductModel product) {
@@ -127,6 +151,10 @@ class ProductSelectionWidget extends StatelessWidget {
                 fontWeight: FontWeight.w500,
               ),
             ),
+            if (product.isSoldOut) ...[
+              const SizedBox(height: 4),
+              _buildSoldOutBadge(),
+            ],
             if (product.description != null && product.description!.isNotEmpty) ...[
               const SizedBox(height: 4),
               Text(
@@ -202,6 +230,10 @@ class ProductSelectionWidget extends StatelessWidget {
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  if (product.isSoldOut) ...[
+                    const SizedBox(height: 4),
+                    _buildSoldOutBadge(),
+                  ],
                   if (product.description != null)
                     Text(
                       product.description!,
@@ -234,13 +266,16 @@ class ProductSelectionWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         ElevatedButton(
-          onPressed: () => onIncrement(
-            product,
-            price,
-          ), // Usamos onIncrement para activar el diálogo
+          onPressed: product.isSoldOut
+              ? null
+              : () => onIncrement(
+                  product,
+                  price,
+                ), // Usamos onIncrement para activar el diálogo
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.blue[900],
             foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey[300],
             minimumSize: const Size(80, 36),
             padding: const EdgeInsets.symmetric(horizontal: 12),
           ),
@@ -263,11 +298,12 @@ class ProductSelectionWidget extends StatelessWidget {
   }
 
   Widget _buildStandardActions(ProductModel product, PriceModel? price) {
+    final bool soldOut = product.isSoldOut;
     return Row(
       children: [
         IconButton(
-          onPressed: () => onEdit(product, price),
-          icon: const Icon(Icons.edit_note, color: Colors.orange),
+          onPressed: soldOut ? null : () => onEdit(product, price),
+          icon: Icon(Icons.edit_note, color: soldOut ? Colors.grey : Colors.orange),
           tooltip: 'Agregar con notas',
         ),
         Container(
@@ -294,7 +330,7 @@ class ProductSelectionWidget extends StatelessWidget {
               ),
               IconButton(
                 icon: const Icon(Icons.add, color: Colors.green, size: 20),
-                onPressed: () => onIncrement(product, price),
+                onPressed: soldOut ? null : () => onIncrement(product, price),
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 padding: EdgeInsets.zero,
               ),
@@ -312,6 +348,7 @@ class ProductSelectionWidget extends StatelessWidget {
     final PriceModel? price =
         product.prices?.isNotEmpty == true ? product.prices!.first : null;
     final double priceAmount = price?.amount ?? 0;
+    final bool soldOut = product.isSoldOut;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -328,9 +365,16 @@ class ProductSelectionWidget extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    product.name ?? '',
-                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          product.name ?? '',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                      ),
+                      if (product.isSoldOut) _buildSoldOutBadge(),
+                    ],
                   ),
                   if (product.description != null && product.description!.isNotEmpty)
                     Text(
@@ -367,8 +411,8 @@ class ProductSelectionWidget extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () => onEdit(product, price),
-                        icon: const Icon(Icons.edit_note, color: Colors.orange),
+                        onPressed: soldOut ? null : () => onEdit(product, price),
+                        icon: Icon(Icons.edit_note, color: soldOut ? Colors.grey : Colors.orange),
                         tooltip: 'Agregar con notas',
                       ),
                       Container(
@@ -393,7 +437,7 @@ class ProductSelectionWidget extends StatelessWidget {
                             ),
                             IconButton(
                               icon: const Icon(Icons.add, color: Colors.green, size: 20),
-                              onPressed: () => onIncrement(product, price),
+                              onPressed: soldOut ? null : () => onIncrement(product, price),
                               constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                               padding: EdgeInsets.zero,
                             ),
@@ -428,12 +472,14 @@ class ProductSelectionWidget extends StatelessWidget {
                           const SizedBox(width: 4),
                           // Agregar otra combinación
                           ElevatedButton.icon(
-                            onPressed: onCombine != null
-                                ? () => onCombine!(product, siblings)
-                                : null,
+                            onPressed:
+                                (onCombine != null && !soldOut)
+                                    ? () => onCombine!(product, siblings)
+                                    : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue[900],
                               foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey[300],
                               minimumSize: const Size(36, 28),
                               padding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
@@ -445,12 +491,14 @@ class ProductSelectionWidget extends StatelessWidget {
                     else
                       // Sin combinaciones activas: botón opcional para combinar
                       ElevatedButton.icon(
-                        onPressed: onCombine != null
-                            ? () => onCombine!(product, siblings)
-                            : null,
+                        onPressed:
+                            (onCombine != null && !soldOut)
+                                ? () => onCombine!(product, siblings)
+                                : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[900],
                           foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey[300],
                           minimumSize: const Size(80, 28),
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                         ),

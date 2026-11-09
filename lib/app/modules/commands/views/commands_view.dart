@@ -190,6 +190,7 @@ class CommandsView extends GetView<CommandsController> {
 
     if (originCode == 'TAKE_AWAY' ||
         originCode == 'DELIVERY' ||
+        originCode == 'WEB' ||
         originCode == 'Para llevar' ||
         originCode == 'Domicilio') {
       title =

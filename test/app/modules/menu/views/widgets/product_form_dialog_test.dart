@@ -28,8 +28,10 @@ Future<void> pumpDialog(
 
 Future<void> switchToVariable(WidgetTester tester) async {
   final dropdownField = find.byType(ReactiveDropdownField<String>);
-  await tester.ensureVisible(dropdownField.last);
-  await tester.tap(dropdownField.last);
+  // El formulario ahora tiene 2 dropdowns: Tipo de Producto (primero) y Disponibilidad.
+  // Seleccionar el primero para abrir el de tipo de producto.
+  await tester.ensureVisible(dropdownField.first);
+  await tester.tap(dropdownField.first);
   await tester.pumpAndSettle();
   await tester.tap(find.text('Variable (por tamaño)').last);
   await tester.pumpAndSettle();

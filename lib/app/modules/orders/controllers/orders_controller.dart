@@ -382,7 +382,26 @@ class OrdersController extends GetxController {
   Future<void> _loadCategories() async {
     try {
       final result = await categoriesRepository.getCategories();
-      categories.assignAll(result);
+      // Productos vendibles: OCULTO queda fuera (AGOTADO se muestra inhabilitado)
+      final List<CategoryModel> sellable = result.map((cat) {
+        final subs = (cat.subcategories ?? []).map((sub) {
+          final products = (sub.products ?? []).where((p) => !p.isHidden).toList();
+          return SubcategoryModel(
+            id: sub.id,
+            name: sub.name,
+            description: sub.description,
+            products: products,
+          );
+        }).toList();
+        return CategoryModel(
+          id: cat.id,
+          name: cat.name,
+          description: cat.description,
+          printerZone: cat.printerZone,
+          subcategories: subs,
+        );
+      }).toList();
+      categories.assignAll(sellable);
     } catch (e) {
       ErrorHandler.showErrorDialog('Error al cargar productos');
     }

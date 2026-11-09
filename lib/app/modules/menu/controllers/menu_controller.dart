@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/models/category_model.dart';
 import 'package:restic_movil/app/data/models/inventory_item_model.dart';
@@ -131,6 +132,67 @@ class MenuController extends GetxController {
           );
         },
       ),
+    );
+  }
+
+  /// Confirma y cambia la disponibilidad del producto (VISIBLE/OCULTO/AGOTADO).
+  /// Accion rapida del menu admin sin abrir el formulario completo.
+  Future<void> showAvailabilityChange(ProductModel product, String availability) async {
+    if (product.id == null) return;
+    final current = product.availability ?? 'VISIBLE';
+    if (current == availability) return;
+
+    final String title;
+    final String message;
+    final String confirmLabel;
+    final Color confirmColor;
+    final String successMessage;
+    switch (availability) {
+      case 'AGOTADO':
+        title = 'Marcar agotado';
+        message = '¿Marcar "${product.name}" como agotado? Quedará visible en la carta y al mesero, pero no se podrá agregar a pedidos.';
+        confirmLabel = 'Sí, agotar';
+        confirmColor = Colors.orange;
+        successMessage = 'Producto marcado como agotado';
+      case 'OCULTO':
+        title = 'Ocultar producto';
+        message = '¿Ocultar "${product.name}"? No aparecerá en la carta online ni en nuevos pedidos del mesero.';
+        confirmLabel = 'Sí, ocultar';
+        confirmColor = Colors.red;
+        successMessage = 'Producto oculto';
+      default:
+        title = 'Poner disponible';
+        message = '¿Poner "${product.name}" disponible otra vez? Volverá a aparecer y podrá agregarse a pedidos.';
+        confirmLabel = 'Sí, disponible';
+        confirmColor = Colors.green;
+        successMessage = 'Producto disponible otra vez';
+    }
+
+    final confirm = await showDialog<bool>(
+      context: Get.context!,
+      builder: (context) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: confirmColor),
+            child: Text(confirmLabel, style: const TextStyle(color: Colors.white)),
+          ),
+        ],
+      ),
+    );
+
+    if (confirm != true) return;
+
+    await _handleSave(
+      action: () =>
+          _categoriesRepository.updateProductAvailability(product.id!, availability),
+      successMessage: successMessage,
     );
   }
 

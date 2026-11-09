@@ -61,12 +61,14 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
 
             if (product.productType == 'VARIABLE' &&
                 (product.prices?.isNotEmpty ?? false)) {
-              return _buildVariableRow(
+              final Widget row = _buildVariableRow(
                 context,
                 product,
                 categoryName,
                 subcategoryName,
               );
+              // Atenuar productos agotados: visibles pero no agregables
+              return product.isSoldOut ? Opacity(opacity: 0.6, child: row) : row;
             }
 
             final PriceModel? price =
@@ -78,7 +80,7 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
             if (product.productType == 'COMBINADO') {
               final List<ProductModel> siblings =
                   controller.getCombinadoSiblings(product);
-              return _buildCombinadoRow(
+              final Widget row = _buildCombinadoRow(
                 context,
                 product,
                 price,
@@ -86,19 +88,40 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                 subcategoryName,
                 siblings,
               );
+              return product.isSoldOut ? Opacity(opacity: 0.6, child: row) : row;
             }
 
-            return _buildSingleRow(
+            final Widget singleRow = _buildSingleRow(
               context,
               product,
               price,
               categoryName,
               subcategoryName,
             );
+            return product.isSoldOut ? Opacity(opacity: 0.6, child: singleRow) : singleRow;
           },
         ),
       );
     });
+  }
+
+  /// Badge 'Agotado' para productos con disponibilidad AGOTADO
+  Widget _buildSoldOutBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+      decoration: BoxDecoration(
+        color: const Color(0xFFEF6C00),
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: const Text(
+        'Agotado',
+        style: TextStyle(
+          color: Colors.white,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
   }
 
   /// Fila para producto simple o combo.
@@ -110,6 +133,7 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
     String? subcategoryName,
   ) {
     final bool isCombo = product.productType == 'COMBO';
+    final bool soldOut = product.isSoldOut;
     return Obx(() {
       final int quantity = controller.getProductQuantity(product, price);
       return Container(
@@ -139,12 +163,22 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      product.name ?? '',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            product.name ?? '',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        if (soldOut) ...[
+                          const SizedBox(width: 6),
+                          _buildSoldOutBadge(),
+                        ],
+                      ],
                     ),
                     if (product.description != null &&
                         product.description!.isNotEmpty)
@@ -169,10 +203,11 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                      onPressed: () => onIncrement(product, price),
+                      onPressed: soldOut ? null : () => onIncrement(product, price),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue[900],
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: Colors.grey[300],
                         minimumSize: const Size(80, 36),
                         padding: const EdgeInsets.symmetric(horizontal: 12),
                       ),
@@ -217,14 +252,16 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                     IconButton(
                       icon: Icon(
                         Icons.add_circle_outline,
-                        color: Colors.blue[900],
+                        color: soldOut ? Colors.grey : Colors.blue[900],
                       ),
-                      onPressed: () => onIncrement(product, price),
+                      onPressed:
+                          soldOut ? null : () => onIncrement(product, price),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.edit_note, color: Colors.orange),
+                      icon: Icon(Icons.edit_note,
+                          color: soldOut ? Colors.grey : Colors.orange),
                       tooltip: 'Agregar con comentario',
-                      onPressed: () => onEdit(product, price),
+                      onPressed: soldOut ? null : () => onEdit(product, price),
                     ),
                   ],
                 ),
@@ -265,12 +302,22 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
               ),
             ),
             const SizedBox(height: 2),
-            Text(
-              product.name ?? '',
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-              ),
+            Row(
+              children: [
+                Flexible(
+                  child: Text(
+                    product.name ?? '',
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                if (product.isSoldOut) ...[
+                  const SizedBox(width: 6),
+                  _buildSoldOutBadge(),
+                ],
+              ],
             ),
             if (product.description != null && product.description!.isNotEmpty)
               Text(
@@ -400,12 +447,22 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                       ),
                     ),
                     const SizedBox(height: 2),
-                    Text(
-                      product.name ?? '',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            product.name ?? '',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        if (product.isSoldOut) ...[
+                          const SizedBox(width: 6),
+                          _buildSoldOutBadge(),
+                        ],
+                      ],
                     ),
                     if (product.description != null &&
                         product.description!.isNotEmpty)
@@ -478,14 +535,19 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                       IconButton(
                         icon: Icon(
                           Icons.add_circle_outline,
-                          color: Colors.blue[900],
+                          color: product.isSoldOut ? Colors.grey : Colors.blue[900],
                         ),
-                        onPressed: () => onIncrement(product, price),
+                        onPressed: product.isSoldOut
+                            ? null
+                            : () => onIncrement(product, price),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.edit_note, color: Colors.orange),
+                        icon: Icon(Icons.edit_note,
+                            color: product.isSoldOut ? Colors.grey : Colors.orange),
                         tooltip: 'Agregar con comentario',
-                        onPressed: () => onEdit(product, price),
+                        onPressed: product.isSoldOut
+                            ? null
+                            : () => onEdit(product, price),
                       ),
                     ],
                   ),
@@ -523,12 +585,14 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                           const SizedBox(width: 4),
                           // Agregar otra combinación
                           ElevatedButton.icon(
-                            onPressed: onCombine != null
-                                ? () => onCombine!(product, siblings)
-                                : null,
+                            onPressed:
+                                (onCombine != null && !product.isSoldOut)
+                                    ? () => onCombine!(product, siblings)
+                                    : null,
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.blue[900],
                               foregroundColor: Colors.white,
+                              disabledBackgroundColor: Colors.grey[300],
                               minimumSize: const Size(36, 28),
                               padding: const EdgeInsets.symmetric(horizontal: 8),
                             ),
@@ -540,12 +604,14 @@ class ProductSearchResultsWidget extends GetView<TakeOrderController> {
                     else
                       // Sin combinaciones activas: botón para combinar opcionalmente
                       ElevatedButton.icon(
-                        onPressed: onCombine != null
-                            ? () => onCombine!(product, siblings)
-                            : null,
+                        onPressed:
+                            (onCombine != null && !product.isSoldOut)
+                                ? () => onCombine!(product, siblings)
+                                : null,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[900],
                           foregroundColor: Colors.white,
+                          disabledBackgroundColor: Colors.grey[300],
                           minimumSize: const Size(80, 28),
                           padding: const EdgeInsets.symmetric(horizontal: 10),
                         ),

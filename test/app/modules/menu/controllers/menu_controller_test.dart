@@ -51,6 +51,9 @@ class MockCategoriesRepository implements CategoriesRepository {
   @override
   Future<void> updateProduct(String id, Map<String, dynamic> data) async {}
 
+  @override
+  Future<void> updateProductAvailability(String id, String availability) async {}
+
   Future<void> deleteProduct(String id) async {}
 
   @override

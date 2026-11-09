@@ -170,6 +170,9 @@ class ProductFormDialog extends StatelessWidget {
       'option_only': FormControl<bool>(
         value: initialOptionOnly,
       ),
+      'availability': FormControl<String>(
+        value: product?.availability ?? 'VISIBLE',
+      ),
       'prices': FormArray(priceControls),
     });
 
@@ -252,6 +255,7 @@ class ProductFormDialog extends StatelessWidget {
           "subcategory_id": subcategoryId,
           "requires_recipe": data['requires_recipe'] ?? false,
           "option_only": isOptionOnly,
+          "availability": data['availability'] ?? 'VISIBLE',
           "prices": pricesArray,
           "combo_groups": null,
         };
@@ -301,6 +305,19 @@ class ProductFormDialog extends StatelessWidget {
                 }
               }
             },
+          ),
+          const SizedBox(height: 16),
+          ReactiveDropdownField<String>(
+            formControlName: 'availability',
+            decoration: const InputDecoration(
+              labelText: 'Disponibilidad',
+              border: OutlineInputBorder(),
+            ),
+            items: const [
+              DropdownMenuItem(value: 'VISIBLE', child: Text('Disponible')),
+              DropdownMenuItem(value: 'AGOTADO', child: Text('Agotado')),
+              DropdownMenuItem(value: 'OCULTO', child: Text('Oculto')),
+            ],
           ),
           const SizedBox(height: 16),
           ReactiveSwitchListTile(

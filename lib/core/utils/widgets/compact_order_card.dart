@@ -58,15 +58,25 @@ class CompactOrderCard extends StatelessWidget {
     return code == 'DELIVERY' || desc == 'Domicilio';
   }
 
+  bool get _isWeb => order.originType?.code == 'WEB';
+
   /*icono y chevron del origen según su tipo*/
   IconData get _originIcon {
     if (_isDelivery) return Icons.delivery_dining_outlined;
+    if (_isWeb) return Icons.language;
     if (_isTakeAway) return Icons.shopping_bag_outlined;
     return Icons.table_restaurant_outlined;
   }
 
-  /*título principal: mesas (salón) o cliente (domicilio/para llevar)*/
+  /*título principal: mesas (salón) o cliente (domicilio/para llevar/web)*/
   String get _title {
+    if (_isWeb) {
+      final fullName = order.customer?.fullName ?? '';
+      if (fullName.isNotEmpty) return fullName;
+      final customerId = order.customer?.id;
+      if (customerId != null && customerId.isNotEmpty) return customerId;
+      return order.originType?.description ?? 'Sin Información';
+    }
     if (_isTakeAway) {
       final fullName = order.customer?.fullName ?? '';
       if (fullName.isNotEmpty) return fullName;
@@ -80,7 +90,7 @@ class CompactOrderCard extends StatelessWidget {
     return order.originType?.description ?? 'Sin Información';
   }
 
-  /*dato secundario según origen: dirección (domicilio), hora (para llevar)*/
+  /*dato secundario según origen: dirección (domicilio), hora (para llevar), teléfono web*/
   String? get _subtitle {
     if (_isDelivery) {
       final address = order.customer?.address;
@@ -88,6 +98,12 @@ class CompactOrderCard extends StatelessWidget {
       final phone = order.customer?.phone;
       if (phone != null && phone.isNotEmpty) return phone;
       return null;
+    }
+    if (_isWeb) {
+      final phone = order.customer?.phone;
+      if (phone != null && phone.isNotEmpty) return phone;
+      final dateText = _formattedTime;
+      return dateText.isEmpty ? null : dateText;
     }
     if (!_isTakeAway && !_isDelivery) return null;
     final dateText = _formattedTime;
@@ -274,6 +290,9 @@ class CompactOrderCard extends StatelessWidget {
         return Icons.location_on_outlined;
       }
       if (phone != null && phone.isNotEmpty) return Icons.phone_outlined;
+    }
+    if (_isWeb && (order.customer?.phone?.isNotEmpty ?? false)) {
+      return Icons.phone_outlined;
     }
     return Icons.access_time;
   }
