@@ -36,6 +36,8 @@ class GlobalOrderCard extends StatelessWidget {
   final String? annulTransactionText;
   // Categorias con configuracion de impresora para enrutamiento multi-printer
   final List<CategoryModel>? categories;
+  // Marca el pedido web como atendido tras enviar el WhatsApp (vista de pedidos)
+  final Future<void> Function()? whatsappOnNotified;
 
   const GlobalOrderCard({
     super.key,
@@ -55,6 +57,7 @@ class GlobalOrderCard extends StatelessWidget {
     this.onAnnulTransactionPressed,
     this.annulTransactionText,
     this.categories,
+    this.whatsappOnNotified,
   });
 
   @override
@@ -124,6 +127,9 @@ class GlobalOrderCard extends StatelessWidget {
                 ),
                 if (isWeb) ...[
                   const SizedBox(width: 8),
+                  if (order.status == 'OPEN' || order.status == 'Abierta')
+                    const WebOrderUnattendedDot(),
+                  const SizedBox(width: 6),
                   const WebOrderBadge(),
                 ],
                 const SizedBox(width: 8),
@@ -143,7 +149,8 @@ class GlobalOrderCard extends StatelessWidget {
                 if (showPrintButton)
                   Obx(() {
                     final printerService = Get.find<PrinterService>();
-                    final isConnected = printerService.isConnected.value ||
+                    final isConnected =
+                        printerService.isConnected.value ||
                         printerService.isNetworkConnected.value;
 
                     // Imprime la comanda de cocina
@@ -221,9 +228,11 @@ class GlobalOrderCard extends StatelessWidget {
                                 : 'Impresora no conectada',
                             onPressed: isConnected
                                 ? printComanda
-                                : () => Get.dialog(const ModalError(message: 'Impresora no conectada',
-                                      ),
+                                : () => Get.dialog(
+                                    const ModalError(
+                                      message: 'Impresora no conectada',
                                     ),
+                                  ),
                             constraints: const BoxConstraints(),
                             padding: EdgeInsets.zero,
                           ),
@@ -250,9 +259,11 @@ class GlobalOrderCard extends StatelessWidget {
                                     printPrecount();
                                   }
                                 }
-                              : () => Get.dialog(const ModalError(message: 'Impresora no conectada',
-                                    ),
+                              : () => Get.dialog(
+                                  const ModalError(
+                                    message: 'Impresora no conectada',
                                   ),
+                                ),
                           constraints: const BoxConstraints(),
                           padding: EdgeInsets.zero,
                         ),
@@ -292,14 +303,20 @@ class GlobalOrderCard extends StatelessWidget {
                 ],
               ),
             ),
-            _buildInfoRow('Cliente:', order.customer?.fullName ?? 'Sin información'),
+            _buildInfoRow(
+              'Cliente:',
+              order.customer?.fullName ?? 'Sin información',
+            ),
             if (isWeb && (order.customer?.phone?.isNotEmpty ?? false))
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    const Text('Teléfono:', style: TextStyle(color: Colors.black87)),
+                    const Text(
+                      'Teléfono:',
+                      style: TextStyle(color: Colors.black87),
+                    ),
                     Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
@@ -308,15 +325,23 @@ class GlobalOrderCard extends StatelessWidget {
                           style: const TextStyle(color: Colors.black87),
                         ),
                         const SizedBox(width: 10),
-                        order.whatsappButtonIfWeb()!,
+                        order.whatsappButtonIfWeb(
+                          onNotified: whatsappOnNotified,
+                        )!,
                       ],
                     ),
                   ],
                 ),
               ),
-            _buildInfoRow('Creado por:', order.createdBy?.fullName ?? 'Sin información'),
+            _buildInfoRow(
+              'Creado por:',
+              order.createdBy?.fullName ?? 'Sin información',
+            ),
             if (order.tables != null && order.tables!.isNotEmpty)
-              _buildInfoRow('Mesa:', order.tables!.map((t) => t.name).join(', ')),
+              _buildInfoRow(
+                'Mesa:',
+                order.tables!.map((t) => t.name).join(', '),
+              ),
             _buildInfoRow('Fecha y hora:', dateText),
             const SizedBox(height: 15),
             Row(
@@ -331,7 +356,8 @@ class GlobalOrderCard extends StatelessWidget {
                 ],
                 if (onDetailsPressed != null && onEditPaymentPressed != null)
                   const SizedBox(width: 10),
-                if (onEditPaymentPressed != null && editPaymentText != null) ...[
+                if (onEditPaymentPressed != null &&
+                    editPaymentText != null) ...[
                   Expanded(
                     child: CardOutlinedButton(
                       text: editPaymentText!,
@@ -339,7 +365,8 @@ class GlobalOrderCard extends StatelessWidget {
                     ),
                   ),
                 ],
-                if ((onEditPaymentPressed != null || onDetailsPressed != null) &&
+                if ((onEditPaymentPressed != null ||
+                        onDetailsPressed != null) &&
                     onActionPressed != null)
                   const SizedBox(width: 10),
                 if (onActionPressed != null && actionText != null) ...[

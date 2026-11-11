@@ -36,13 +36,22 @@ class WhatsappNotifyButton extends StatelessWidget {
   final OrderModel order;
   final double size;
 
-  const WhatsappNotifyButton({super.key, required this.order, this.size = 18});
+  /// Marca el pedido como atendido tras abrir el chat (recargar contadores).
+  final Future<void> Function()? onNotified;
+
+  const WhatsappNotifyButton({
+    super.key,
+    required this.order,
+    this.onNotified,
+    this.size = 18,
+  });
 
   Future<void> _notify() async {
     final ok = await openWhatsappForOrder(order);
     if (!ok) {
       Get.showSnackbar(const InfoSnackbar('No se pudo abrir WhatsApp'));
     }
+    await onNotified?.call();
   }
 
   @override
@@ -64,11 +73,57 @@ class WhatsappNotifyButton extends StatelessWidget {
 
 /// Delegado compacto del boton: solo aparece en pedidos web con telefono.
 extension WhatsappNotifyFromOrder on OrderModel {
-  WhatsappNotifyButton? whatsappButtonIfWeb() {
+  WhatsappNotifyButton? whatsappButtonIfWeb({
+    Future<void> Function()? onNotified,
+  }) {
     final phone = customer?.phone;
     if (originType?.code != 'WEB' || phone == null || phone.isEmpty) {
       return null;
     }
-    return WhatsappNotifyButton(order: this);
+    return WhatsappNotifyButton(order: this, onNotified: onNotified);
+  }
+}
+
+/// Punto rojo pulsante: pedido web abierto que nadie ha notificado al cliente.
+class WebOrderUnattendedDot extends StatefulWidget {
+  final double size;
+
+  const WebOrderUnattendedDot({super.key, this.size = 8});
+
+  @override
+  State<WebOrderUnattendedDot> createState() => _WebOrderUnattendedDotState();
+}
+
+class _WebOrderUnattendedDotState extends State<WebOrderUnattendedDot>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1400),
+  )..repeat(reverse: true);
+
+  late final Animation<double> _opacity = Tween(
+    begin: 1.0,
+    end: 0.45,
+  ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FadeTransition(
+      opacity: _opacity,
+      child: Container(
+        width: widget.size,
+        height: widget.size,
+        decoration: const BoxDecoration(
+          color: Color(0xFFB71C1C),
+          shape: BoxShape.circle,
+        ),
+      ),
+    );
   }
 }

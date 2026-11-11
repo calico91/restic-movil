@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:restic_movil/app/data/services/printer_service.dart';
 import 'package:restic_movil/app/data/services/subscription_service.dart';
+import 'package:restic_movil/app/data/services/web_orders_alert_service.dart';
 import 'package:restic_movil/app/modules/home/controllers/home_controller.dart';
 import 'package:restic_movil/app/modules/home/views/widgets/custom_drawer.dart';
 import 'package:restic_movil/app/routes/app_routes.dart';
@@ -41,7 +42,8 @@ class HomeView extends GetView<HomeController> {
             ? [
                 Obx(() {
                   final printerService = Get.find<PrinterService>();
-                  final isConnected = printerService.isConnected.value ||
+                  final isConnected =
+                      printerService.isConnected.value ||
                       printerService.isNetworkConnected.value;
                   return ActionIconButton(
                     icon: Icons.print,
@@ -58,7 +60,9 @@ class HomeView extends GetView<HomeController> {
             Expanded(
               child: LazyIndexedStack(
                 index: currentIndex,
-                children: controller.navigationItems.map((e) => e.view).toList(),
+                children: controller.navigationItems
+                    .map((e) => e.view)
+                    .toList(),
               ),
             ),
           ],
@@ -113,7 +117,10 @@ class HomeView extends GetView<HomeController> {
             child: InkWell(
               onTap: () => Get.toNamed(Routes.SUBSCRIPTION),
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 child: Row(
                   children: [
                     const Icon(Icons.timer, color: Colors.orange, size: 18),
@@ -121,10 +128,17 @@ class HomeView extends GetView<HomeController> {
                     Expanded(
                       child: Text(
                         'Te quedan $days días de prueba. Toca para ver detalles.',
-                        style: const TextStyle(color: Colors.orange, fontSize: 12),
+                        style: const TextStyle(
+                          color: Colors.orange,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                    const Icon(Icons.chevron_right, color: Colors.orange, size: 18),
+                    const Icon(
+                      Icons.chevron_right,
+                      color: Colors.orange,
+                      size: 18,
+                    ),
                   ],
                 ),
               ),
@@ -156,6 +170,20 @@ class HomeView extends GetView<HomeController> {
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: List.generate(controller.navigationItems.length, (index) {
           final item = controller.navigationItems[index];
+          // Solo el item "Pedidos" es reactivo al contador de pedidos web
+          // sin atender: cada Obx debe leer una variable Rx en su builder.
+          if (item.title == 'Pedidos' &&
+              Get.isRegistered<WebOrdersAlertService>()) {
+            final alertService = Get.find<WebOrdersAlertService>();
+            return Obx(
+              () => _navItem(
+                item.icon,
+                currentIndex == index,
+                badge: alertService.unattendedWebCount.value,
+                onTap: () => controller.changePage(index),
+              ),
+            );
+          }
           return _navItem(
             item.icon,
             currentIndex == index,
@@ -166,7 +194,12 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _navItem(IconData icon, bool isActive, {required VoidCallback onTap}) {
+  Widget _navItem(
+    IconData icon,
+    bool isActive, {
+    required VoidCallback onTap,
+    int badge = 0,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -177,10 +210,36 @@ class HomeView extends GetView<HomeController> {
                 shape: BoxShape.circle,
               )
             : null,
-        child: Icon(
-          icon,
-          color: isActive ? Colors.brown : Colors.red,
-          size: 28,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Icon(icon, color: isActive ? Colors.brown : Colors.red, size: 28),
+            if (badge > 0)
+              Positioned(
+                top: -6,
+                right: -8,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFB71C1C),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  constraints: const BoxConstraints(minWidth: 18),
+                  child: Text(
+                    '$badge',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ),
     );

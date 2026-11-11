@@ -35,6 +35,9 @@ class CompactOrderCard extends StatelessWidget {
   final bool showDate;
   final VoidCallback? onTap;
 
+  /// Marca el pedido como atendido tras enviar el WhatsApp (vista de pedidos).
+  final Future<void> Function()? whatsappOnNotified;
+
   const CompactOrderCard({
     super.key,
     required this.order,
@@ -42,6 +45,7 @@ class CompactOrderCard extends StatelessWidget {
     this.showTotal = false,
     this.showDate = false,
     this.onTap,
+    this.whatsappOnNotified,
   });
 
   bool get _isTakeAway {
@@ -60,6 +64,14 @@ class CompactOrderCard extends StatelessWidget {
   }
 
   bool get _isWeb => order.originType?.code == 'WEB';
+
+  bool get _isOpenLike => order.status == 'OPEN' || order.status == 'Abierta';
+
+  /// Pedido web abierto que nadie ha notificado al cliente: requiere atencion.
+  bool get _unattendedWeb =>
+      _isWeb &&
+      _isOpenLike &&
+      (order.whatsappNotifiedAt == null || order.whatsappNotifiedAt!.isEmpty);
 
   /*icono y chevron del origen según su tipo*/
   IconData get _originIcon {
@@ -117,7 +129,9 @@ class CompactOrderCard extends StatelessWidget {
           order.closingDate != null &&
           (order.status == 'Finalizada' || order.status == 'FINALIZED');
       try {
-        final date = DateTime.parse(useClosing ? order.closingDate! : order.openingDate!);
+        final date = DateTime.parse(
+          useClosing ? order.closingDate! : order.openingDate!,
+        );
         return DateFormat('dd/MM HH:mm').format(date);
       } catch (_) {}
       return '';
@@ -174,6 +188,8 @@ class CompactOrderCard extends StatelessWidget {
                     ),
                     if (_isWeb) ...[
                       const SizedBox(width: 4),
+                      if (_unattendedWeb) const WebOrderUnattendedDot(),
+                      const SizedBox(width: 4),
                       const WebOrderBadge(),
                       const SizedBox(width: 6),
                     ],
@@ -208,11 +224,7 @@ class CompactOrderCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      Icon(
-                        _subtitleIcon,
-                        size: 12,
-                        color: Colors.grey[500],
-                      ),
+                      Icon(_subtitleIcon, size: 12, color: Colors.grey[500]),
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
@@ -225,10 +237,13 @@ class CompactOrderCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      if (_isWeb && (order.customer?.phone?.isNotEmpty ?? false))
+                      if (_isWeb &&
+                          (order.customer?.phone?.isNotEmpty ?? false))
                         Padding(
                           padding: const EdgeInsets.only(left: 4),
-                          child: order.whatsappButtonIfWeb()!,
+                          child: order.whatsappButtonIfWeb(
+                            onNotified: whatsappOnNotified,
+                          )!,
                         ),
                     ],
                   ),
@@ -264,10 +279,7 @@ class CompactOrderCard extends StatelessWidget {
                     children: [
                       Text(
                         'Total',
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                        ),
+                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
                       ),
                       const Spacer(),
                       Flexible(

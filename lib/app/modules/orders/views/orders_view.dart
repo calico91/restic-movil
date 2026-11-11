@@ -218,6 +218,9 @@ class OrdersView extends GetView<OrdersController> {
               enableDrag: true,
             ),
         printTooltip: 'Imprimir pedido',
+        whatsappOnNotified: order.id == null
+            ? null
+            : () => controller.markWhatsappNotified(order.id!),
       );
 
   /*tarjeta compacta en modo grilla: el tap abre la hoja de acciones*/
@@ -227,6 +230,9 @@ class OrdersView extends GetView<OrdersController> {
       order: order,
       statusLabel: order.status,
       showTotal: true,
+      whatsappOnNotified: isActive && order.id != null
+          ? () => controller.markWhatsappNotified(order.id!)
+          : null,
       onTap: () => OrderActionsSheet.show(
         order: order,
         statusLabel: order.status,

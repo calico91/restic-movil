@@ -4,6 +4,7 @@ import 'package:restic_movil/app/data/http/base_http_client.dart';
 import 'package:restic_movil/app/data/http/url_paths.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
 import 'package:restic_movil/app/data/services/subscription_service.dart';
+import 'package:restic_movil/app/data/services/web_orders_alert_service.dart';
 import 'package:restic_movil/app/modules/cash_register/views/cash_register/cash_register_view.dart';
 import 'package:restic_movil/app/modules/commands/views/commands_view.dart';
 import 'package:restic_movil/app/modules/orders/controllers/orders_controller.dart';
@@ -43,6 +44,10 @@ class HomeController extends GetxController {
     _loadAppVersion();
     _loadOrderViewMode();
     _refreshSubscriptionStatus();
+    // Refrescar el contador de pedidos web sin atender al entrar al home
+    if (Get.isRegistered<WebOrdersAlertService>()) {
+      Get.find<WebOrdersAlertService>().refreshCount();
+    }
   }
 
   /*cargar el modo de vista (lista/grilla) persisted en el dispositivo*/

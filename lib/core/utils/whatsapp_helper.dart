@@ -64,6 +64,19 @@ String _detailLine(OrderDetailModel detail) {
   return '${parts.join(' - ')} x${detail.quantity ?? 1} = ${_cop(lineTotal)}';
 }
 
+/// Direccion de entrega del PROPIO pedido (prefijo "DOMICILIO: ..." del
+/// observations, sin las notas del cliente tras el "|"); null en para llevar.
+/// Nunca se usa la direccion del perfil del cliente: en pedidos para llevar
+/// el perfil conserva la del ultimo domicilio y generaria confusion.
+String? _deliveryAddressFromOrder(OrderModel order) {
+  final obs = (order.observations ?? '').trim();
+  if (!obs.toUpperCase().startsWith('DOMICILIO')) {
+    return null;
+  }
+  final address = obs.substring('DOMICILIO:'.length).split('|').first.trim();
+  return address.isEmpty ? null : address;
+}
+
 /// Mensaje de confirmacion de recibido para pedidos hechos desde la carta
 /// web. Resumen tipo recibo: items visibles (excluye anulados), recargos por
 /// nombre (ej: "Domicilio: $5.000"), totales y datos de entrega. Sin emojis:
@@ -71,7 +84,7 @@ String _detailLine(OrderDetailModel detail) {
 String webOrderReceivedMessage(OrderModel order) {
   final name = (order.customer?.name ?? '').trim();
   final phone = (order.customer?.phone ?? '').trim();
-  final address = (order.customer?.address ?? '').trim();
+  final deliveryAddress = _deliveryAddressFromOrder(order);
 
   final lines = <String>[];
   lines.add(
@@ -115,8 +128,8 @@ String webOrderReceivedMessage(OrderModel order) {
   if (name.isNotEmpty || phone.isNotEmpty) lines.add('Confirma tus datos:');
   if (name.isNotEmpty) lines.add('Nombre: $name');
   if (phone.isNotEmpty) lines.add('Teléfono: $phone');
-  if (address.isNotEmpty) {
-    lines.add('Ubicación: $address');
+  if (deliveryAddress != null) {
+    lines.add('Ubicación: $deliveryAddress');
   } else {
     lines.add('Recogida en tienda');
   }

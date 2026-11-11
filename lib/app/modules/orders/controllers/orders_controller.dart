@@ -9,6 +9,7 @@ import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/app/data/repositories/categories_repository.dart';
 import 'package:restic_movil/app/data/repositories/orders_repository.dart';
 import 'package:restic_movil/app/data/services/storage_service.dart';
+import 'package:restic_movil/app/data/services/web_orders_alert_service.dart';
 import 'package:restic_movil/app/data/services/websocket_service.dart';
 import 'package:restic_movil/app/modules/orders/views/widgets/add_products_sheet.dart';
 import 'package:restic_movil/core/utils/animations/loading_charging.dart';
@@ -95,6 +96,7 @@ class OrdersController extends GetxController {
     _openOrdersSub = _webSocketService.openOrdersStream.listen((updatedOrders) {
       _allOrders.assignAll(updatedOrders);
       _filterOrders();
+      _syncWebOrdersAlert();
     });
 
     // Escuchar ordenes individuales para recargar si es necesario
@@ -108,6 +110,11 @@ class OrdersController extends GetxController {
     // Escuchar cambios de estado de ordenes (pago, anulación, etc.)
     _orderStatusSub?.cancel();
     _orderStatusSub = _webSocketService.orderStatusStream.listen(_onOrderStatusChanged);
+
+    // La alerta global de pedidos web (badge + sonido) vive en su servicio
+    if (Get.isRegistered<WebOrdersAlertService>()) {
+      Get.find<WebOrdersAlertService>().ensureSubscriptions();
+    }
   }
 
   /*manejar un cambio de estado de una orden: quitar de las listas si el estado es terminal*/
@@ -166,6 +173,7 @@ class OrdersController extends GetxController {
         );
         _allOrders.assignAll(result);
         _filterOrders();
+        _syncWebOrdersAlert();
       } catch (e) {
         ErrorHandler.showErrorDialog(e);
       }
@@ -290,6 +298,29 @@ class OrdersController extends GetxController {
       (s) => s['name'] == statusName,
     );
     return status != null ? status['description'] : statusName;
+  }
+
+  /*refresca el contador global de pedidos web sin atender */
+  void _syncWebOrdersAlert() {
+    if (Get.isRegistered<WebOrdersAlertService>()) {
+      Get.find<WebOrdersAlertService>().updateFromOrders(_allOrders.toList());
+    }
+  }
+
+  /*marca el pedido web como notificado al cliente (paso manual del personal):
+  deja de alertarlo como "sin atender"; best-effort, sin interrumpir */
+  Future<void> markWhatsappNotified(String orderId) async {
+    try {
+      final updated = await ordersRepository.markWhatsappNotified(orderId);
+      final index = _allOrders.indexWhere((o) => o.id == orderId);
+      if (index != -1) {
+        _allOrders[index] = updated;
+      }
+      _filterOrders();
+      _syncWebOrdersAlert();
+    } catch (_) {
+      // Si el marcaje falla, el pedido sigue alertando; no bloquear al personal
+    }
   }
 
   /*obtener descripcion del estado de detalle */

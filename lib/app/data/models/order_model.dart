@@ -22,6 +22,7 @@ class OrderModel {
   final List<OrderDetailModel>? details;
   final List<OrderSurchargeModel>? surcharges;
   final String? transactionId;
+  final String? whatsappNotifiedAt;
 
   OrderModel({
     this.id,
@@ -40,6 +41,7 @@ class OrderModel {
     this.details,
     this.surcharges,
     this.transactionId,
+    this.whatsappNotifiedAt,
   });
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
@@ -49,6 +51,7 @@ class OrderModel {
       closingDate: json['closingDate'],
       status: json['status'],
       orderNumber: json['orderNumber'],
+      whatsappNotifiedAt: json['whatsappNotifiedAt'],
       originType: json['originType'] != null
           ? OriginType.fromJson(json['originType'])
           : null,
@@ -97,6 +100,7 @@ class OrderModel {
       'details': details?.map((i) => i.toJson()).toList(),
       'surcharges': surcharges?.map((i) => i.toJson()).toList(),
       'transactionId': transactionId,
+      'whatsappNotifiedAt': whatsappNotifiedAt,
     };
   }
 }
