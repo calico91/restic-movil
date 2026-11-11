@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:restic_movil/app/data/models/order_model.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/widgets/order_status_chip.dart';
+import 'package:restic_movil/core/utils/widgets/whatsapp_notify_button.dart';
 
 /*delegado del grid de pedidos: 3 columnas fijas en móviles,
 responsive con más columnas en tablets y pantallas grandes.
@@ -137,8 +138,9 @@ class CompactOrderCard extends StatelessWidget {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: _isWeb ? const Color(0xFFF3F6FC) : Colors.white,
         borderRadius: BorderRadius.circular(14),
+        border: _isWeb ? Border.all(color: const Color(0x4D0D47A1)) : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -170,6 +172,11 @@ class CompactOrderCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
+                    if (_isWeb) ...[
+                      const SizedBox(width: 4),
+                      const WebOrderBadge(),
+                      const SizedBox(width: 6),
+                    ],
                     Flexible(
                       child: OrderStatusChip(
                         status: order.status,
@@ -218,6 +225,11 @@ class CompactOrderCard extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
+                      if (_isWeb && (order.customer?.phone?.isNotEmpty ?? false))
+                        Padding(
+                          padding: const EdgeInsets.only(left: 4),
+                          child: order.whatsappButtonIfWeb()!,
+                        ),
                     ],
                   ),
                 ],

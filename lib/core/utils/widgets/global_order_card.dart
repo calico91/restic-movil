@@ -16,6 +16,7 @@ import 'package:restic_movil/core/utils/snackbars/info_snackbar.dart';
 import 'package:restic_movil/core/utils/modals/modal_error.dart';
 import 'package:restic_movil/core/utils/formatters/currency_formatter.dart';
 import 'package:restic_movil/core/utils/icons/action_icon_button.dart';
+import 'package:restic_movil/core/utils/widgets/whatsapp_notify_button.dart';
 
 class GlobalOrderCard extends StatelessWidget {
   final OrderModel order;
@@ -77,16 +78,22 @@ class GlobalOrderCard extends StatelessWidget {
       } catch (_) {}
     }
 
-    // Obtener titulo (Origen)
+    // Obtener titulo (Origen). En web el cliente es mas claro que "Web".
+    final isWeb = order.originType?.code == 'WEB';
     String title = order.originType?.description ?? 'Sin Origen';
+    if (isWeb) {
+      final fullName = order.customer?.fullName;
+      if (fullName != null && fullName.isNotEmpty) title = fullName;
+    }
 
     final idDisplay = order.orderNumber!;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isWeb ? const Color(0xFFF3F6FC) : Colors.white,
         borderRadius: BorderRadius.circular(20),
+        border: isWeb ? Border.all(color: const Color(0x4D0D47A1)) : null,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
@@ -115,6 +122,10 @@ class GlobalOrderCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (isWeb) ...[
+                  const SizedBox(width: 8),
+                  const WebOrderBadge(),
+                ],
                 const SizedBox(width: 8),
                 if (onManageSurchargesPressed != null) ...[
                   const SizedBox(width: 4),
@@ -282,6 +293,27 @@ class GlobalOrderCard extends StatelessWidget {
               ),
             ),
             _buildInfoRow('Cliente:', order.customer?.fullName ?? 'Sin información'),
+            if (isWeb && (order.customer?.phone?.isNotEmpty ?? false))
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text('Teléfono:', style: TextStyle(color: Colors.black87)),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          order.customer!.phone!,
+                          style: const TextStyle(color: Colors.black87),
+                        ),
+                        const SizedBox(width: 10),
+                        order.whatsappButtonIfWeb()!,
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             _buildInfoRow('Creado por:', order.createdBy?.fullName ?? 'Sin información'),
             if (order.tables != null && order.tables!.isNotEmpty)
               _buildInfoRow('Mesa:', order.tables!.map((t) => t.name).join(', ')),
