@@ -46,6 +46,13 @@ class OrdersRepository {
     return List<Map<String, dynamic>>.from(response);
   }
 
+  /// Marca el pedido web como notificado al cliente por WhatsApp
+  /// (paso manual del personal; deja de alertarlo como "sin atender").
+  Future<OrderModel> markWhatsappNotified(String orderId) async {
+    final response = await _client.post('orders/$orderId/whatsapp-notified');
+    return OrderModel.fromJson(response as Map<String, dynamic>);
+  }
+
   Future<List<Map<String, dynamic>>> getOrderDetailStatuses() async {
     final response = await _client.get(UrlPaths.getOrderDetailStatuses);
     return List<Map<String, dynamic>>.from(response);
